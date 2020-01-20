@@ -1,0 +1,17 @@
+{
+    "name": "root",
+    "items": [
+        {
+            "name": "menu item 1",
+            "format": "default"
+        },
+        {
+            "name": "menu item 2",
+            "format": "default"
+        },
+        {
+            "name": "menu item 3",
+            "format": "default"
+        }
+    ]
+}

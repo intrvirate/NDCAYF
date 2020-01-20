@@ -1,0 +1,9 @@
+*
+!*.*
+!*/
+/CMakeFiles
+/NDCAYF.cbp
+/CMakeLists.txt.user
+/cmake_install.cmake
+!/.gitignore
+/.cmake

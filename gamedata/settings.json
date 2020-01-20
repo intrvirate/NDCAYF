@@ -1,0 +1,15 @@
+{
+    "name": "settings",
+    "items": [
+        {
+            "name": "settings item 1",
+            "target": "something that tells the code what the setting edits"
+        },
+        {
+            "name": "settings item 2",
+            "target": "something that tells the code what the setting edits"
+        }
+
+
+    ]
+}
