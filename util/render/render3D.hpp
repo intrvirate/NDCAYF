@@ -4,7 +4,9 @@
 void load3DShaders();
 void load3DBuffers();
 void load3DMatrices();
-void load3DUniforms(); //stuff that is constant for all 3D shaders, like projection matrices
+void loadAutoMapGen();
+void renderLoop3D(GLFWwindow *window);
+void cleanup3D();
 
 
 #endif // RENDER3D_HPP
