@@ -15,11 +15,14 @@
 
 //global variables (need to be accessed accross load functions)
 
-GLuint vertexShaderID;
-GLuint fragmentShaderID;
-GLuint shaderProgramID;
+GLuint vertexShaderID3D;
+GLuint fragmentShaderID3D;
+GLuint shaderProgramID3D;
 
-GLuint VBO, VAO, EBO;
+GLuint VBO3D; //Vertex Buffer Object
+GLuint VAO3D; //Vertex Array Object
+GLuint EBO3D; //Element Buffer Object
+
 
 const glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
 glm::vec3 cameraPos;
@@ -43,35 +46,34 @@ GLuint rendered_center_location;
 
 void load3DShaders(){
 
-    vertexShaderID = LoadVertexShader("gamedata/shaders/vertexshader.glsl");
-    fragmentShaderID = LoadFragmentShader("gamedata/shaders/fragmentshader.glsl");
-    shaderProgramID = LinkShaders(vertexShaderID, fragmentShaderID);
-    glUseProgram(shaderProgramID);
+    vertexShaderID3D = LoadVertexShader("gamedata/shaders/vertexshader.glsl");
+    fragmentShaderID3D = LoadFragmentShader("gamedata/shaders/fragmentshader.glsl");
+    shaderProgramID3D = LinkShaders(vertexShaderID3D, fragmentShaderID3D);
+    //glUseProgram(shaderProgramID3D);
 
-    glGetUniformLocation(shaderProgramID, "inColor");
+    //glGetUniformLocation(shaderProgramID3D, "inColor");
 
 }
 
 void load3DBuffers(){
 
-    glGenBuffers(1, &VBO);
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &EBO);
+    glGenBuffers(1, &VBO3D);
+    glGenVertexArrays(1, &VAO3D);
+    glGenBuffers(1, &EBO3D);
 
-    glBindVertexArray(VAO);
+    glBindVertexArray(VAO3D); //the following stuff is bound to this VAO
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO3D);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO3D);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind VBO
+    glBindVertexArray(0); //unbind VAO
 
 }
 
@@ -87,10 +89,11 @@ void load3DMatrices(){
     model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     projection = glm::perspective(glm::radians(45.0f), (float)(1024 / 768), 0.1f, 100.0f); //TODO: update screen size dynamicaly
 
+
     //update uniforms
-    model_location = glGetUniformLocation(shaderProgramID, "model");
-    view_location = glGetUniformLocation(shaderProgramID, "view");
-    projection_location = glGetUniformLocation(shaderProgramID, "projection");
+    model_location = glGetUniformLocation(shaderProgramID3D, "model");
+    view_location = glGetUniformLocation(shaderProgramID3D, "view");
+    projection_location = glGetUniformLocation(shaderProgramID3D, "projection");
 
     glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(model));
     glUniformMatrix4fv(view_location, 1, GL_FALSE, glm::value_ptr(view));
@@ -99,12 +102,15 @@ void load3DMatrices(){
 }
 
 void loadAutoMapGen(){
-    rendered_center_location = glGetUniformLocation(shaderProgramID, "rendered_center");
+    rendered_center_location = glGetUniformLocation(shaderProgramID3D, "rendered_center");
     glUniform2f(rendered_center_location, rendered_center.x, rendered_center.y );
 }
 
 void renderLoop3D(GLFWwindow *window){ //called once per frame in the render loop
 
+    //switch to 3D shader
+    glUseProgram(shaderProgramID3D);
+    glBindVertexArray(VAO3D);
     cameraDirection = getCameraDirection();
 
     glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
@@ -125,25 +131,22 @@ void renderLoop3D(GLFWwindow *window){ //called once per frame in the render loo
     glUniformMatrix4fv(projection_location, 1, GL_FALSE, glm::value_ptr(projection));
     glUniform2f(rendered_center_location, rendered_center.x, rendered_center.y );
 
-    glUseProgram(shaderProgramID);
+    //glBindVertexArray(VAO3D);
     glUniform4f(incolor, 1.0f, 0.0f, 0.0f, 1.0f);
     glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO3D);
     glDrawElements(GL_TRIANGLES, sizeof(indices) * 3, GL_UNSIGNED_INT, 0);
+
+    //glBindVertexArray(VAO3D);
     glUniform4f(incolor, 0.0f, 1.0f, 0.0f, 1.0f);
     glPolygonMode(GL_FRONT_AND_BACK, returnKeysetRenderMode());
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO3D);
     glDrawElements(GL_TRIANGLES, sizeof(indices) * 3, GL_UNSIGNED_INT, 0);
-
 
 }
 
 void cleanup3D(){
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
+    glDeleteVertexArrays(1, &VAO3D);
+    glDeleteBuffers(1, &VBO3D);
+    glDeleteBuffers(1, &EBO3D);
 }

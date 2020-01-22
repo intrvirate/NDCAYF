@@ -8,5 +8,4 @@ void loadAutoMapGen();
 void renderLoop3D(GLFWwindow *window);
 void cleanup3D();
 
-
 #endif // RENDER3D_HPP
