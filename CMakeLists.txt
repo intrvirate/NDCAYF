@@ -28,6 +28,7 @@ add_executable(NDCAYF
                 util/render/render3D.cpp
                 util/render/render2D.hpp
                 util/render/render2D.cpp
+                util/stb_image.h
 )
 
 target_link_libraries(NDCAYF glfw)
