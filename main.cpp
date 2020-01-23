@@ -7,28 +7,28 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
 #include "util/json.hpp"
 #include "util/loadMenu.hpp"
 
 #include "util/loadShaders.hpp"
 #include "util/handleinput.hpp"
 #include "util/otherhandlers.hpp"
-//#include "util/vertexGrid.hpp"
 
 #include "util/render/render3D.hpp"
+#include "util/render/render2D.hpp"
 
 using json = nlohmann::json;
 using namespace std;
 using namespace glm;
 GLFWwindow* window;
 
-
 int main()
 {
     //=========== SETUP ==========================================================
 
     //do this first because settings.json will contain things like default window size
-    setJsonDebugMode(true);
+    setJsonDebugMode(false);
     buildMenu();
 
     if( !glfwInit() )
@@ -37,6 +37,7 @@ int main()
         getchar();
         return -1;
     };
+
     //opengl flags
     glfwWindowHint(GLFW_SAMPLES, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -74,9 +75,16 @@ int main()
     glEnable(GL_CULL_FACE);
     glClearColor(0.0f, 0.0f, 0.4f, 0.0f); // default opengl background on startup: blue
 
+
+//=========== RENDER =========================================================
+
     load3DShaders();
     load3DBuffers();
     load3DMatrices();
+
+    load2DShaders();
+    load2DBuffers();
+
     loadAutoMapGen();
 
 //=========== LOOP ===========================================================
@@ -89,6 +97,7 @@ int main()
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         renderLoop3D(window);
+        renderLoop2D(window);
 
         // Swap buffers
         glfwSwapBuffers(window);

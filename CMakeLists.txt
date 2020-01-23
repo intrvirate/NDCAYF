@@ -24,10 +24,11 @@ add_executable(NDCAYF
                 util/otherhandlers.hpp
                 util/otherhandlers.cpp
                 util/vertexGrid.hpp
-                util/render/render3D.cpp
                 util/render/render3D.hpp
-                util/render/render2D.cpp
+                util/render/render3D.cpp
                 util/render/render2D.hpp
+                util/render/render2D.cpp
+                util/stb_image.h
 )
 
 target_link_libraries(NDCAYF glfw)
