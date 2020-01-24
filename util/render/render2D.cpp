@@ -19,16 +19,17 @@ using namespace std;
 
 float vertices2D[] = {
     //positions        //texture cords
+
+    0.80f, 1.00f, 0.0f, 0.00f, 0.00f,
     1.00f, 1.00f, 0.0f, 1.00f, 0.00f,
-    0.20f, 1.00f, 0.0f, 0.00f, 0.00f,
-    1.00f, -0.20f, 0.0f, 1.00f, 1.00f,
-    0.20f, -0.20f, 0.0f, 0.00f, 1.00f
+    1.00f, 0.80f, 0.0f, 1.00f, 1.00f,
+    0.80f, 0.80f, 0.0f, 0.00f, 1.00f
 
 };
 
 unsigned indices2D[] = {
-    0, 1, 2,
-    1, 3, 2
+    0, 2, 1,
+    0, 3, 2
 };
 
 //global variables (need to be accessed accross load functions)
@@ -42,6 +43,56 @@ GLuint VAO2D; //Vertex Array Object
 GLuint EBO2D; //Element Buffer Object
 
 unsigned int textTexture;
+
+void stringToLeterQuad(char *text){
+
+
+}
+
+
+void set2DletterQuad(char c, float xPos, float yPos, float xSize, float ySize){ //x,y referenced to upper right corner
+
+    c = c-32; //map doesn't contain characters before 32
+
+    int intx = c % 8;
+    int inty = c / 8;
+
+    printf(" c (-32) = %d\n", (int)c);
+    printf(" x (-32) = %d\n", intx);
+    printf(" y (-32) = %d\n", inty);
+
+    float x = intx;
+    float y = inty;
+
+//set vertex cords:
+    vertices2D[0] = xPos;
+    vertices2D[1] = yPos;
+
+    vertices2D[5] = xPos + xSize;
+    vertices2D[6] = yPos;
+
+    vertices2D[10] = xPos + xSize;
+    vertices2D[11] = yPos - ySize;
+
+    vertices2D[15] = xPos;
+    vertices2D[16] = yPos - ySize;
+
+//set texture cords:
+    // 8 = # of colums of characters
+    //16 = # of rows of characters
+    vertices2D[3] = x/8;
+    vertices2D[4] = y/16;
+
+    vertices2D[8] = (x+1)/8;
+    vertices2D[9] = y/16;
+
+    vertices2D[13] = (x+1)/8;
+    vertices2D[14] = (y+1)/16;
+
+    vertices2D[18] = x/8;
+    vertices2D[19] = (y+1)/16;
+
+}
 
 void load2DTextTexture(){
 
@@ -81,6 +132,7 @@ void load2DShaders(){
 }
 
 void load2DBuffers(){
+
     glGenBuffers(1, &VBO2D);
     glGenVertexArrays(1, &VAO2D);
     glGenBuffers(1, &EBO2D);
@@ -103,6 +155,29 @@ void load2DBuffers(){
 
 }
 
+void drawAllText(){ //!!must!! called from within 2D render loop
+
+    const char * text = "hello world";
+
+    for(int i = 0; i < 11; i++){
+        set2DletterQuad(text[i], -0.5+(i*0.1), 0, 0.2, 0.2);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2D), vertices2D, GL_STATIC_DRAW);
+        glDrawElements(GL_TRIANGLES, sizeof(indices2D) * 3, GL_UNSIGNED_INT, 0);
+    }
+
+    /*
+    set2DletterQuad('z', 0 , 0, 0.2, 0.2);
+
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2D), vertices2D, GL_STATIC_DRAW);
+    glDrawElements(GL_TRIANGLES, sizeof(indices2D) * 3, GL_UNSIGNED_INT, 0);
+
+    set2DletterQuad('t', -0.8 , 0.5, 0.2, 0.2);
+
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2D), vertices2D, GL_STATIC_DRAW);
+    glDrawElements(GL_TRIANGLES, sizeof(indices2D) * 3, GL_UNSIGNED_INT, 0);
+*/
+}
+
 void renderLoop2D(GLFWwindow *window){ //called once per frame in the render loop
 
     glUseProgram(shaderProgramID2D);
@@ -110,9 +185,13 @@ void renderLoop2D(GLFWwindow *window){ //called once per frame in the render loo
     glBindTexture(GL_TEXTURE_2D, textTexture);
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL );
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO2D);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO2D);
-    glDrawElements(GL_TRIANGLES, sizeof(indices2D) * 3, GL_UNSIGNED_INT, 0);
+
+    drawAllText(); //don't move this call out of order
 
     glBindVertexArray(0); //unbind VAO
 
 }
+

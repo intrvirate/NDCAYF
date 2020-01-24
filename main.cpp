@@ -75,7 +75,6 @@ int main()
     glEnable(GL_CULL_FACE);
     glClearColor(0.0f, 0.0f, 0.4f, 0.0f); // default opengl background on startup: blue
 
-
 //=========== RENDER =========================================================
 
     load3DShaders();
@@ -87,9 +86,14 @@ int main()
 
     loadAutoMapGen();
 
+
+
 //=========== LOOP ===========================================================
 
     while( glfwWindowShouldClose(window) == 0){
+
+
+
 
         //setup
         calculateFrameTime();
