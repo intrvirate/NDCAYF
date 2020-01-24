@@ -1,6 +1,7 @@
 #ifndef RENDER2D_HPP
 #define RENDER2D_HPP
 
+void addTextString(std::string text, float x, float y, float size);
 void stringToLeterQuad(char *text);
 void set2DletterQuad(char c, float xPos, float yPos, float xSize, float ySize);
 void load2DTextTexture();

@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <string>
 #include <vector>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -8,12 +8,14 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION //stb_image.h wants this here
 #include "util/stb_image.h"
 
 #include "util/loadShaders.hpp"
 #include "util/handleinput.hpp"
 #include "util/otherhandlers.hpp"
+
+#define COUNT_OF( arr) (sizeof(arr)/sizeof(arr[0]))
 
 using namespace std;
 
@@ -44,11 +46,22 @@ GLuint EBO2D; //Element Buffer Object
 
 unsigned int textTexture;
 
+//pointer to beginning of text storage array. it's tynamicaly allocated, so just a pointer here.
+
+struct textData * textDataArray;
+
+struct textData {
+    string str;
+    float size;
+    float x;
+    float y;
+};
+
+
 void stringToLeterQuad(char *text){
 
 
 }
-
 
 void set2DletterQuad(char c, float xPos, float yPos, float xSize, float ySize){ //x,y referenced to upper right corner
 
@@ -56,10 +69,6 @@ void set2DletterQuad(char c, float xPos, float yPos, float xSize, float ySize){ 
 
     int intx = c % 8;
     int inty = c / 8;
-
-    printf(" c (-32) = %d\n", (int)c);
-    printf(" x (-32) = %d\n", intx);
-    printf(" y (-32) = %d\n", inty);
 
     float x = intx;
     float y = inty;
@@ -95,7 +104,6 @@ void set2DletterQuad(char c, float xPos, float yPos, float xSize, float ySize){ 
 }
 
 void load2DTextTexture(){
-
 
     glGenTextures(1, &textTexture);
     glBindTexture(GL_TEXTURE_2D, textTexture);
@@ -155,8 +163,39 @@ void load2DBuffers(){
 
 }
 
-void drawAllText(){ //!!must!! called from within 2D render loop
+void addTextString(string text, float x, float y, float size){
 
+    uint oldLength = 0;
+    if(textDataArray == NULL){
+        fprintf(stderr, "first creation\n");
+        textDataArray = new struct textData [1]; //single value array
+        oldLength = 0;
+    }else {
+
+        struct textData * newTextDataArray = new struct textData [1 + sizeof(textDataArray)]; //make it 1 larger than it already is
+
+        oldLength = COUNT_OF(&textDataArray);
+        //copy data into new array
+        for(uint i = 0; i < oldLength; i++){
+            newTextDataArray[i] = textDataArray[i];
+            delete[] textDataArray; //clear old array from memory
+            textDataArray = newTextDataArray; //assign new array to old mem location
+        }
+
+    }
+    fprintf(stderr, "adding\n");
+    //add new string to array
+    textDataArray[oldLength].str = text;
+    textDataArray[oldLength].x = x;
+    textDataArray[oldLength].y = y;
+    textDataArray[oldLength].size = size;
+
+    fprintf(stderr, "done adding\n");
+
+}
+
+void drawAllText(){ //!!must!! called from within 2D render loop
+/*
     const char * text = "hello world";
 
     for(int i = 0; i < 11; i++){
@@ -164,6 +203,26 @@ void drawAllText(){ //!!must!! called from within 2D render loop
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2D), vertices2D, GL_STATIC_DRAW);
         glDrawElements(GL_TRIANGLES, sizeof(indices2D) * 3, GL_UNSIGNED_INT, 0);
     }
+    */
+    float letterOffset = 0;
+
+    if(textDataArray != NULL){ //this code crashes if called on a null array (when no text is in the array
+    fprintf(stderr, "not null\n");
+    fprintf(stderr, "sizeof(textDataArray) = %lu\n", sizeof(textDataArray));
+    fprintf(stderr, "COUNT_OF(&textDataArray) = %lu\n",COUNT_OF(&textDataArray));
+    fprintf(stderr, "textDataArray[i].str.size() = %lu\n", textDataArray[0].str.size());
+
+        for(uint i = 0; i < COUNT_OF(&textDataArray); i++){
+            fprintf(stderr, "i = %d\n", i);
+            letterOffset = textDataArray[i].size/2; //half the size
+            for(uint j = 0; j < textDataArray[i].str.size(); j++){
+                set2DletterQuad(textDataArray[i].str[j], textDataArray[i].x + letterOffset*j, textDataArray[i].y, textDataArray[i].size, textDataArray[i].size);
+                glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2D), vertices2D, GL_STATIC_DRAW);
+                glDrawElements(GL_TRIANGLES, sizeof(indices2D) * 3, GL_UNSIGNED_INT, 0);
+            }
+        }
+    }
+    fprintf(stderr, "rendering done\n");
 
     /*
     set2DletterQuad('z', 0 , 0, 0.2, 0.2);
