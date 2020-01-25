@@ -9,6 +9,7 @@ uint8_t renderMode = 1; // 1 = fill, 2 = line, 3 = point
 GLenum enumRenderMode = GL_FILL;
 
 float cameraSpeed = 0.05f;
+float cameraSpeedMultiplier = 4.5f;
 
 float frameTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
@@ -65,12 +66,16 @@ glm::vec3 calcCameraMovement(GLFWwindow* window, glm::vec3 cameraPos, glm::vec3 
     return cameraPos;
 }
 
+float getFrameTime(){
+    return frameTime;
+}
+
 void calculateFrameTime(){ //call this exactly once per frame
     float currentTime = glfwGetTime();
     frameTime = currentTime - lastFrame;
     lastFrame = currentTime;
 
-    cameraSpeed = 4.5f * frameTime;
+    cameraSpeed = cameraSpeedMultiplier * frameTime;
 }
 
 //===================== MOUSE ====================

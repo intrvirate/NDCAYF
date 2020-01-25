@@ -195,25 +195,17 @@ void addTextString(string text, float x, float y, float size){
 }
 
 void drawAllText(){ //!!must!! called from within 2D render loop
-/*
-    const char * text = "hello world";
 
-    for(int i = 0; i < 11; i++){
-        set2DletterQuad(text[i], -0.5+(i*0.1), 0, 0.2, 0.2);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2D), vertices2D, GL_STATIC_DRAW);
-        glDrawElements(GL_TRIANGLES, sizeof(indices2D) * 3, GL_UNSIGNED_INT, 0);
-    }
-    */
     float letterOffset = 0;
 
     if(textDataArray != NULL){ //this code crashes if called on a null array (when no text is in the array
-    fprintf(stderr, "not null\n");
-    fprintf(stderr, "sizeof(textDataArray) = %lu\n", sizeof(textDataArray));
-    fprintf(stderr, "COUNT_OF(&textDataArray) = %lu\n",COUNT_OF(&textDataArray));
-    fprintf(stderr, "textDataArray[i].str.size() = %lu\n", textDataArray[0].str.size());
+    //fprintf(stderr, "not null\n");
+    //fprintf(stderr, "sizeof(textDataArray) = %lu\n", sizeof(textDataArray));
+    //fprintf(stderr, "COUNT_OF(&textDataArray) = %lu\n",COUNT_OF(&textDataArray));
+    //fprintf(stderr, "textDataArray[i].str.size() = %lu\n", textDataArray[0].str.size());
 
         for(uint i = 0; i < COUNT_OF(&textDataArray); i++){
-            fprintf(stderr, "i = %d\n", i);
+            //fprintf(stderr, "i = %d\n", i);
             letterOffset = textDataArray[i].size/2; //half the size
             for(uint j = 0; j < textDataArray[i].str.size(); j++){
                 set2DletterQuad(textDataArray[i].str[j], textDataArray[i].x + letterOffset*j, textDataArray[i].y, textDataArray[i].size, textDataArray[i].size);
@@ -222,19 +214,23 @@ void drawAllText(){ //!!must!! called from within 2D render loop
             }
         }
     }
-    fprintf(stderr, "rendering done\n");
+    //fprintf(stderr, "rendering done\n");
 
-    /*
-    set2DletterQuad('z', 0 , 0, 0.2, 0.2);
+}
 
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2D), vertices2D, GL_STATIC_DRAW);
-    glDrawElements(GL_TRIANGLES, sizeof(indices2D) * 3, GL_UNSIGNED_INT, 0);
+void updateFPSCounter(){
 
-    set2DletterQuad('t', -0.8 , 0.5, 0.2, 0.2);
+    float sec = getFrameTime();
 
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2D), vertices2D, GL_STATIC_DRAW);
-    glDrawElements(GL_TRIANGLES, sizeof(indices2D) * 3, GL_UNSIGNED_INT, 0);
-*/
+    char str[8]; //4 digits
+    sprintf(str, "%f", sec);
+
+    for(int i = 0; i < 8; i++){
+            set2DletterQuad(str[i], -1.0 + (0.025*i), -0.95, 0.05, 0.05);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2D), vertices2D, GL_STATIC_DRAW);
+            glDrawElements(GL_TRIANGLES, sizeof(indices2D) * 3, GL_UNSIGNED_INT, 0);
+    }
+
 }
 
 void renderLoop2D(GLFWwindow *window){ //called once per frame in the render loop
@@ -250,7 +246,10 @@ void renderLoop2D(GLFWwindow *window){ //called once per frame in the render loo
 
     drawAllText(); //don't move this call out of order
 
+    updateFPSCounter();
+
     glBindVertexArray(0); //unbind VAO
 
 }
+
 

@@ -86,13 +86,12 @@ int main()
 
     loadAutoMapGen();
 
-    addTextString("hello5 this is a test", 0, 0, 0.06);
+    addTextString("{}[]:\";',.<>/?~", -1, 0, 0.1);
 
     fprintf(stderr, "addTextString returned\n");
 //=========== LOOP ===========================================================
 
     while( glfwWindowShouldClose(window) == 0){
-
 
         //setup
         calculateFrameTime();

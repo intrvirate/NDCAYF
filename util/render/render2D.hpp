@@ -9,6 +9,7 @@ void load2DShaders();
 void load2DBuffers();
 void drawAllText();
 void renderLoop2D(GLFWwindow *window);
+void updateFPSCounter();
 
 
 #endif // RENDER2D_HPP
