@@ -15,8 +15,6 @@
 #include "util/handleinput.hpp"
 #include "util/otherhandlers.hpp"
 
-#define COUNT_OF( arr) (sizeof(arr)/sizeof(arr[0]))
-
 using namespace std;
 
 float vertices2D[] = {
@@ -49,6 +47,7 @@ unsigned int textTexture;
 //pointer to beginning of text storage array. it's tynamicaly allocated, so just a pointer here.
 
 struct textData * textDataArray;
+uint textDataArrayCount = 0;
 
 struct textData {
     string str;
@@ -165,33 +164,29 @@ void load2DBuffers(){
 
 void addTextString(string text, float x, float y, float size){
 
-    uint oldLength = 0;
+    uint oldLength = textDataArrayCount; //this variable is 1 indexed; 0 means array not yet created
     if(textDataArray == NULL){
-        fprintf(stderr, "first creation\n");
+        //fprintf(stderr, "first time create\n");
         textDataArray = new struct textData [1]; //single value array
-        oldLength = 0;
+        textDataArrayCount++; //should = 1 if being set here
     }else {
 
-        struct textData * newTextDataArray = new struct textData [1 + sizeof(textDataArray)]; //make it 1 larger than it already is
-
-        oldLength = COUNT_OF(&textDataArray);
         //copy data into new array
+        struct textData *newTextDataArray = new struct textData[1 + oldLength]; //make it 1 larger than it already is
+        textDataArrayCount++;
         for(uint i = 0; i < oldLength; i++){
             newTextDataArray[i] = textDataArray[i];
-            delete[] textDataArray; //clear old array from memory
-            textDataArray = newTextDataArray; //assign new array to old mem location
         }
+        delete[] textDataArray; //clear old array from memory
+
+        textDataArray = newTextDataArray; //assign new array to old mem location
 
     }
-    fprintf(stderr, "adding\n");
     //add new string to array
     textDataArray[oldLength].str = text;
     textDataArray[oldLength].x = x;
     textDataArray[oldLength].y = y;
     textDataArray[oldLength].size = size;
-
-    fprintf(stderr, "done adding\n");
-
 }
 
 void drawAllText(){ //!!must!! called from within 2D render loop
@@ -204,7 +199,7 @@ void drawAllText(){ //!!must!! called from within 2D render loop
     //fprintf(stderr, "COUNT_OF(&textDataArray) = %lu\n",COUNT_OF(&textDataArray));
     //fprintf(stderr, "textDataArray[i].str.size() = %lu\n", textDataArray[0].str.size());
 
-        for(uint i = 0; i < COUNT_OF(&textDataArray); i++){
+        for(uint i = 0; i < textDataArrayCount ; i++){
             //fprintf(stderr, "i = %d\n", i);
             letterOffset = textDataArray[i].size/2; //half the size
             for(uint j = 0; j < textDataArray[i].str.size(); j++){
@@ -215,7 +210,6 @@ void drawAllText(){ //!!must!! called from within 2D render loop
         }
     }
     //fprintf(stderr, "rendering done\n");
-
 }
 
 void updateFPSCounter(){
@@ -230,7 +224,6 @@ void updateFPSCounter(){
             glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2D), vertices2D, GL_STATIC_DRAW);
             glDrawElements(GL_TRIANGLES, sizeof(indices2D) * 3, GL_UNSIGNED_INT, 0);
     }
-
 }
 
 void renderLoop2D(GLFWwindow *window){ //called once per frame in the render loop

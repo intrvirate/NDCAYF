@@ -5,8 +5,16 @@
 #include <fstream>
 #include <algorithm>
 #include <sstream>
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "util/json.hpp"
+
+#include "util/render/render2D.hpp"
+
 
 using json = nlohmann::json;
 using namespace std;
@@ -65,17 +73,37 @@ int buildMenu(){
         std::cout << e.what() << endl; //print error
     }
 
-
-
     //print json to terminal
     if(debugMode == true){
         std::cout << menujson.dump(3) << endl;
         std::cout << settingsjson.dump(3) << endl;
 
     }
+    std::cout << menujson["items"][2].dump(3) << endl;
 
-
-
+    //addTextString("{}[]:\";',.<>/?~", -1, 0.7, 0.1);
 
     return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

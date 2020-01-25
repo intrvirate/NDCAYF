@@ -9,14 +9,16 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "util/json.hpp"
+
+#include "util/render/render3D.hpp"
+#include "util/render/render2D.hpp"
+
 #include "util/loadMenu.hpp"
 
 #include "util/loadShaders.hpp"
 #include "util/handleinput.hpp"
 #include "util/otherhandlers.hpp"
 
-#include "util/render/render3D.hpp"
-#include "util/render/render2D.hpp"
 
 using json = nlohmann::json;
 using namespace std;
@@ -28,7 +30,7 @@ int main()
     //=========== SETUP ==========================================================
 
     //do this first because settings.json will contain things like default window size
-    setJsonDebugMode(false);
+    setJsonDebugMode(true);
     buildMenu();
 
     if( !glfwInit() )
@@ -86,9 +88,16 @@ int main()
 
     loadAutoMapGen();
 
-    addTextString("{}[]:\";',.<>/?~", -1, 0, 0.1);
+    addTextString("hi", -1, -0.7, 0.1);
 
-    fprintf(stderr, "addTextString returned\n");
+    addTextString("hello", -1, 0.7, 0.1);
+
+    addTextString("string 3", 0.3, 0.7, 0.1);
+
+    addTextString("string 4", -1, 0.2, 0.05);
+
+    addTextString("string 5", -0.4, 0.7, 0.08);
+
 //=========== LOOP ===========================================================
 
     while( glfwWindowShouldClose(window) == 0){
