@@ -1,5 +1,4 @@
 {
-    "name": "root",
     "items": [
         {
             "name": "menu item 1",
@@ -11,6 +10,9 @@
         },
         {
             "name": "menu item 3",
+            "format": "default"
+        },
+        {    "name": "4th setting",
             "format": "default"
         }
     ]

@@ -108,7 +108,7 @@ void load2DTextTexture(){
     glBindTexture(GL_TEXTURE_2D, textTexture);
 
     int width, height, nrChannels;
-    unsigned char *textTexturedata = stbi_load("gamedata/ExportedFont.bmp", &width, &height, &nrChannels, 0);
+    unsigned char *textTexturedata = stbi_load("gamedata/calibri_ofset-12_height-140.bmp", &width, &height, &nrChannels, 0);
     if(!textTexturedata){
         printf("Failed to load texture");
         exit(0);
@@ -180,7 +180,6 @@ void addTextString(string text, float x, float y, float size){
         delete[] textDataArray; //clear old array from memory
 
         textDataArray = newTextDataArray; //assign new array to old mem location
-
     }
     //add new string to array
     textDataArray[oldLength].str = text;

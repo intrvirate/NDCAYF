@@ -88,15 +88,15 @@ int main()
 
     loadAutoMapGen();
 
-    addTextString("hi", -1, -0.7, 0.1);
+    addTextString("abcdefghijklmnopqrstuvwxyz", -1, -0.7, 0.1);
 
-    addTextString("hello", -1, 0.7, 0.1);
+    //addTextString("hello", -1, 0.7, 0.1);
 
-    addTextString("string 3", 0.3, 0.7, 0.1);
+    //addTextString("string 3", 0.3, 0.7, 0.1);
 
-    addTextString("string 4", -1, 0.2, 0.05);
+   // addTextString("string 4", -1, 0.2, 0.05);
 
-    addTextString("string 5", -0.4, 0.7, 0.08);
+    //addTextString("string 5", -0.4, 0.7, 0.08);
 
 //=========== LOOP ===========================================================
 

@@ -79,26 +79,13 @@ int buildMenu(){
         std::cout << settingsjson.dump(3) << endl;
 
     }
-    std::cout << menujson["items"][2].dump(3) << endl;
 
-    //addTextString("{}[]:\";',.<>/?~", -1, 0.7, 0.1);
+    for(int i = 0; !menujson["items"][i].is_null(); i++){
+        addTextString(menujson["items"][i]["name"], -0.5, 0.8 - (0.1*i), 0.1);
+    }
 
     return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
