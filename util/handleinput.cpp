@@ -14,7 +14,41 @@ float cameraSpeedMultiplier = 4.5f;
 float frameTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 
+double lastX = 400, lastY = 300; //update these to reflect screen size
+float yaw = 0;
+float pitch = 0;
+float sensitivity = 0.25;
+float xArrowSensitivity = 0.01;
+float yArrowSensitivity = 0.01;
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+
 void toggleMouseVisibility(GLFWwindow* window); //needed because the mose code is below
+
+void updateCameraFront(double xpos, double ypos) {
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos;
+    lastX = xpos;
+    lastY = ypos;
+
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+
+    yaw   += xoffset;
+    pitch += yoffset;
+
+    if(pitch > 89.0f)
+        pitch = 89.0f;
+    if(pitch < -89.0f)
+        pitch = -89.0f;
+
+    glm::vec3 front;
+    front.x = sin(glm::radians(yaw)) * cos(glm::radians(pitch));        //0
+    front.y = sin(glm::radians(pitch));                                 //0
+    front.z = -cos(glm::radians(yaw)) * cos(glm::radians(pitch));        //-1
+
+    cameraFront = glm::normalize(front);
+
+}
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -62,6 +96,15 @@ glm::vec3 calcCameraMovement(GLFWwindow* window, glm::vec3 cameraPos, glm::vec3 
         cameraPos += cameraSpeed * cameraUp;
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
         cameraPos -= cameraSpeed * cameraUp;
+    // TODO: Fix the issue where it freaks out and clears the screen
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+        updateCameraFront(0, yArrowSensitivity);
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        updateCameraFront(0, -yArrowSensitivity);
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+        updateCameraFront(xArrowSensitivity, 0);
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        updateCameraFront(-xArrowSensitivity, 0);
 
     return cameraPos;
 }
@@ -80,11 +123,6 @@ void calculateFrameTime(){ //call this exactly once per frame
 
 //===================== MOUSE ====================
 
-double lastX = 400, lastY = 300; //update these to reflect screen size
-float yaw = 0;
-float pitch = 0;
-float sensitivity = 0.25;
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 
 //call this before setting the callback
 /*float
@@ -117,30 +155,11 @@ void initializeMouse(GLFWwindow* window){
 
 void mouse_callback_camera(GLFWwindow* window, double xpos, double ypos)
 {
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos;
-    lastX = xpos;
-    lastY = ypos;
 
-    xoffset *= sensitivity;
-    yoffset *= sensitivity;
-
-    yaw   += xoffset;
-    pitch += yoffset;
-
-    if(pitch > 89.0f)
-        pitch = 89.0f;
-    if(pitch < -89.0f)
-        pitch = -89.0f;
-
-    glm::vec3 front;
-    front.x = sin(glm::radians(yaw)) * cos(glm::radians(pitch));        //0
-    front.y = sin(glm::radians(pitch));                                 //0
-    front.z = -cos(glm::radians(yaw)) * cos(glm::radians(pitch));        //-1
-
-    cameraFront = glm::normalize(front);
-
+    updateCameraFront(xpos, ypos);
 }
+
+
 
 void mouse_callback_point(GLFWwindow* window, double xpos, double ypos)
 {
