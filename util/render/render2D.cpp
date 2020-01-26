@@ -63,6 +63,7 @@ struct textData {
 };
 
 bool textMouseColor = true;
+bool FPScounter = true; //false = display sec/frame, true = frame/sec
 glm::vec3 activeTextColor = glm::vec3(0.0f, 0.8f, 0.2f);
 glm::vec3 passiveTextColor = glm::vec3(0.5f, 0.2f, 0.0f);
 
@@ -231,7 +232,7 @@ void drawAllText(){ //!!must!! called from within 2D render loop
     //set text color
 
 
-    if(textDataArray != NULL){ //this code crashes if called on a null array (when no text is in the array)
+    if(textDataArray != NULL && isMouseVisable()){ //this code crashes if called on a null array (when no text is in the array)
 
         for(uint i = 0; i < textDataArrayCount ; i++){ //draw strings
             //fprintf(stderr, "i = %d\n", i);
@@ -258,11 +259,14 @@ void drawAllText(){ //!!must!! called from within 2D render loop
 void updateFPSCounter(){
 
     float sec = getFrameTime();
+    if(FPScounter){
+        sec = 1/sec;
+    }
 
-    char str[8]; //4 digits
+    char str[12]; //12 digits, a few extra to be safe. If this overflows, the pgm crashes
     sprintf(str, "%f", sec);
     glUniform3f(colorUniform_location, 1.0, 1.0, 1.0);
-    for(int i = 0; i < 8; i++){
+    for(int i = 0; i < 7; i++){ //set number of digits to render here
             set2DletterQuad(str[i], -1.0 + (0.025*i), -0.95, 0.05, 0.05);
             glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2D), vertices2D, GL_STATIC_DRAW);
             glDrawElements(GL_TRIANGLES, sizeof(indices2D) * 3, GL_UNSIGNED_INT, 0);

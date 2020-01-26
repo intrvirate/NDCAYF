@@ -20,27 +20,25 @@
         }
     ],
     "m1":[
-        {    "name": "submenu 1",
+        {   "name": "submenu 1",
             "format": "default",
             "type": "menu",
             "target": "root"
         }
     ],
     "m2":[
-        {    "name": "submenu 2",
+        {   "name": "submenu 2",
             "format": "default",
             "type": "menu",
             "target": "root"
         }
     ],
     "m3":[
-        {    "name": "submenu 3",
+        {   "name": "submenu 3",
             "format": "default",
             "type": "menu",
             "target": "m2"
         }
     ]
 }
-
-
 
