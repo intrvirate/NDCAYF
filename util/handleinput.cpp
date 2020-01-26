@@ -22,7 +22,9 @@ float xArrowSensitivity = 0.01;
 float yArrowSensitivity = 0.01;
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 
-void toggleMouseVisibility(GLFWwindow* window); //needed because the mose code is below
+bool mouseVisable = false;
+
+glm::vec2 pointMousePos;
 
 void updateCameraFront(double xpos, double ypos) {
     float xoffset = xpos - lastX;
@@ -49,6 +51,61 @@ void updateCameraFront(double xpos, double ypos) {
     cameraFront = glm::normalize(front);
 
 }
+
+void initializeMouse(GLFWwindow* window){
+
+    int width;
+    int height;
+    glfwGetWindowSize(window, &width, &height);
+    glfwSetCursorPos(window, width/2, height/2);
+
+    glfwGetCursorPos(window, &lastX, &lastY);
+//    printf("initialize cords: x = %f", lastX);
+//    printf(" y = %f\n", lastY);
+//    printf("initial front vector after:  (x,y,z) (%f,%f,%f)\n", cameraFront.x, cameraFront.y, cameraFront.z);
+
+}
+
+void mouse_callback_camera(GLFWwindow* window, double xpos, double ypos)
+{
+
+    updateCameraFront(xpos, ypos);
+}
+
+
+
+void mouse_callback_point(GLFWwindow* window, double xpos, double ypos)
+{
+    int width, height;
+    glfwGetWindowSize(window, &width, &height);
+
+    pointMousePos.x = -(2*xpos/width)+1;
+    pointMousePos.y = -(2*ypos/height)+1;
+}
+
+glm::vec2 getMousePos(){
+    return pointMousePos;
+}
+
+void toggleMouseVisibility(GLFWwindow* window){
+    initializeMouse(window);
+    if(glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED){
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        glfwSetCursorPosCallback(window, mouse_callback_point);
+        mouseVisable = true;
+    }else{
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        glfwSetCursorPosCallback(window, mouse_callback_camera);
+        mouseVisable = false;
+
+    }
+}
+
+bool isMouseVisable(){
+    return mouseVisable;
+}
+
+
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -79,7 +136,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 }
 
 GLenum returnKeysetRenderMode(){
-    return enumRenderMode;
+    return enumRenderMode; // points, lines, or triangles
 }
 
 glm::vec3 calcCameraMovement(GLFWwindow* window, glm::vec3 cameraPos, glm::vec3 cameraFront, glm::vec3 cameraUp){
@@ -119,63 +176,6 @@ void calculateFrameTime(){ //call this exactly once per frame
     lastFrame = currentTime;
 
     cameraSpeed = cameraSpeedMultiplier * frameTime;
-}
-
-//===================== MOUSE ====================
-
-
-//call this before setting the callback
-/*float
-void initializeMouse(GLFWwindow* window){
-    int width;
-    int height;
-    glfwGetWindowSize(window, &width, &height);
-    glfwSetCursorPos(window, width/2, height/2);
-    //glfwGetCursorPos(window)
-    lastX = width/2;
-    lastY = height/2;
-    glfwSetCursorPos(window, width/2, height/2);
-}
-*/
-
-void initializeMouse(GLFWwindow* window){
-
-    int width;
-    int height;
-    glfwGetWindowSize(window, &width, &height);
-    glfwSetCursorPos(window, width/2, height/2);
-
-    glfwGetCursorPos(window, &lastX, &lastY);
-//    printf("initialize cords: x = %f", lastX);
-//    printf(" y = %f", lastY);
-//    printf("\n");
-//    printf("initial front vector after:  (x,y,z) (%f,%f,%f)\n", cameraFront.x, cameraFront.y, cameraFront.z);
-
-}
-
-void mouse_callback_camera(GLFWwindow* window, double xpos, double ypos)
-{
-
-    updateCameraFront(xpos, ypos);
-}
-
-
-
-void mouse_callback_point(GLFWwindow* window, double xpos, double ypos)
-{
-
-}
-
-void toggleMouseVisibility(GLFWwindow* window){
-    initializeMouse(window);
-    if(glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED){
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-         glfwSetCursorPosCallback(window, mouse_callback_point);
-    }else{
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        glfwSetCursorPosCallback(window, mouse_callback_camera);
-
-    }
 }
 
 glm::vec3 getCameraDirection(){

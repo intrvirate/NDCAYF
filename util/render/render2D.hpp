@@ -7,6 +7,8 @@ void set2DletterQuad(char c, float xPos, float yPos, float xSize, float ySize);
 void load2DTextTexture();
 void load2DShaders();
 void load2DBuffers();
+void enableTextMouseColor(bool state);
+void setTextMouseColor(glm::vec3 colorIn);
 void drawAllText();
 void renderLoop2D(GLFWwindow *window);
 void updateFPSCounter();

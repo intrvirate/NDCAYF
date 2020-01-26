@@ -3,11 +3,11 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-#include <fstream>
-#include <sstream>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -41,6 +41,8 @@ GLuint vertexShaderID2D;
 GLuint fragmentShaderID2D;
 GLuint shaderProgramID2D;
 
+GLuint colorUniform_location;
+
 GLuint VBO2D; //Vertex Buffer Object
 GLuint VAO2D; //Vertex Array Object
 GLuint EBO2D; //Element Buffer Object
@@ -60,10 +62,13 @@ struct textData {
     float y;
 };
 
+bool textMouseColor = true;
+glm::vec3 activeTextColor = glm::vec3(0.0f, 0.8f, 0.2f);
+glm::vec3 passiveTextColor = glm::vec3(0.5f, 0.2f, 0.0f);
+
 void loadTextDataSpacing(){
 
     FILE* my_file = fopen("gamedata/calibri_ofset-12_height-140.csv", "r"); //note:when generating this file, the tool puts other data at the top which must be removed
-
     int data = 0;
     int actualdata = 0;
 
@@ -77,7 +82,6 @@ void loadTextDataSpacing(){
     }
 
 }
-
 
 void set2DletterQuad(char c, float xPos, float yPos, float xSize, float ySize){ //x,y referenced to upper right corner
 
@@ -176,6 +180,17 @@ void load2DBuffers(){
     glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind VBO
     glBindVertexArray(0); //unbind VAO
 
+    colorUniform_location = glGetUniformLocation(shaderProgramID2D, "textColor");
+
+
+}
+
+void enablelTextMouseColor(bool state){
+    textMouseColor = state;
+}
+
+void setTextMouseColor(glm::vec3 colorIn) {
+    activeTextColor = colorIn;
 }
 
 void addTextString(string text, float x, float y, float size){
@@ -206,17 +221,25 @@ void addTextString(string text, float x, float y, float size){
 
 void drawAllText(){ //!!must!! called from within 2D render loop
 
+    //set text color
+
 
     if(textDataArray != NULL){ //this code crashes if called on a null array (when no text is in the array
-    //fprintf(stderr, "not null\n");
-    //fprintf(stderr, "sizeof(textDataArray) = %lu\n", sizeof(textDataArray));
-    //fprintf(stderr, "COUNT_OF(&textDataArray) = %lu\n",COUNT_OF(&textDataArray));
-    //fprintf(stderr, "textDataArray[i].str.size() = %lu\n", textDataArray[0].str.size());
 
         for(uint i = 0; i < textDataArrayCount ; i++){ //draw strings
             //fprintf(stderr, "i = %d\n", i);
 
-        float xpos = textDataArray[i].x;
+            float xpos = textDataArray[i].x;
+
+            fprintf(stderr, "mouse.y = %f\n", getMousePos().y);
+
+            if(isMouseVisable() && getMousePos().y < textDataArray[i].y && getMousePos().y > textDataArray[i].y - textDataArray[i].size){
+
+                glUniform3f(colorUniform_location, activeTextColor.x, activeTextColor.y, activeTextColor.z);
+
+            }else{
+                glUniform3f(colorUniform_location, passiveTextColor.x, passiveTextColor.y, passiveTextColor.z);
+            }
 
             for(uint j = 0; j < textDataArray[i].str.size(); j++){  //characters
                 char c = textDataArray[i].str[j];
@@ -228,7 +251,6 @@ void drawAllText(){ //!!must!! called from within 2D render loop
             }
         }
     }
-    //fprintf(stderr, "rendering done\n");
 }
 
 void updateFPSCounter(){
@@ -237,7 +259,7 @@ void updateFPSCounter(){
 
     char str[8]; //4 digits
     sprintf(str, "%f", sec);
-
+    glUniform3f(colorUniform_location, 1.0, 1.0, 1.0);
     for(int i = 0; i < 8; i++){
             set2DletterQuad(str[i], -1.0 + (0.025*i), -0.95, 0.05, 0.05);
             glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2D), vertices2D, GL_STATIC_DRAW);

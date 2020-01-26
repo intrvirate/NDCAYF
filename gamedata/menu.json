@@ -2,18 +2,26 @@
     "items": [
         {
             "name": "menu item 1",
-            "format": "default"
+            "format": "default",
+            "type": "menu",
+            "target": ""
         },
         {
             "name": "menu item 2",
-            "format": "default"
+            "format": "default",
+            "type": "menu",
+            "target": ""
         },
         {
             "name": "menu item 3",
-            "format": "default"
+            "format": "default",
+            "type": "menu",
+            "target": ""
         },
         {    "name": "4th setting",
-            "format": "default"
+            "format": "default",
+            "type": "menu",
+            "target": ""
         }
     ]
 }
