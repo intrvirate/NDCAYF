@@ -89,11 +89,11 @@ int main()
 
     loadAutoMapGen();
 
-    addTextString("abcdefghijklmnopqrstuvwxyz", -1, 0, 0.2);
-    addTextString("abcdefghijklmnopqrstuvwxyz", -1, -0.2, 0.15);
-    addTextString("abcdefghijklmnopqrstuvwxyz", -1, -0.35, 0.1);
-    addTextString("abcdefghijklmnopqrstuvwxyz", -1, -0.45, 0.07);
-    addTextString("abcdefghijklmnopqrstuvwxyz", -1, -0.55, 0.04);
+    //addTextString("abcdefghijklmnopqrstuvwxyz", -1, 0, 0.2);
+    //addTextString("abcdefghijklmnopqrstuvwxyz", -1, -0.2, 0.15);
+    //addTextString("abcdefghijklmnopqrstuvwxyz", -1, -0.35, 0.1);
+    //addTextString("abcdefghijklmnopqrstuvwxyz", -1, -0.45, 0.07);
+   // addTextString("abcdefghijklmnopqrstuvwxyz", -1, -0.55, 0.04);
 
 
 //=========== LOOP ===========================================================

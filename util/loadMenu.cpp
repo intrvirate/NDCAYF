@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string>
+#include <string.h>
 #include <vector>
 #include <iostream>
 #include <fstream>
@@ -12,7 +13,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "util/json.hpp"
-
+#include "util/handleinput.hpp"
 #include "util/render/render2D.hpp"
 
 
@@ -20,6 +21,17 @@ using json = nlohmann::json;
 using namespace std;
 
 bool debugMode = false;
+
+//constants that describe location and size of the menu on screen
+const float menuTopOffsetFromCenter = 0.9;
+const float menuLeftOffsetFromCenter = -0.3;
+const float menuSpacing = 0.1;
+const float menuTextSize = 0.07;
+
+json menujson;
+json settingsjson;
+
+string currentMenu = "root";
 
 void setJsonDebugMode(bool mode){
     debugMode = mode;
@@ -55,8 +67,6 @@ int buildMenu(){
     jsonSettingsFile.close();
 
     //parse
-    json menujson;
-    json settingsjson;
     try{
          menujson = json::parse(jsonMenuString.str());
 
@@ -80,16 +90,59 @@ int buildMenu(){
 
     }
 
-    for(int i = 0; !menujson["items"][i].is_null(); i++){
-        addTextString(menujson["items"][i]["name"], -0.5, 0.8 - (0.1*i), 0.1);
+    for(int i = 0; !menujson[currentMenu][i].is_null(); i++){
+        addTextString(menujson[currentMenu][i]["name"], menuLeftOffsetFromCenter, menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize);
     }
 
     return 0;
 }
 
+/*
+const float menuTopOffsetFromCenter
+const float menuSpacing
+const float menuTextSize
+*/
+
+void updateMenu(){
+    clearTextStrings();
+    for(int i = 0; !menujson[currentMenu][i].is_null(); i++){
+        addTextString(menujson[currentMenu][i]["name"], menuLeftOffsetFromCenter, menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize);
+    }
+}
+
+void handleMenuClick(){
+
+    float clickY = getMousePos().y;
+
+    clickY = clickY + 1;
+    clickY = (-clickY + 2);
+
+    clickY -= 1 - menuTopOffsetFromCenter;
+    clickY += menuSpacing;
+    clickY = clickY/menuSpacing;
+
+    int index = clickY;
+    index = index-1;
+
+    fprintf(stderr, "f = %f, i = %d\n diff=%f", clickY, index, clickY - (float)index-1);
+
+    if(index >= 0){
+        fprintf(stderr, "check1\n");
+       if((!menujson[currentMenu][index].is_null())){
+            fprintf(stderr, "clicked!\n");
+            cout << menujson[currentMenu][index]["name"] << endl;
+
+            currentMenu = menujson[currentMenu][index]["target"];
+
+            updateMenu();
 
 
 
+
+       }
+    }
+
+}
 
 
 

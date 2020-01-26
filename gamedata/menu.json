@@ -1,27 +1,46 @@
 {
-    "items": [
+    "root": [
         {
             "name": "menu item 1",
             "format": "default",
             "type": "menu",
-            "target": ""
+            "target": "m1"
         },
         {
             "name": "menu item 2",
             "format": "default",
             "type": "menu",
-            "target": ""
+            "target": "m2"
         },
         {
             "name": "menu item 3",
             "format": "default",
             "type": "menu",
-            "target": ""
-        },
-        {    "name": "4th setting",
+            "target": "m3"
+        }
+    ],
+    "m1":[
+        {    "name": "submenu 1",
             "format": "default",
             "type": "menu",
-            "target": ""
+            "target": "root"
+        }
+    ],
+    "m2":[
+        {    "name": "submenu 2",
+            "format": "default",
+            "type": "menu",
+            "target": "root"
+        }
+    ],
+    "m3":[
+        {    "name": "submenu 3",
+            "format": "default",
+            "type": "menu",
+            "target": "m2"
         }
     ]
 }
+
+
+

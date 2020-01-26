@@ -219,27 +219,29 @@ void addTextString(string text, float x, float y, float size){
     textDataArray[oldLength].size = size;
 }
 
+void clearTextStrings(){
+    textDataArrayCount = 0;
+    delete[] textDataArray;
+    textDataArray = NULL;
+
+}
+
 void drawAllText(){ //!!must!! called from within 2D render loop
 
     //set text color
 
 
-    if(textDataArray != NULL){ //this code crashes if called on a null array (when no text is in the array
+    if(textDataArray != NULL){ //this code crashes if called on a null array (when no text is in the array)
 
         for(uint i = 0; i < textDataArrayCount ; i++){ //draw strings
             //fprintf(stderr, "i = %d\n", i);
 
             float xpos = textDataArray[i].x;
 
-            fprintf(stderr, "mouse.y = %f\n", getMousePos().y);
-
-            if(isMouseVisable() && getMousePos().y < textDataArray[i].y && getMousePos().y > textDataArray[i].y - textDataArray[i].size){
-
+            if(isMouseVisable() && getMousePos().y < textDataArray[i].y && getMousePos().y > textDataArray[i].y - textDataArray[i].size)
                 glUniform3f(colorUniform_location, activeTextColor.x, activeTextColor.y, activeTextColor.z);
-
-            }else{
+            else
                 glUniform3f(colorUniform_location, passiveTextColor.x, passiveTextColor.y, passiveTextColor.z);
-            }
 
             for(uint j = 0; j < textDataArray[i].str.size(); j++){  //characters
                 char c = textDataArray[i].str[j];

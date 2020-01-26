@@ -5,6 +5,8 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
+#include "util/loadMenu.hpp"
+
 uint8_t renderMode = 1; // 1 = fill, 2 = line, 3 = point
 GLenum enumRenderMode = GL_FILL;
 
@@ -87,11 +89,20 @@ glm::vec2 getMousePos(){
     return pointMousePos;
 }
 
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods){
+
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS){
+        handleMenuClick();
+    }
+
+}
+
 void toggleMouseVisibility(GLFWwindow* window){
     initializeMouse(window);
     if(glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED){
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         glfwSetCursorPosCallback(window, mouse_callback_point);
+        glfwSetMouseButtonCallback(window, mouse_button_callback); //this callback is located in loadmenu.cpp
         mouseVisable = true;
     }else{
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);

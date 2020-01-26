@@ -3,6 +3,7 @@
 
 int buildMenu();
 void setJsonDebugMode(bool mode);
-
+void updateMenu();
+void handleMenuClick();
 
 #endif // LOADMENU_HPP
