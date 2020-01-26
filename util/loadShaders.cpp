@@ -28,7 +28,7 @@ GLuint LoadVertexShader(const char * vertexShader_filepath){
         VertexShaderStream.close();
     }else{
        printf("ERROR: could not open VertexShader source file\n");
-       return 0;
+       exit(0);
     }
 
     // Compile Source

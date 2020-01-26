@@ -2,9 +2,12 @@
 #include <stdlib.h>
 #include <string>
 #include <vector>
+#include <iostream>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#include <fstream>
+#include <sstream>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -48,6 +51,7 @@ unsigned int textTexture;
 
 struct textData * textDataArray;
 uint textDataArrayCount = 0;
+float textDataSpacing[(8 * 16) - 32];
 
 struct textData {
     string str;
@@ -56,11 +60,24 @@ struct textData {
     float y;
 };
 
+void loadTextDataSpacing(){
 
-void stringToLeterQuad(char *text){
+    FILE* my_file = fopen("gamedata/calibri_ofset-12_height-140.csv", "r"); //note:when generating this file, the tool puts other data at the top which must be removed
 
+    int data = 0;
+    int actualdata = 0;
+
+    for (int i = 0; i < 32; i++){
+        fscanf(my_file, "Char %d Base Width,%d\n", &data, &actualdata);
+    }
+
+    for (int i = 0; i < (8 * 16) - 32; i++){
+        fscanf(my_file, "Char %d Base Width,%d\n", &data, &actualdata);
+        textDataSpacing[i] = actualdata;
+    }
 
 }
+
 
 void set2DletterQuad(char c, float xPos, float yPos, float xSize, float ySize){ //x,y referenced to upper right corner
 
@@ -135,7 +152,6 @@ void load2DShaders(){
     vertexShaderID2D = LoadVertexShader("gamedata/shaders/2Dvertexshader.glsl");
     fragmentShaderID2D = LoadFragmentShader("gamedata/shaders/2Dfragmentshader.glsl");
     shaderProgramID2D = LinkShaders(vertexShaderID2D, fragmentShaderID2D);
-
 }
 
 void load2DBuffers(){
@@ -190,7 +206,6 @@ void addTextString(string text, float x, float y, float size){
 
 void drawAllText(){ //!!must!! called from within 2D render loop
 
-    float letterOffset = 0;
 
     if(textDataArray != NULL){ //this code crashes if called on a null array (when no text is in the array
     //fprintf(stderr, "not null\n");
@@ -198,13 +213,18 @@ void drawAllText(){ //!!must!! called from within 2D render loop
     //fprintf(stderr, "COUNT_OF(&textDataArray) = %lu\n",COUNT_OF(&textDataArray));
     //fprintf(stderr, "textDataArray[i].str.size() = %lu\n", textDataArray[0].str.size());
 
-        for(uint i = 0; i < textDataArrayCount ; i++){
+        for(uint i = 0; i < textDataArrayCount ; i++){ //draw strings
             //fprintf(stderr, "i = %d\n", i);
-            letterOffset = textDataArray[i].size/2; //half the size
-            for(uint j = 0; j < textDataArray[i].str.size(); j++){
-                set2DletterQuad(textDataArray[i].str[j], textDataArray[i].x + letterOffset*j, textDataArray[i].y, textDataArray[i].size, textDataArray[i].size);
+
+        float xpos = textDataArray[i].x;
+
+            for(uint j = 0; j < textDataArray[i].str.size(); j++){  //characters
+                char c = textDataArray[i].str[j];
+                set2DletterQuad(c , xpos  , textDataArray[i].y, textDataArray[i].size, textDataArray[i].size);
                 glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2D), vertices2D, GL_STATIC_DRAW);
                 glDrawElements(GL_TRIANGLES, sizeof(indices2D) * 3, GL_UNSIGNED_INT, 0);
+
+                xpos += textDataSpacing[(int)c-32] * textDataArray[i].size * 0.0082;
             }
         }
     }

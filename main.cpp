@@ -85,18 +85,16 @@ int main()
 
     load2DShaders();
     load2DBuffers();
+    loadTextDataSpacing();
 
     loadAutoMapGen();
 
-    addTextString("abcdefghijklmnopqrstuvwxyz", -1, -0.7, 0.1);
+    addTextString("abcdefghijklmnopqrstuvwxyz", -1, 0, 0.2);
+    addTextString("abcdefghijklmnopqrstuvwxyz", -1, -0.2, 0.15);
+    addTextString("abcdefghijklmnopqrstuvwxyz", -1, -0.35, 0.1);
+    addTextString("abcdefghijklmnopqrstuvwxyz", -1, -0.45, 0.07);
+    addTextString("abcdefghijklmnopqrstuvwxyz", -1, -0.55, 0.04);
 
-    //addTextString("hello", -1, 0.7, 0.1);
-
-    //addTextString("string 3", 0.3, 0.7, 0.1);
-
-   // addTextString("string 4", -1, 0.2, 0.05);
-
-    //addTextString("string 5", -0.4, 0.7, 0.08);
 
 //=========== LOOP ===========================================================
 
