@@ -4,10 +4,10 @@
 Lightweight first person shooter focused on multiplayer, LAN-based gameplay, and geared towards native Linux compatibility.
 
 ## Contributors
-* **Nathan Johnson** - [intrvirate](https://github.com/intrvirate)
+* **Nathan Jonson** - [intrvirate](https://github.com/intrvirate)
 * **Kevin Lockwood** - [kevin-b-lockwood](https://github.com/kevin-b-lockwood)
 * **Matthew Tiemersma** - [NottMatt](https://github.com/NottMatt)
-* **Luke Gantar** - 
+* **Luke Gantar** - [lukeg32](https://github.com/lukeg32)
 
 ## Objectives
 * Lightweight FPS game
