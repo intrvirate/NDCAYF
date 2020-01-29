@@ -1,15 +1,11 @@
 {
-    "name": "settings",
-    "items": [
-        {
-            "name": "settings item 1",
-            "target": "something that tells the code what the setting edits"
-        },
-        {
-            "name": "settings item 2",
-            "target": "something that tells the code what the setting edits"
-        }
+    "setting 1": {
+        "name": "hello world",
+        "target": "something that tells the code what the setting edits"
+    },
+    "setting 2":{
+        "name": "settings item 2",
+        "target": "something that tells the code what the setting edits"
+    }
 
-
-    ]
 }

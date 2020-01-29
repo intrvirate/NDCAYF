@@ -32,9 +32,42 @@ json menujson;
 json settingsjson;
 
 string currentMenu = "root";
+string settingMenu = ""; //empty = not in setting menu
 
 void setJsonDebugMode(bool mode){
     debugMode = mode;
+}
+
+
+void updateMenu(){
+    clearTextStrings();
+    glm::vec3 activeColor;
+    glm::vec3 passiveColor;
+    string name;
+    if(settingMenu == ""){
+        //render menu item
+        for(int i = 0; !menujson[currentMenu][i].is_null(); i++){
+            name = menujson[currentMenu][i]["name"];
+            if(menujson[currentMenu][i]["type"] == "menu"){
+                activeColor  = glm::vec3(0.9, 0.9, 0.1);
+                passiveColor = glm::vec3(0.2, 0.5, 0.0);
+            }else if (menujson[currentMenu][i]["type"] == "setting"){
+                activeColor  = glm::vec3(0.9, 0.9, 0.9);
+                passiveColor = glm::vec3(0.2, 0.9, 0.0);
+            }
+            addTextString(name, menuLeftOffsetFromCenter, menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize, activeColor, passiveColor );
+        }
+    }else{
+        //render setting item
+        activeColor  = glm::vec3(0.1, 0.1, 0.1);
+        passiveColor = glm::vec3(0.3, 0.3, 0.3);
+        int i = 0; //will be used for spacing, not used yet
+
+        if(!settingsjson[settingMenu].is_null()){
+            name = settingsjson[settingMenu]["name"];
+            addTextString(name, menuLeftOffsetFromCenter, menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize, activeColor, passiveColor );
+        }
+    }
 }
 
 int buildMenu(){
@@ -90,24 +123,9 @@ int buildMenu(){
 
     }
 
-    for(int i = 0; !menujson[currentMenu][i].is_null(); i++){
-        addTextString(menujson[currentMenu][i]["name"], menuLeftOffsetFromCenter, menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize);
-    }
+    updateMenu();
 
     return 0;
-}
-
-/*
-const float menuTopOffsetFromCenter
-const float menuSpacing
-const float menuTextSize
-*/
-
-void updateMenu(){
-    clearTextStrings();
-    for(int i = 0; !menujson[currentMenu][i].is_null(); i++){
-        addTextString(menujson[currentMenu][i]["name"], menuLeftOffsetFromCenter, menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize);
-    }
 }
 
 void handleMenuClick(){
@@ -124,24 +142,31 @@ void handleMenuClick(){
     int index = clickY;
     index = index-1;
 
-    fprintf(stderr, "f = %f, i = %d\n diff=%f", clickY, index, clickY - (float)index-1);
+    //fprintf(stderr, "f = %f, i = %d\n diff=%f", clickY, index, clickY - (float)index-1);
 
     if(index >= 0){
-        fprintf(stderr, "check1\n");
-       if((!menujson[currentMenu][index].is_null())){
-            fprintf(stderr, "clicked!\n");
-            cout << menujson[currentMenu][index]["name"] << endl;
+       fprintf(stderr, "check1\n");
+       if(settingMenu == ""){ //are we in a setting menu?
+           if((!menujson[currentMenu][index].is_null())){
+                //fprintf(stderr, "clicked!\n");
+                //cout << menujson[currentMenu][index]["name"] << endl;
 
-            currentMenu = menujson[currentMenu][index]["target"];
+                if( menujson[currentMenu][index]["type"] == "menu"){
+                    currentMenu = menujson[currentMenu][index]["target"];
+                }else if(menujson[currentMenu][index]["type"] == "setting"){
+                    settingMenu = menujson[currentMenu][index]["target"];
+                }
 
-            updateMenu();
+                updateMenu();
 
+           }
+       }else{ //is a setting menu
 
-
+           settingMenu = ""; //exit the setting menu
+           updateMenu();
 
        }
     }
-
 }
 
 

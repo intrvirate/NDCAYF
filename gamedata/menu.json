@@ -17,6 +17,12 @@
             "format": "default",
             "type": "menu",
             "target": "m3"
+        },
+        {
+            "name": "setting item 1",
+            "format": "default",
+            "type": "setting",
+            "target": "setting 1"
         }
     ],
     "m1":[
@@ -41,4 +47,3 @@
         }
     ]
 }
-
