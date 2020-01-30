@@ -18,6 +18,8 @@
 #include "util/handleinput.hpp"
 #include "util/otherhandlers.hpp"
 
+#include "util/globalStateHandlers.hpp"
+
 using namespace std;
 
 float vertices2D[] = {
@@ -49,7 +51,7 @@ GLuint EBO2D; //Element Buffer Object
 
 unsigned int textTexture;
 
-//pointer to beginning of text storage array. it's tynamicaly allocated, so just a pointer here.
+//pointer to beginning of text storage array. It's dynamicaly allocated, so just a pointer here.
 
 struct textData * textDataArray;
 uint textDataArrayCount = 0;
@@ -63,9 +65,6 @@ struct textData {
     glm::vec3 activeColor = glm::vec3(0.0f, 0.4f, 0.2f);
     glm::vec3 passiveColor = glm::vec3(0.5f, 0.2f, 0.0f);
 };
-
-bool textMouseColor = true;
-bool FPScounter = true; //false = display sec/frame, true = frame/sec
 
 void loadTextDataSpacing(){
 
@@ -81,7 +80,6 @@ void loadTextDataSpacing(){
         fscanf(my_file, "Char %d Base Width,%d\n", &data, &actualdata);
         textDataSpacing[i] = actualdata;
     }
-
 }
 
 void set2DletterQuad(char c, float xPos, float yPos, float xSize, float ySize){ //x,y referenced to upper right corner
@@ -185,11 +183,6 @@ void load2DBuffers(){
 
 
 }
-
-void enablelTextMouseColor(bool state){
-    textMouseColor = state;
-}
-
 
 void addTextString(string text, float x, float y, float size, glm::vec3 activeColor, glm::vec3 passiveColor){
 

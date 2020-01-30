@@ -19,10 +19,16 @@
             "target": "m3"
         },
         {
-            "name": "setting item 1",
+            "name": "FPScounter",
             "format": "default",
             "type": "setting",
-            "target": "setting 1"
+            "target": "FPScounter"
+        },
+        {
+            "name": "settings item 2",
+            "format": "default",
+            "type": "setting",
+            "target": "setting 2"
         }
     ],
     "m1":[

@@ -29,6 +29,8 @@ add_executable(NDCAYF
                 util/render/render2D.hpp
                 util/render/render2D.cpp
                 util/stb_image.h
+                util/globalStateHandlers.hpp
+                util/globalStateHandlers.cpp
 )
 
 target_link_libraries(NDCAYF glfw)

@@ -1,5 +1,9 @@
+#include <string>
 #ifndef HANDLEINPUT_HPP
 #define HANDLEINPUT_HPP
+
+extern std::string textEntryString;
+extern bool inTextBox;
 
 void toggleMouseVisibility(GLFWwindow* window);
 void updateCameraFront(double xpos, double ypos);
