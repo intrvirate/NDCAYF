@@ -151,13 +151,23 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             }
         }
     }else{
-        if(inTextBox){
+        if(inTextBox && action != GLFW_RELEASE){
             //key bondings for menu
-            if(key >= 32 && key <= 96 && action == GLFW_PRESS){
+            if(key >= 32 && key <= 96){
                 fprintf(stderr, "%c", (char)key);
                 textEntryString += (char)key;
-                updateMenu();
+            }else{
+                switch (key){
+                    case GLFW_KEY_BACKSPACE:
+                        if (!textEntryString.empty())
+                            textEntryString.pop_back(); //delete last character
+                        break;
+                    case GLFW_KEY_DELETE:
+                        textEntryString = "";
+                        break;
+                }
             }
+            updateMenu();
         }
 
     }

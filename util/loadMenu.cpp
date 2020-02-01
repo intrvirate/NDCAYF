@@ -42,7 +42,6 @@ void setJsonDebugMode(bool mode){
     debugMode = mode;
 }
 
-
 void updateMenu(){
     clearTextStrings();
     glm::vec3 activeColor;
@@ -200,7 +199,6 @@ void handleMenuClick(){
 
                //if setting is boolean
                if(settingsjson[settingMenu]["type"] == "bool"){
-
 
                    for(uint i = 0; i < boolLinkArraySize; i++){
                        if (boolLinkArray[i].ID == settingMenu){

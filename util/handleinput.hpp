@@ -19,5 +19,4 @@ void initializeMouse(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 glm::vec3 getCameraDirection();
 
-
 #endif // HANDLEINPUT_HPP
