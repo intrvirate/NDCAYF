@@ -18,6 +18,8 @@
 #include "util/handleinput.hpp"
 #include "util/otherhandlers.hpp"
 
+#include "util/globalStateHandlers.hpp"
+
 using namespace std;
 
 float vertices2D[] = {
@@ -49,7 +51,7 @@ GLuint EBO2D; //Element Buffer Object
 
 unsigned int textTexture;
 
-//pointer to beginning of text storage array. it's tynamicaly allocated, so just a pointer here.
+//pointer to beginning of text storage array. It's dynamicaly allocated, so just a pointer here.
 
 struct textData * textDataArray;
 uint textDataArrayCount = 0;
@@ -60,12 +62,9 @@ struct textData {
     float size;
     float x;
     float y;
+    glm::vec3 activeColor = glm::vec3(0.0f, 0.4f, 0.2f);
+    glm::vec3 passiveColor = glm::vec3(0.5f, 0.2f, 0.0f);
 };
-
-bool textMouseColor = true;
-bool FPScounter = true; //false = display sec/frame, true = frame/sec
-glm::vec3 activeTextColor = glm::vec3(0.0f, 0.8f, 0.2f);
-glm::vec3 passiveTextColor = glm::vec3(0.5f, 0.2f, 0.0f);
 
 void loadTextDataSpacing(){
 
@@ -81,7 +80,6 @@ void loadTextDataSpacing(){
         fscanf(my_file, "Char %d Base Width,%d\n", &data, &actualdata);
         textDataSpacing[i] = actualdata;
     }
-
 }
 
 void set2DletterQuad(char c, float xPos, float yPos, float xSize, float ySize){ //x,y referenced to upper right corner
@@ -186,15 +184,7 @@ void load2DBuffers(){
 
 }
 
-void enablelTextMouseColor(bool state){
-    textMouseColor = state;
-}
-
-void setTextMouseColor(glm::vec3 colorIn) {
-    activeTextColor = colorIn;
-}
-
-void addTextString(string text, float x, float y, float size){
+void addTextString(string text, float x, float y, float size, glm::vec3 activeColor, glm::vec3 passiveColor){
 
     uint oldLength = textDataArrayCount; //this variable is 1 indexed; 0 means array not yet created
     if(textDataArray == NULL){
@@ -218,6 +208,9 @@ void addTextString(string text, float x, float y, float size){
     textDataArray[oldLength].x = x;
     textDataArray[oldLength].y = y;
     textDataArray[oldLength].size = size;
+    textDataArray[oldLength].activeColor = activeColor;
+    textDataArray[oldLength].passiveColor = passiveColor;
+
 }
 
 void clearTextStrings(){
@@ -229,10 +222,8 @@ void clearTextStrings(){
 
 void drawAllText(){ //!!must!! called from within 2D render loop
 
-    //set text color
 
-
-    if(textDataArray != NULL && isMouseVisable()){ //this code crashes if called on a null array (when no text is in the array)
+    if(isMouseVisable() && textDataArray != NULL){ //this code crashes if called on a null array (when no text is in the array)
 
         for(uint i = 0; i < textDataArrayCount ; i++){ //draw strings
             //fprintf(stderr, "i = %d\n", i);
@@ -240,9 +231,9 @@ void drawAllText(){ //!!must!! called from within 2D render loop
             float xpos = textDataArray[i].x;
 
             if(isMouseVisable() && getMousePos().y < textDataArray[i].y && getMousePos().y > textDataArray[i].y - textDataArray[i].size)
-                glUniform3f(colorUniform_location, activeTextColor.x, activeTextColor.y, activeTextColor.z);
+                glUniform3f(colorUniform_location, textDataArray[i].activeColor.x, textDataArray[i].activeColor.y, textDataArray[i].activeColor.z);
             else
-                glUniform3f(colorUniform_location, passiveTextColor.x, passiveTextColor.y, passiveTextColor.z);
+                glUniform3f(colorUniform_location, textDataArray[i].passiveColor.x, textDataArray[i].passiveColor.y, textDataArray[i].passiveColor.z);
 
             for(uint j = 0; j < textDataArray[i].str.size(); j++){  //characters
                 char c = textDataArray[i].str[j];
@@ -265,7 +256,7 @@ void updateFPSCounter(){
 
     char str[12]; //12 digits, a few extra to be safe. If this overflows, the pgm crashes
     sprintf(str, "%f", sec);
-    glUniform3f(colorUniform_location, 1.0, 1.0, 1.0);
+    glUniform3f(colorUniform_location, 1.0, 1.0, 1.0);//white
     for(int i = 0; i < 7; i++){ //set number of digits to render here
             set2DletterQuad(str[i], -1.0 + (0.025*i), -0.95, 0.05, 0.05);
             glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2D), vertices2D, GL_STATIC_DRAW);

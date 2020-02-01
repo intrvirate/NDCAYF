@@ -17,6 +17,18 @@
             "format": "default",
             "type": "menu",
             "target": "m3"
+        },
+        {
+            "name": "FPScounter",
+            "format": "default",
+            "type": "setting",
+            "target": "FPScounter"
+        },
+        {
+            "name": "settings item 2",
+            "format": "default",
+            "type": "setting",
+            "target": "setting 2"
         }
     ],
     "m1":[
@@ -41,4 +53,3 @@
         }
     ]
 }
-

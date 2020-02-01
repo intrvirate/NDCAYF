@@ -1,15 +1,15 @@
 {
-    "name": "settings",
-    "items": [
-        {
-            "name": "settings item 1",
-            "target": "something that tells the code what the setting edits"
-        },
-        {
-            "name": "settings item 2",
-            "target": "something that tells the code what the setting edits"
-        }
+    "FPScounter": {
+        "name": "toggle refresh rate counter",
+        "target": "something that tells the code what the setting edits",
+        "type": "bool",
+        "true": "F/S",
+        "false": "S/F"
+    },
+    "setting 2":{
+        "name": "settings item 2",
+        "target": "something that tells the code what the setting edits",
+        "type": "string"
+    }
 
-
-    ]
 }

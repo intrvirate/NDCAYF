@@ -15,6 +15,7 @@
 #include "util/json.hpp"
 #include "util/handleinput.hpp"
 #include "util/render/render2D.hpp"
+#include "util/globalStateHandlers.hpp"
 
 
 using json = nlohmann::json;
@@ -33,8 +34,75 @@ json settingsjson;
 
 string currentMenu = "root";
 
+//empty = not in setting menu
+//set = name of the setting field currently displayed
+string settingMenu = "";
+
 void setJsonDebugMode(bool mode){
     debugMode = mode;
+}
+
+
+void updateMenu(){
+    clearTextStrings();
+    glm::vec3 activeColor;
+    glm::vec3 passiveColor;
+    string name;
+    if(settingMenu == ""){
+        inTextBox = false;
+        //render menu item
+        for(int i = 0; !menujson[currentMenu][i].is_null(); i++){
+            name = menujson[currentMenu][i]["name"];
+            if(menujson[currentMenu][i]["type"] == "menu"){
+                activeColor  = glm::vec3(0.9, 0.9, 0.1);
+                passiveColor = glm::vec3(0.2, 0.5, 0.0);
+            }else if (menujson[currentMenu][i]["type"] == "setting"){
+                activeColor  = glm::vec3(0.9, 0.9, 0.9);
+                passiveColor = glm::vec3(0.2, 0.9, 0.0);
+            }
+            addTextString(name, menuLeftOffsetFromCenter, menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize, activeColor, passiveColor );
+        }
+    }else{
+        inTextBox = true; //start reading text from keyboard
+
+        //render setting item
+        activeColor  = glm::vec3(0.1, 0.1, 0.1);
+        passiveColor = glm::vec3(0.3, 0.3, 0.3);
+        int i = 0; //will be used for spacing, not used yet
+
+        if(!settingsjson[settingMenu].is_null()){
+
+            if(settingsjson[settingMenu]["type"] == "bool"){
+                name = settingsjson[settingMenu]["name"];
+                    //first entry:  name
+                addTextString(name, menuLeftOffsetFromCenter, menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize, passiveColor, passiveColor ); //both passive color so it doesn't highlight when moused over
+
+                i++;//second entry: true
+                addTextString(settingsjson[settingMenu]["true"], menuLeftOffsetFromCenter, menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize, activeColor, passiveColor );
+
+                i++;//third entry:  true
+                addTextString(settingsjson[settingMenu]["false"], menuLeftOffsetFromCenter, menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize, activeColor, passiveColor );
+
+                i++;//last entry:   back
+                addTextString("back", menuLeftOffsetFromCenter, menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize, activeColor, passiveColor );
+
+            }else if(settingsjson[settingMenu]["type"] == "int"){
+
+            }else if(settingsjson[settingMenu]["type"] == "string"){
+                name = settingsjson[settingMenu]["name"];
+                    //first entry:  name
+                addTextString(name, menuLeftOffsetFromCenter, menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize, passiveColor, passiveColor ); //both passive color so it doesn't highlight when moused over
+
+                i++;//second entry: text entry
+                addTextString(textEntryString, menuLeftOffsetFromCenter, menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize, passiveColor, passiveColor ); //both passive color so it doesn't highlight when moused over
+
+                i++;//last entry:   back
+                addTextString("back", menuLeftOffsetFromCenter, menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize, activeColor, passiveColor );
+
+            }
+
+        }
+    }
 }
 
 int buildMenu(){
@@ -90,24 +158,9 @@ int buildMenu(){
 
     }
 
-    for(int i = 0; !menujson[currentMenu][i].is_null(); i++){
-        addTextString(menujson[currentMenu][i]["name"], menuLeftOffsetFromCenter, menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize);
-    }
+    updateMenu();
 
     return 0;
-}
-
-/*
-const float menuTopOffsetFromCenter
-const float menuSpacing
-const float menuTextSize
-*/
-
-void updateMenu(){
-    clearTextStrings();
-    for(int i = 0; !menujson[currentMenu][i].is_null(); i++){
-        addTextString(menujson[currentMenu][i]["name"], menuLeftOffsetFromCenter, menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize);
-    }
 }
 
 void handleMenuClick(){
@@ -122,27 +175,82 @@ void handleMenuClick(){
     clickY = clickY/menuSpacing;
 
     int index = clickY;
-    index = index-1;
+    index = index-1; //index now is == to the row that was clicked on (zero indexed)
 
-    fprintf(stderr, "f = %f, i = %d\n diff=%f", clickY, index, clickY - (float)index-1);
+    //fprintf(stderr, "f = %f, i = %d\n diff=%f", clickY, index, clickY - (float)index-1);
 
     if(index >= 0){
-        fprintf(stderr, "check1\n");
-       if((!menujson[currentMenu][index].is_null())){
-            fprintf(stderr, "clicked!\n");
-            cout << menujson[currentMenu][index]["name"] << endl;
+       fprintf(stderr, "clickedn");
+       if(settingMenu == ""){ //are we in a setting menu? "" means no.
+           if((!menujson[currentMenu][index].is_null())){
+                //fprintf(stderr, "clicked!\n");
+                //cout << menujson[currentMenu][index]["name"] << endl;
 
-            currentMenu = menujson[currentMenu][index]["target"];
+                if( menujson[currentMenu][index]["type"] == "menu"){
+                    currentMenu = menujson[currentMenu][index]["target"];
+                }else if(menujson[currentMenu][index]["type"] == "setting"){
+                    settingMenu = menujson[currentMenu][index]["target"];
+                }
 
-            updateMenu();
+                updateMenu();
+
+           }
+       }else{ //is a setting menu
+           if(!settingsjson[settingMenu].is_null()){ //sanity check
+
+               //if setting is boolean
+               if(settingsjson[settingMenu]["type"] == "bool"){
 
 
+                   for(uint i = 0; i < boolLinkArraySize; i++){
+                       if (boolLinkArray[i].ID == settingMenu){
+                            //1 is name, can't click it. TODO: remove mouse highlight for it
+
+                            if(index == 1){//first line is true
+
+                                *(boolLinkArray[i].ptr) = true; //set true
+
+                            }else if(index == 2){
+
+                                *(boolLinkArray[i].ptr) = false; //set true
+
+                            }else if(index == 3){//3 == "back"
+
+                                settingMenu = "";//exit menu
+
+                            }
+
+                            break; //exit for loop
+                       }
+                   }
+
+               }
+               //else if setting is int
+               else if(settingsjson[settingMenu]["type"] == "int"){
 
 
+               }
+               //else if setting is string
+               else if(settingsjson[settingMenu]["type"] == "string"){
+
+                   if(index == 2){//2 == "back"
+                       textEntryString = "";
+                       settingMenu = "";//exit menu
+                   }
+
+               }else{
+                   //unknown type. ATM, this just returns to the menu above the setting
+               }
+
+               updateMenu();
+           }
        }
     }
-
 }
+
+
+
+
 
 
 
