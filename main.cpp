@@ -19,7 +19,6 @@
 #include "util/handleinput.hpp"
 #include "util/otherhandlers.hpp"
 
-
 using json = nlohmann::json;
 using namespace std;
 using namespace glm;

@@ -11,6 +11,7 @@ project(NDCAYF LANGUAGES CXX)
 find_package(glfw3 REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
+find_package(assimp REQUIRED)
 
 add_executable(NDCAYF
                 main.cpp
@@ -31,9 +32,18 @@ add_executable(NDCAYF
                 util/stb_image.h
                 util/globalStateHandlers.hpp
                 util/globalStateHandlers.cpp
+                #util/object/model.cpp
+                util/object/model.hpp
+                #util/object/mesh.cpp
+                util/object/mesh.hpp
+                #util/object/shader.cpp
+                util/object/shader.hpp
 )
 
 target_link_libraries(NDCAYF glfw)
+
+target_include_directories(NDCAYF PUBLIC ${ASSIMP_INCLUDE_DIRS})
+target_link_libraries(NDCAYF ${ASSIMP_LIBRARIES})
 
 target_include_directories(NDCAYF PUBLIC ${OPENGL_INCLUDE_DIRS})
 target_link_libraries(NDCAYF ${OPENGL_LIBRARIES})
