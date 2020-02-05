@@ -150,3 +150,11 @@ void cleanup3D(){
     glDeleteBuffers(1, &VBO3D);
     glDeleteBuffers(1, &EBO3D);
 }
+
+glm::mat4 getViewMatrix(){
+    return view;
+}
+
+glm::mat4 getprojectionMatrix(){
+    return projection;
+}
