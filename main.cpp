@@ -24,6 +24,7 @@
 #include "util/object/shader.hpp"
 #include "util/object/model.hpp"
 
+
 using json = nlohmann::json;
 using namespace std;
 using namespace glm;
@@ -81,12 +82,11 @@ int main()
     glEnable(GL_CULL_FACE);
     glClearColor(0.0f, 0.0f, 0.4f, 0.0f); // default opengl background on startup: blue
 
-
     Shader ourShader("util/object/shader/vShader.glsl", "util/object/shader/fShader.glsl");
 
-    Model ourModel("obj/gunmodel00.obj");
+    Model ourModel("obj/gunmodel02.obj");
 
-    Model ourModel2("obj/building.obj");
+    Model ourModel2("obj/globe.obj");
 
 
 //=========== RENDER =========================================================
@@ -127,13 +127,13 @@ int main()
         // render the loaded model
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 2.0f, 0.0f)); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));	// it's a bit too big for our scene, so scale it down
+        model = glm::scale(model, glm::vec3(0.3f, 0.3f, 0.3f));	// it's a bit too big for our scene, so scale it down
         ourShader.setMat4("model", model);
         ourModel.Draw(ourShader);
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(3.0f, 3.0f, 3.0f)); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(0.6f, 0.6f, 0.6f));	// it's a bit too big for our scene, so scale it down
+        model = glm::translate(model, glm::vec3(3.0f, 20.0f, 3.0f)); // translate it down so it's at the center of the scene
+        model = glm::scale(model, glm::vec3(15.9f, 15.9f, 15.9f));	// it's a bit too big for our scene, so scale it down
         ourShader.setMat4("model", model);
         ourModel2.Draw(ourShader);
 

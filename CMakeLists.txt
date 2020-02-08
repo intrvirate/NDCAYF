@@ -38,6 +38,8 @@ add_executable(NDCAYF
                 util/object/mesh.hpp
                 #util/object/shader.cpp
                 util/object/shader.hpp
+                util/groundGridGeneration.cpp
+                util/groundGridGeneration.hpp
 )
 
 target_link_libraries(NDCAYF glfw)
