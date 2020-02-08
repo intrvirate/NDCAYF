@@ -56,8 +56,12 @@ void load3DShaders(){
 }
 
 void load3DBuffers(){
-
-    generateGroundGrid(2000, 128); //generate map. if this takes a long time, we might need to move it to when we can display a loading screen
+    
+    /*
+     generate map. if this takes a long time, we might need to move it to 
+     when we can display a loading screen
+     */
+    generateGroundGrid(200, 32); 
 
     glGenBuffers(1, &VBO3D);
     glGenVertexArrays(1, &VAO3D);
