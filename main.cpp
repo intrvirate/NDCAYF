@@ -87,7 +87,7 @@ int main()
 
     Model ourModel("obj/objects/terrain03.obj");
 
-    Model ourModel2("obj/objects/globe.obj");
+    Model ourModel2("obj/objects/plannets/moon.obj");
 
     Model ourModel3("obj/objects/building02.obj");
 
