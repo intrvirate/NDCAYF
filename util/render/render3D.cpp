@@ -93,7 +93,7 @@ void load3DMatrices(){
 
     model = glm::mat4(1.0f);
     model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-    projection = glm::perspective(glm::radians(45.0f), (float)(1024 / 768), 0.1f, 100.0f); //TODO: update screen size dynamicaly
+    projection = glm::perspective(glm::radians(45.0f), CurrentWindowRatio, 0.1f, 100.0f);
 
     //update uniforms
     model_location = glGetUniformLocation(shaderProgramID3D, "model");
@@ -128,7 +128,7 @@ void renderLoop3D(GLFWwindow *window){ //called once per frame in the render loo
 
     //update matrices
     view = glm::lookAt(cameraPos, cameraPos + cameraDirection, up);
-    projection = glm::perspective(glm::radians(45.0f), 1024.0f / 768.0f, 0.1f, 100.0f);
+    projection = glm::perspective(glm::radians(45.0f), CurrentWindowRatio, 0.1f, 100.0f);
     model = glm::rotate(model, glm::radians(0.0f), glm::vec3(0.5f, 1.0f, 0.0f));
 
     glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(model));

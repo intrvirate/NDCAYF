@@ -50,14 +50,15 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    window = glfwCreateWindow( 1024, 768, "Tutorial 02 - Red triangle", NULL, NULL); //create window
+    //change default window size in otherHandlers.cpp
+    window = glfwCreateWindow( CurrentWindowX, CurrentWindowY, "Tutorial 02 - Red triangle", NULL, NULL); //create window
     if( window == NULL ){
         fprintf( stderr, "Failed to open GLFW window. Double check that the GPU is 3.3 compatible\n" );
         glfwTerminate();
         return -1;
     }
     glfwMakeContextCurrent(window);
-    glViewport(0, 0, 1024, 768); //should match window size
+    glViewport(0, 0, CurrentWindowX, CurrentWindowY);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback); //allow window to be resized
 
     // Initialize GLEW
@@ -86,7 +87,9 @@ int main()
 
     Model ourModel("obj/objects/terrain03.obj");
 
-    Model ourModel2("obj/globe.obj");
+    Model ourModel2("obj/objects/globe.obj");
+
+    Model ourModel3("obj/objects/building02.obj");
 
 
 //=========== RENDER =========================================================
@@ -126,16 +129,22 @@ int main()
 
         // render the loaded model
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 2.0f, 0.0f)); // translate it down so it's at the center of the scene
+        model = glm::translate(model, glm::vec3(0.0f, -7.0f, 0.0f)); // translate it down so it's at the center of the scene
         model = glm::scale(model, glm::vec3(80.0f, 80.0f, 80.0f));	// it's a bit too big for our scene, so scale it down
         ourShader.setMat4("model", model);
         ourModel.Draw(ourShader);
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(3.0f, 20.0f, 3.0f)); // translate it down so it's at the center of the scene
+        model = glm::translate(model, glm::vec3(3.0f, 80.0f, 3.0f)); // translate it down so it's at the center of the scene
         model = glm::scale(model, glm::vec3(15.9f, 15.9f, 15.9f));	// it's a bit too big for our scene, so scale it down
         ourShader.setMat4("model", model);
         ourModel2.Draw(ourShader);
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(-27.0f, 2.5f, 0.0f)); // translate it down so it's at the center of the scene
+        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
+        ourShader.setMat4("model", model);
+        ourModel3.Draw(ourShader);
 
 
         // Swap buffers
