@@ -84,7 +84,7 @@ int main()
 
     Shader ourShader("util/object/shader/vShader.glsl", "util/object/shader/fShader.glsl");
 
-    Model ourModel("obj/gunmodel02.obj");
+    Model ourModel("obj/objects/terrain03.obj");
 
     Model ourModel2("obj/globe.obj");
 
@@ -127,7 +127,7 @@ int main()
         // render the loaded model
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 2.0f, 0.0f)); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(0.3f, 0.3f, 0.3f));	// it's a bit too big for our scene, so scale it down
+        model = glm::scale(model, glm::vec3(80.0f, 80.0f, 80.0f));	// it's a bit too big for our scene, so scale it down
         ourShader.setMat4("model", model);
         ourModel.Draw(ourShader);
 
