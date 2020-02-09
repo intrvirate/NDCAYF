@@ -7,5 +7,7 @@ void load3DMatrices();
 void loadAutoMapGen();
 void renderLoop3D(GLFWwindow *window);
 void cleanup3D();
+glm::mat4 getViewMatrix();
+glm::mat4 getprojectionMatrix();
 
 #endif // RENDER3D_HPP

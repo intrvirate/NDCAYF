@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <vector>
+#include <iostream>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -19,6 +20,10 @@
 #include "util/handleinput.hpp"
 #include "util/otherhandlers.hpp"
 
+#include "util/object/mesh.hpp"
+#include "util/object/shader.hpp"
+#include "util/object/model.hpp"
+
 
 using json = nlohmann::json;
 using namespace std;
@@ -30,7 +35,7 @@ int main()
     //=========== SETUP ==========================================================
 
     //do this first because settings.json will contain things like default window size
-    setJsonDebugMode(true);
+    setJsonDebugMode(false);
     buildMenu();
 
     if( !glfwInit() )
@@ -77,6 +82,13 @@ int main()
     glEnable(GL_CULL_FACE);
     glClearColor(0.0f, 0.0f, 0.4f, 0.0f); // default opengl background on startup: blue
 
+    Shader ourShader("util/object/shader/vShader.glsl", "util/object/shader/fShader.glsl");
+
+    Model ourModel("obj/gunmodel02.obj");
+
+    Model ourModel2("obj/globe.obj");
+
+
 //=========== RENDER =========================================================
 
     load3DShaders();
@@ -89,7 +101,6 @@ int main()
 
     loadAutoMapGen();
 
-
 //=========== LOOP ===========================================================
 
     while( glfwWindowShouldClose(window) == 0){
@@ -101,6 +112,31 @@ int main()
 
         renderLoop3D(window);
         renderLoop2D(window);
+
+        //ASSIMP render loop (not cleaned up yet)
+
+        ourShader.use();
+
+        //the 45 is hardcoded b/c we arn't using the function they used
+        glm::mat4 projection = getprojectionMatrix();
+        glm::mat4 view = getViewMatrix();
+        ourShader.setMat4("projection", projection);
+        ourShader.setMat4("view", view);
+
+
+        // render the loaded model
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 2.0f, 0.0f)); // translate it down so it's at the center of the scene
+        model = glm::scale(model, glm::vec3(0.3f, 0.3f, 0.3f));	// it's a bit too big for our scene, so scale it down
+        ourShader.setMat4("model", model);
+        ourModel.Draw(ourShader);
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(3.0f, 20.0f, 3.0f)); // translate it down so it's at the center of the scene
+        model = glm::scale(model, glm::vec3(15.9f, 15.9f, 15.9f));	// it's a bit too big for our scene, so scale it down
+        ourShader.setMat4("model", model);
+        ourModel2.Draw(ourShader);
+
 
         // Swap buffers
         glfwSwapBuffers(window);
