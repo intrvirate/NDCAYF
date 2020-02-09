@@ -34,7 +34,7 @@ void generateGroundGrid(int sc, int detail){
 
 
 
-    float scf = (float)sc / detail; //ofset; higher detail = more triangles per unit
+    float scf = (float)sc / detail;
     int index = 0;
 
     for(float i = scf/2; i >= -scf/2; i = i - (1/(float)detail)){
