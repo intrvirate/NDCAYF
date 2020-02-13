@@ -12,6 +12,8 @@ find_package(glfw3 REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(assimp REQUIRED)
+find_package(Bullet REQUIRED)
+
 
 add_executable(NDCAYF
                 main.cpp
@@ -40,6 +42,8 @@ add_executable(NDCAYF
                 util/object/shader.hpp
                 util/groundGridGeneration.cpp
                 util/groundGridGeneration.hpp
+                util/bulletDebug/collisiondebugdrawer.cpp
+                util/bulletDebug/collisiondebugdrawer.hpp
 )
 
 target_link_libraries(NDCAYF glfw)
@@ -52,6 +56,9 @@ target_link_libraries(NDCAYF ${OPENGL_LIBRARIES})
 
 target_include_directories(NDCAYF PUBLIC ${GLEW_INCLUDE_DIRS})
 target_link_libraries(NDCAYF ${GLEW_LIBRARIES})
+
+target_include_directories(NDCAYF PUBLIC ${BULLET_INCLUDE_DIRS})
+target_link_libraries(NDCAYF ${BULLET_LIBRARIES})
 
 target_include_directories(NDCAYF PRIVATE
                           "${PROJECT_BINARY_DIR}"

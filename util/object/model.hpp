@@ -19,13 +19,31 @@
 
 #include "mesh.hpp"
 #include "shader.hpp"
+#include <btBulletDynamicsCommon.h>
+#include "util/bulletDebug/collisiondebugdrawer.hpp"
+
+#include "util/render/render3D.hpp"
+#include "util/handleinput.hpp"
+
 
 using namespace std;
 
 unsigned int TextureFromFile(const char *path, const string &directory, bool gamma = false);
 
+//TODO: move these to the initialize function
+ btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
+ btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
+ btBroadphaseInterface* overlappingPairCache = new btDbvtBroadphase();
+ btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver;
+ btDiscreteDynamicsWorld* dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
+
+ btAlignedObjectArray<btCollisionShape*> collisionShapes; //array of all collision opjects in world. one is creaded for every model that is created.
+
+ BulletDebugDrawer_OpenGL debugDraw;
+
 class Model
 {
+
 public:
     /*  Model Data */
     vector<Texture> textures_loaded;	// stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
@@ -33,18 +51,143 @@ public:
     string directory;
     bool gammaCorrection;
 
-    /*  Functions   */
-    // constructor, expects a filepath to a 3D model.
-    Model(string const &path, bool gamma = false) : gammaCorrection(gamma)
+    //setup collision stuff
+    bool usePrimitive = true;
+
+    btTransform objectTransform; //does this need to be stored out here? I don't think so. TODO: check, and remove
+
+    btRigidBody* body;
+
+    btCollisionObject* obj;
+
+    Model(string const &path, bool primitaveColisionShape = true, btCollisionShape* primitaveShape = NULL, btScalar mass = 0.0, btVector3 location = btVector3(0.,0.,0.))
     {
-        loadModel(path);
+        //initialize collision stuff
+        usePrimitive = primitaveColisionShape;
+        dynamicsWorld->setGravity(btVector3(0, -5, 0));
+
+        debugDraw.loadDebugShaders();
+        dynamicsWorld->setDebugDrawer(&debugDraw);
+
+        if(primitaveColisionShape == true){
+            //create a primitive colision shape
+            if(primitaveShape == NULL){
+                //catch errors
+                fprintf(stderr, "must pass a new primitaveShape when initializing model if primitaveColisionShape set to true");
+                exit(0);
+            }else{
+///*
+                collisionShapes.push_back(primitaveShape); //used to cleanup all objects later
+
+                //get pointer to the new physics object
+
+                objectTransform.setIdentity();
+                objectTransform.setOrigin(btVector3(location));
+
+
+                bool isDynamic = (mass != 0.f);
+                btVector3 localInertia(0, 0, 0);
+                if (isDynamic)
+                    primitaveShape->calculateLocalInertia(mass, localInertia);
+
+                btDefaultMotionState* myMotionState = new btDefaultMotionState(objectTransform);
+                btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, primitaveShape, localInertia);
+                body = new btRigidBody(rbInfo);
+
+                //add the body to the world
+                dynamicsWorld->addRigidBody(body);
+
+                //obj = dynamicsWorld->getCollisionObjectArray()[dynamicsWorld->getNumCollisionObjects()]; //?
+//*/
+/*
+                collisionShapes.push_back(primitaveShape); //used to cleanup all objects later
+
+                objectTransform.setIdentity();
+                objectTransform.setOrigin(location); //update this to allow seting start pos of object
+
+                bool isDynamic = (mass != 0.f);
+                btVector3 localInertia(0, 0, 0);
+                if (isDynamic)
+                    primitaveShape->calculateLocalInertia(mass, localInertia);
+
+                btDefaultMotionState* myMotionState = new btDefaultMotionState(objectTransform);
+                btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, primitaveShape, localInertia);
+                btRigidBody* body = new btRigidBody(rbInfo);
+
+                dynamicsWorld->addRigidBody(body);
+
+//*/
+/*
+
+                //===========
+                collisionShapes.push_back(primitaveShape);
+                obj = new btCollisionObject();
+                obj->setCollisionShape(primitaveShape);
+
+                objectTransform.setIdentity();
+                objectTransform.setOrigin(location);
+
+                dynamicsWorld->addCollisionObject(obj);
+*/
+
+
+
+            }
+        }else{
+            //create a static mesh
+            fprintf(stderr, "haven't written code for self-generating mesh yet, please use primitive for now");
+            exit(0);
+        }
+
+       loadModel(path);
+    }
+
+    static void InitializeModelPhysicsWorld(){
+        dynamicsWorld->setGravity(btVector3(0, -5, 0));
+        debugDraw.loadDebugShaders();
+        dynamicsWorld->setDebugDrawer(&debugDraw);
     }
 
     // draws the model, and thus all its meshes
     void Draw(Shader shader)
     {
+
+        glm::mat4 modelPhys = glm::mat4(1.0f);
+        body->getWorldTransform().getOpenGLMatrix(glm::value_ptr(modelPhys));  //get transform matrix
+
+        glm::mat4 projection = getprojectionMatrix();
+        glm::mat4 view = getViewMatrix();
+        shader.setMat4("projection", projection);
+        shader.setMat4("view", view);
+        shader.setMat4("model", modelPhys);
+
         for(unsigned int i = 0; i < meshes.size(); i++)
             meshes[i].Draw(shader);
+
+    }
+    static void DrawDebugModels(){
+
+        debugDraw.SetMatrices(getViewMatrix(), getprojectionMatrix());
+        dynamicsWorld->debugDrawWorld();
+    }
+
+    static void RunStepSimulation(){
+
+        dynamicsWorld->stepSimulation(getFrameTime(), 10);
+    }
+    static void Cleanup(){
+        for (int j = 0; j < collisionShapes.size(); j++)
+        {
+            btCollisionShape* shape = collisionShapes[j];
+            collisionShapes[j] = 0;
+            delete shape;
+        }
+        delete dynamicsWorld;
+        delete solver;
+        delete overlappingPairCache;
+        delete dispatcher;
+        delete collisionConfiguration;
+        collisionShapes.clear();
     }
 
 private:
