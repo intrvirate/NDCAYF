@@ -15,14 +15,30 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+
 #include "util/loadShaders.hpp"
 
+using namespace std;
+
+
+struct DebugVertex {
+    // position
+    btVector3 Position;
+    // Color
+    btVector3 Color;
+};
 
 class BulletDebugDrawer_OpenGL : public btIDebugDraw {
+
+public:
+
     GLuint VBO_debug, VAO_debug;
 
+    vector<DebugVertex> vertices;
+
     GLuint shaderProgramIDDebug;
-public:
+
+
     void loadDebugShaders(){
         GLuint vertexShaderIDDebug;
         GLuint fragmentShaderIDDebug;
@@ -36,56 +52,49 @@ public:
         glUniformMatrix4fv(glGetUniformLocation(shaderProgramIDDebug, "projection"), 1, GL_FALSE, glm::value_ptr(pProjectionMatrix));
         glUniformMatrix4fv(glGetUniformLocation(shaderProgramIDDebug, "view"), 1, GL_FALSE, glm::value_ptr(pViewMatrix));
     }
-
-    virtual void drawLine(const btVector3& from, const btVector3& to, const btVector3& color)
-    {
-        //fprintf(stderr, "from x = %f", from.x());
-        //fprintf(stderr, " y = %f", from.y());
-        // fprintf(stderr, " z = %f", from.z());
-
-        //fprintf(stderr, " to x = %f", to.x());
-        //  fprintf(stderr, " y = %f", to.y());
-        //   fprintf(stderr, " z = %f\n", to.z());
-
-        // Vertex data
-        GLfloat points[12];
-
-        points[0] = from.x();
-        points[1] = from.y();
-        points[2] = from.z();
-        points[3] = color.x();
-        points[4] = color.y();
-        points[5] = color.z();
-
-        points[6] = to.x();
-        points[7] = to.y();
-        points[8] = to.z();
-        points[9] = color.x();
-        points[10] = color.y();
-        points[11] = color.z();
+    void draw(){ //do the actual rendering here, drawLine just adds lines to the array
 
         glUseProgram(shaderProgramIDDebug);
-
+        //delete old buffers, then recreate //IS THIS NEEDED???
         glDeleteBuffers(1, &VBO_debug);
         glDeleteVertexArrays(1, &VAO_debug);
-
         glGenBuffers(1, &VBO_debug);
         glGenVertexArrays(1, &VAO_debug);
 
         glBindVertexArray(VAO_debug);
         glBindBuffer(GL_ARRAY_BUFFER, VBO_debug);
 
-        glBufferData(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW); // &points vs points??
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(DebugVertex), &vertices[0], GL_STREAM_DRAW); //GL_STREAM_DRAW? I think so.
 
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), 0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(DebugVertex), (void*)0);
+
         glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(DebugVertex),  (void*)offsetof(DebugVertex, Color));
 
         glBindVertexArray(0);
-        glBindVertexArray(VAO_debug);
-        glDrawArrays(GL_LINES, 0, 2);
+        glBindVertexArray(VAO_debug); //??????? already bind?
+        glDrawArrays(GL_LINES, 0, vertices.size()); //USE?? DrawElements instead?
         glBindVertexArray(0);
+
+        vertices.clear();
+
+    }
+
+    virtual void drawLine(const btVector3& from, const btVector3& to, const btVector3& color)
+    {
+
+        DebugVertex fromV;
+        fromV.Position = from;
+        fromV.Color = color;
+
+        DebugVertex toV;
+        toV.Position = to;
+        toV.Color = color;
+
+        vertices.push_back(fromV);
+        vertices.push_back(toV);
+
 
     }
     virtual void drawContactPoint(const btVector3 &, const btVector3 &, btScalar, int, const btVector3 &) {}

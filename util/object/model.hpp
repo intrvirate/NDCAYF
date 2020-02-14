@@ -60,7 +60,9 @@ public:
 
     btCollisionObject* obj;
 
-    Model(string const &path, bool primitaveColisionShape = true, btCollisionShape* primitaveShape = NULL, btScalar mass = 0.0, btVector3 location = btVector3(0.,0.,0.))
+    glm::vec3 scale = glm::vec3(1,1,1);
+
+    Model(string const &path, bool primitaveColisionShape = true, btCollisionShape* primitaveShape = NULL, btScalar mass = 0.0, btVector3 location = btVector3(0.,0.,0.), btVector3 btScale = btVector3(0.,0.,0.))
     {
         //initialize collision stuff
         usePrimitive = primitaveColisionShape;
@@ -69,6 +71,10 @@ public:
         debugDraw.loadDebugShaders();
         dynamicsWorld->setDebugDrawer(&debugDraw);
 
+        //load here; the resulting mesh is used for mesh (environemnt) collision calculation
+        loadModel(path);
+
+
         if(primitaveColisionShape == true){
             //create a primitive colision shape
             if(primitaveShape == NULL){
@@ -76,70 +82,109 @@ public:
                 fprintf(stderr, "must pass a new primitaveShape when initializing model if primitaveColisionShape set to true");
                 exit(0);
             }else{
-///*
-                collisionShapes.push_back(primitaveShape); //used to cleanup all objects later
 
-                //get pointer to the new physics object
+//https://stackoverflow.com/questions/11175694/bullet-physics-simplest-collision-example <== object method code; here for reference
+
+                collisionShapes.push_back(primitaveShape); //used to cleanup all objects later
 
                 objectTransform.setIdentity();
                 objectTransform.setOrigin(btVector3(location));
-
 
                 bool isDynamic = (mass != 0.f);
                 btVector3 localInertia(0, 0, 0);
                 if (isDynamic)
                     primitaveShape->calculateLocalInertia(mass, localInertia);
 
-                btDefaultMotionState* myMotionState = new btDefaultMotionState(objectTransform);
-                btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, primitaveShape, localInertia);
+                btDefaultMotionState* motionState = new btDefaultMotionState(objectTransform);
+                btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, motionState, primitaveShape, localInertia);
                 body = new btRigidBody(rbInfo);
 
                 //add the body to the world
                 dynamicsWorld->addRigidBody(body);
 
-                //obj = dynamicsWorld->getCollisionObjectArray()[dynamicsWorld->getNumCollisionObjects()]; //?
-//*/
-/*
-                collisionShapes.push_back(primitaveShape); //used to cleanup all objects later
-
-                objectTransform.setIdentity();
-                objectTransform.setOrigin(location); //update this to allow seting start pos of object
-
-                bool isDynamic = (mass != 0.f);
-                btVector3 localInertia(0, 0, 0);
-                if (isDynamic)
-                    primitaveShape->calculateLocalInertia(mass, localInertia);
-
-                btDefaultMotionState* myMotionState = new btDefaultMotionState(objectTransform);
-                btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, primitaveShape, localInertia);
-                btRigidBody* body = new btRigidBody(rbInfo);
-
-                dynamicsWorld->addRigidBody(body);
-
-//*/
-/*
-
-                //===========
-                collisionShapes.push_back(primitaveShape);
-                obj = new btCollisionObject();
-                obj->setCollisionShape(primitaveShape);
-
-                objectTransform.setIdentity();
-                objectTransform.setOrigin(location);
-
-                dynamicsWorld->addCollisionObject(obj);
-*/
-
-
-
             }
         }else{
             //create a static mesh
-            fprintf(stderr, "haven't written code for self-generating mesh yet, please use primitive for now");
-            exit(0);
+            //fprintf(stderr, "haven't written code for self-generating mesh yet, please use primitive for now");
+            //exit(0);
+
+            //btTriangleMesh trianglemesh = new btTriangleMesh(false,false);
+
+            //trianglemesh.addTriangle(btVector3(-1, 0, -1), btVector3(-1, 0, 1), btVector3( 1, 0, -1), false);
+            //trianglemesh.addTriangle(btVector3( 1, 0, -1), btVector3(-1, 0, 1), btVector3( 1, 0,  1), false);
+            //trianglemesh.addTriangle(btVector3(-1, 0, -1), btVector3(0, 1, 0), btVector3(-1, 0, 1), false);
+            //trianglemesh.addTriangle(btVector3(-1, 0, -1), btVector3(0, 1, 0), btVector3( 1, 0,-1), false);
+            //trianglemesh.addTriangle(btVector3( 1, 0, -1), btVector3(0, 1, 0), btVector3( 1, 0, 1), false);
+            //trianglemesh.addTriangle(btVector3( 1, 0,  1), btVector3(0, 1, 0), btVector3(-1, 0, 1), false);
+
+            //btCollisionShape* meshShape = new btBvhTriangleMeshShape(&trianglemesh, false); //are these the right bools to pass??
+
+            //btCollisionShape* meshShape = new btSphereShape(btScalar(1.));
+
+
+            ///TODO: expand this to handle mltiple meshes. ATM this just loads mesh 0
+            ///ideas: 1. load each mesh as a seperate collision body, 2. is there an array type for btTriangleIndexVertexArray? (probably too much work)
+
+            meshes[0].indices.size() / 3; //num of triangles
+
+            &(meshes[0].indices);
+
+            sizeof(meshes[0].indices[0]) * 3; //stride of indices
+
+            meshes[0].vertices.size(); //number of vertices
+
+            &(meshes[0].vertices);
+
+            sizeof(Vertex);
+
+
+int numTriangles = meshes[0].indices.size() / 3;
+uint * triangleIndexBase = &(meshes[0].indices[0]); //convert?
+
+int triangleIndexStride = sizeof(meshes[0].indices[0]) * 3;
+int numVertices = meshes[0].vertices.size();
+btScalar * vertexBase = (btScalar*)&(meshes[0].vertices[0]); //convert via cast, will this work?
+
+int vertexStride = sizeof(Vertex);
+
+
+            btTriangleIndexVertexArray* indexVertexArrays = new btTriangleIndexVertexArray(numTriangles, (int*)(size_t)triangleIndexBase, triangleIndexStride, numVertices, vertexBase, vertexStride );
+
+//btTriangleIndexVertexArray(int numTriangles, int * triangleIndexBase,int triangleIndexStride,int numVertices, btScalar * vertexBase,int vertexStride );
+
+            //btTriangleIndexVertexArray* indexVertexArrays = new btTriangleIndexVertexArray(totalTriangles, gGroundIndices, indexStride, totalVerts, (btScalar*)&gGroundVertices[0].x(), vertStride);
+
+            bool useQuantizedAabbCompression = true;
+            btCollisionShape* meshShape = new btBvhTriangleMeshShape(indexVertexArrays, useQuantizedAabbCompression);
+
+
+            meshShape->setLocalScaling(btScale);
+            scale = glm::vec3(btScale.x(), btScale.y(), btScale.z());
+
+            btVector3 localInertia(0, 0, 0);
+            meshShape->calculateLocalInertia(0, localInertia);
+
+            btTransform objectTransform;
+            objectTransform.setIdentity();
+            objectTransform.setOrigin(btVector3(location));
+
+            btDefaultMotionState* motionState = new btDefaultMotionState(objectTransform);
+
+            btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, motionState, meshShape, localInertia);
+
+            body = new btRigidBody(rbInfo);
+
+            //do we need these? or do defaults work?
+            body->setContactProcessingThreshold(BT_LARGE_FLOAT);
+            body->setCcdMotionThreshold(.5);
+            body->setCcdSweptSphereRadius(0);
+
+            dynamicsWorld->addRigidBody(body);
+            fprintf(stderr, "gothere");
+
         }
 
-       loadModel(path);
+
     }
 
     static void InitializeModelPhysicsWorld(){
@@ -154,6 +199,7 @@ public:
 
         glm::mat4 modelPhys = glm::mat4(1.0f);
         body->getWorldTransform().getOpenGLMatrix(glm::value_ptr(modelPhys));  //get transform matrix
+        modelPhys = glm::scale(modelPhys, scale); //apply scaling matrix (it's not stored in the WorldTransform matrix
 
         glm::mat4 projection = getprojectionMatrix();
         glm::mat4 view = getViewMatrix();

@@ -92,11 +92,11 @@ int main()
     Shader ourShader("util/object/shader/vShader.glsl", "util/object/shader/fShader.glsl");
 
 
-    Model ourModel("obj/objects/terrain03.obj", true, new btSphereShape(btScalar(1.)), 0.0, btVector3(-1,5,0));
+    Model ourModel("obj/objects/terrain03.obj", false, new btSphereShape(btScalar(1.)), 0.0, btVector3(-5,5,0),btVector3(100,100,100));
 
-    Model ourModel2("obj/objects/plannets/moon.obj", true, new btSphereShape(btScalar(1.)), 0.0 , btVector3(2,1,1));
+    Model ourModel2("obj/objects/plannets/moon.obj", true, new btSphereShape(btScalar(1.)), 1.0 , btVector3(0,50,0),btVector3(1,1,1));
 
-    Model ourModel3("obj/objects/building02.obj", true, new btSphereShape(btScalar(1.)), 1 , btVector3(4,30,0));
+    Model ourModel3("obj/objects/building02.obj", false, new btSphereShape(btScalar(1.)), 0.0 , btVector3(1,-30,0),btVector3(1,1,1));
 
     Model::InitializeModelPhysicsWorld();
 
@@ -128,6 +128,7 @@ int main()
     //the ground is a cube of side 100 at position y = -56.
     //the sphere will hit it at y = -6, with center at -5
 
+    /*
     {
         //btCollisionShape* groundShape = new btBoxShape(btVector3(btScalar(50.), btScalar(50.), btScalar(50.)));
         btCollisionShape* groundShape = new btSphereShape(btScalar(15.));
@@ -154,6 +155,7 @@ int main()
         //add the body to the dynamics world
         dynamicsWorld->addRigidBody(body);
     }
+    */
 btRigidBody* body ;
     {
         //create a dynamic rigidbody
@@ -175,7 +177,7 @@ btRigidBody* body ;
         if (isDynamic)
             colShape->calculateLocalInertia(mass, localInertia);
 
-        startTransform.setOrigin(btVector3(5, 40, 1));
+        startTransform.setOrigin(btVector3(0.7, 40, 0));
 
         //using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
         btDefaultMotionState* myMotionState = new btDefaultMotionState(startTransform);
@@ -216,6 +218,7 @@ btRigidBody* body ;
 
         //Bullet Simulation:
         Model::RunStepSimulation();
+
         //dynamicsWorld->stepSimulation(getFrameTime(), 10);
 
         glm::mat4 modelPhys = glm::mat4(1.0f);
@@ -248,7 +251,8 @@ btRigidBody* body ;
 
         //draw debug stuff from bullet
         debugDraw.SetMatrices(getViewMatrix(), getprojectionMatrix());
-        dynamicsWorld->debugDrawWorld();
+        //dynamicsWorld->debugDrawWorld();
+//debugDraw.draw();
 
 
 //end physics loop=====================================================================================
