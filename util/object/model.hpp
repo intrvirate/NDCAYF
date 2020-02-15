@@ -31,20 +31,23 @@ using namespace std;
 unsigned int TextureFromFile(const char *path, const string &directory, bool gamma = false);
 
 //TODO: move these to the initialize function
- btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
- btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
- btBroadphaseInterface* overlappingPairCache = new btDbvtBroadphase();
- btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver;
- btDiscreteDynamicsWorld* dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
+  extern inline btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
+  extern inline btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
+  extern inline btBroadphaseInterface* overlappingPairCache = new btDbvtBroadphase();
+  extern inline  btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver;
+  extern inline btDiscreteDynamicsWorld* dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
 
- btAlignedObjectArray<btCollisionShape*> collisionShapes; //array of all collision opjects in world. one is creaded for every model that is created.
+  static inline btAlignedObjectArray<btCollisionShape*> collisionShapes; //array of all collision opjects in world. one is creaded for every model that is created.
 
- BulletDebugDrawer_OpenGL debugDraw;
+  static inline BulletDebugDrawer_OpenGL debugDraw;
 
 class Model
 {
 
+
 public:
+
+
     /*  Model Data */
     vector<Texture> textures_loaded;	// stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
     vector<Mesh> meshes;
@@ -54,7 +57,7 @@ public:
     //setup collision stuff
     bool usePrimitive = true;
 
-    btTransform objectTransform; //does this need to be stored out here? I don't think so. TODO: check, and remove
+ //does this need to be stored out here? I don't think so. TODO: check, and remove
 
     btRigidBody* body;
 
@@ -66,32 +69,25 @@ public:
     {
         //initialize collision stuff
         usePrimitive = primitaveColisionShape;
-        dynamicsWorld->setGravity(btVector3(0, -5, 0));
+        btTransform objectTransform;
+        objectTransform.setIdentity();
+        objectTransform.setOrigin(btVector3(location));
+        scale = glm::vec3(btScale.x(), btScale.y(), btScale.z());
 
-        debugDraw.loadDebugShaders();
-        dynamicsWorld->setDebugDrawer(&debugDraw);
-
-        //load here; the resulting mesh is used for mesh (environemnt) collision calculation
         loadModel(path);
 
-
-        if(primitaveColisionShape == true){
-            //create a primitive colision shape
+        if(primitaveColisionShape == true){ /*create a primitive colision shape*/
             if(primitaveShape == NULL){
                 //catch errors
                 fprintf(stderr, "must pass a new primitaveShape when initializing model if primitaveColisionShape set to true");
                 exit(0);
             }else{
 
-//https://stackoverflow.com/questions/11175694/bullet-physics-simplest-collision-example <== object method code; here for reference
-
                 collisionShapes.push_back(primitaveShape); //used to cleanup all objects later
 
-                objectTransform.setIdentity();
-                objectTransform.setOrigin(btVector3(location));
 
                 bool isDynamic = (mass != 0.f);
-                btVector3 localInertia(0, 0, 0);
+                btVector3 localInertia(100, 100, 100);
                 if (isDynamic)
                     primitaveShape->calculateLocalInertia(mass, localInertia);
 
@@ -103,54 +99,19 @@ public:
                 dynamicsWorld->addRigidBody(body);
 
             }
-        }else{
-            //create a static mesh
-            //fprintf(stderr, "haven't written code for self-generating mesh yet, please use primitive for now");
-            //exit(0);
-
-            //btTriangleMesh trianglemesh = new btTriangleMesh(false,false);
-
-            //trianglemesh.addTriangle(btVector3(-1, 0, -1), btVector3(-1, 0, 1), btVector3( 1, 0, -1), false);
-            //trianglemesh.addTriangle(btVector3( 1, 0, -1), btVector3(-1, 0, 1), btVector3( 1, 0,  1), false);
-            //trianglemesh.addTriangle(btVector3(-1, 0, -1), btVector3(0, 1, 0), btVector3(-1, 0, 1), false);
-            //trianglemesh.addTriangle(btVector3(-1, 0, -1), btVector3(0, 1, 0), btVector3( 1, 0,-1), false);
-            //trianglemesh.addTriangle(btVector3( 1, 0, -1), btVector3(0, 1, 0), btVector3( 1, 0, 1), false);
-            //trianglemesh.addTriangle(btVector3( 1, 0,  1), btVector3(0, 1, 0), btVector3(-1, 0, 1), false);
-
-            //btCollisionShape* meshShape = new btBvhTriangleMeshShape(&trianglemesh, false); //are these the right bools to pass??
-
-            //btCollisionShape* meshShape = new btSphereShape(btScalar(1.));
-
+        }else{ /*create a static mesh*/
 
             ///TODO: expand this to handle mltiple meshes. ATM this just loads mesh 0
             ///ideas: 1. load each mesh as a seperate collision body, 2. is there an array type for btTriangleIndexVertexArray? (probably too much work)
 
-            meshes[0].indices.size() / 3; //num of triangles
-
-            &(meshes[0].indices);
-
-            sizeof(meshes[0].indices[0]) * 3; //stride of indices
-
-            meshes[0].vertices.size(); //number of vertices
-
-            &(meshes[0].vertices);
-
-            sizeof(Vertex);
-
-
-int numTriangles = meshes[0].indices.size() / 3;
-uint * triangleIndexBase = &(meshes[0].indices[0]); //convert?
-
-int triangleIndexStride = sizeof(meshes[0].indices[0]) * 3;
-int numVertices = meshes[0].vertices.size();
-btScalar * vertexBase = (btScalar*)&(meshes[0].vertices[0]); //convert via cast, will this work?
-
-int vertexStride = sizeof(Vertex);
-
+            int numTriangles = meshes[0].indices.size() / 3;
+            uint * triangleIndexBase = &(meshes[0].indices[0]);
+            int triangleIndexStride = sizeof(meshes[0].indices[0]) * 3;
+            int numVertices = meshes[0].vertices.size();
+            btScalar * vertexBase = (btScalar*)&(meshes[0].vertices[0]);
+            int vertexStride = sizeof(Vertex);
 
             btTriangleIndexVertexArray* indexVertexArrays = new btTriangleIndexVertexArray(numTriangles, (int*)(size_t)triangleIndexBase, triangleIndexStride, numVertices, vertexBase, vertexStride );
-
-//btTriangleIndexVertexArray(int numTriangles, int * triangleIndexBase,int triangleIndexStride,int numVertices, btScalar * vertexBase,int vertexStride );
 
             //btTriangleIndexVertexArray* indexVertexArrays = new btTriangleIndexVertexArray(totalTriangles, gGroundIndices, indexStride, totalVerts, (btScalar*)&gGroundVertices[0].x(), vertStride);
 
@@ -159,18 +120,18 @@ int vertexStride = sizeof(Vertex);
 
 
             meshShape->setLocalScaling(btScale);
-            scale = glm::vec3(btScale.x(), btScale.y(), btScale.z());
 
             btVector3 localInertia(0, 0, 0);
             meshShape->calculateLocalInertia(0, localInertia);
 
-            btTransform objectTransform;
-            objectTransform.setIdentity();
-            objectTransform.setOrigin(btVector3(location));
-
             btDefaultMotionState* motionState = new btDefaultMotionState(objectTransform);
 
             btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, motionState, meshShape, localInertia);
+
+            //set up friction values:
+            rbInfo.m_friction = 1;
+            rbInfo.m_rollingFriction = 1;
+            rbInfo.m_spinningFriction = 1;
 
             body = new btRigidBody(rbInfo);
 
@@ -181,18 +142,8 @@ int vertexStride = sizeof(Vertex);
 
             dynamicsWorld->addRigidBody(body);
             fprintf(stderr, "gothere");
-
         }
-
-
     }
-
-    static void InitializeModelPhysicsWorld(){
-        dynamicsWorld->setGravity(btVector3(0, -5, 0));
-        debugDraw.loadDebugShaders();
-        dynamicsWorld->setDebugDrawer(&debugDraw);
-    }
-
     // draws the model, and thus all its meshes
     void Draw(Shader shader)
     {
@@ -211,6 +162,19 @@ int vertexStride = sizeof(Vertex);
             meshes[i].Draw(shader);
 
     }
+    static void InitializeModelPhysicsWorld(){
+
+    /*
+            btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
+            btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
+            btBroadphaseInterface* overlappingPairCache = new btDbvtBroadphase();
+            btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver;
+            btDiscreteDynamicsWorld* dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
+*/
+        dynamicsWorld->setGravity(btVector3(0, -9.8, 0));
+        debugDraw.loadDebugShaders();
+        dynamicsWorld->setDebugDrawer(&debugDraw);
+    }
     static void DrawDebugModels(){
 
         debugDraw.SetMatrices(getViewMatrix(), getprojectionMatrix());
@@ -221,7 +185,18 @@ int vertexStride = sizeof(Vertex);
 
         dynamicsWorld->stepSimulation(getFrameTime(), 10);
     }
-    static void Cleanup(){
+    static void Cleanup(){ //delete physics stuff
+        for (int i = dynamicsWorld->getNumCollisionObjects() - 1; i >= 0; i--)
+        {
+            btCollisionObject* obj = dynamicsWorld->getCollisionObjectArray()[i];
+            btRigidBody* body = btRigidBody::upcast(obj);
+            if (body && body->getMotionState())
+            {
+                delete body->getMotionState();
+            }
+            dynamicsWorld->removeCollisionObject(obj);
+            delete obj;
+        }
         for (int j = 0; j < collisionShapes.size(); j++)
         {
             btCollisionShape* shape = collisionShapes[j];
@@ -390,7 +365,7 @@ private:
     }
 };
 
-unsigned int TextureFromFile(const char *path, const string &directory, bool gamma)
+inline unsigned int TextureFromFile(const char *path, const string &directory, bool gamma)
 {
     string filename = string(path);
     filename = directory + '/' + filename;

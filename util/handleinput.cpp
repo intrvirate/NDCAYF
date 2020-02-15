@@ -7,6 +7,9 @@
 #include <glm/glm.hpp>
 
 #include "util/loadMenu.hpp"
+#include "util/object/model.hpp"
+#include "util/bulletDebug/collisiondebugdrawer.hpp"
+#include "BulletCollision/NarrowPhaseCollision/btRaycastCallback.h"
 
 using namespace std;
 
@@ -25,7 +28,15 @@ float pitch = 0;
 float sensitivity = 0.25;
 float xArrowSensitivity = 0.01;
 float yArrowSensitivity = 0.01;
+
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+const glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+
+glm::vec3 cameraRight;
+glm::vec3 cameraUp;
+
+glm::vec3 cameraPos = glm::vec3(0,0,0);
+glm::vec3 cameraTarget;
 
 bool mouseVisable = false;
 
@@ -33,8 +44,10 @@ glm::vec2 pointMousePos;
 
 string textEntryString = "";
 bool inTextBox = false;
+bool physicsDebugEnabled = false;
 
 void updateCameraFront(double xpos, double ypos) {
+
     float xoffset = xpos - lastX;
     float yoffset = lastY - ypos;
     lastX = xpos;
@@ -76,7 +89,6 @@ void initializeMouse(GLFWwindow* window){
 
 void mouse_callback_camera(GLFWwindow* window, double xpos, double ypos)
 {
-
     updateCameraFront(xpos, ypos);
 }
 
@@ -93,11 +105,37 @@ glm::vec2 getMousePos(){
     return pointMousePos;
 }
 
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods){
-
+void mouse_button_callback_Menu(GLFWwindow* window, int button, int action, int mods){
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS){
         handleMenuClick();
     }
+}
+
+void mouse_button_callback_3D(GLFWwindow* window, int button, int action, int mods){
+
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS){
+        fprintf(stderr, "hi");
+
+        btVector3 from(0, 20, 0);
+        btVector3 to(30, 1, 0);
+
+        //draw debug line
+        dynamicsWorld->getDebugDrawer()->drawLine(from, to, btVector4(0, 0, 0, 1));
+
+        btCollisionWorld::AllHitsRayResultCallback allResults(from, to);
+        allResults.m_flags |= btTriangleRaycastCallback::kF_KeepUnflippedNormal;
+        allResults.m_flags |= btTriangleRaycastCallback::kF_UseSubSimplexConvexCastRaytest;
+        //cast the ray
+        dynamicsWorld->rayTest(from, to, allResults);
+        btVector3 red(1, 0, 0);
+        for (int i = 0; i < allResults.m_hitFractions.size(); i++)
+        {
+            btVector3 p = from.lerp(to, allResults.m_hitFractions[i]);
+            dynamicsWorld->getDebugDrawer()->drawSphere(p, 0.1, red);
+            dynamicsWorld->getDebugDrawer()->drawLine(p, p + allResults.m_hitNormalWorld[i], red);
+        }
+    }
+
 
 }
 
@@ -106,11 +144,12 @@ void toggleMouseVisibility(GLFWwindow* window){
     if(glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED){
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         glfwSetCursorPosCallback(window, mouse_callback_point);
-        glfwSetMouseButtonCallback(window, mouse_button_callback); //this callback is located in loadmenu.cpp
+        glfwSetMouseButtonCallback(window, mouse_button_callback_Menu);
         mouseVisable = true;
     }else{
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         glfwSetCursorPosCallback(window, mouse_callback_camera);
+        glfwSetMouseButtonCallback(window, mouse_button_callback_3D);
         mouseVisable = false;
         inTextBox = false;
 
@@ -149,6 +188,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             }else{
                 glDisable(GL_CULL_FACE);
             }
+        }else if(key == GLFW_KEY_Q && action == GLFW_PRESS){
+            physicsDebugEnabled = !physicsDebugEnabled;
         }
     }else{
         if(inTextBox && action != GLFW_RELEASE){
@@ -177,8 +218,12 @@ GLenum returnKeysetRenderMode(){
     return enumRenderMode; // points, lines, or triangles
 }
 
-glm::vec3 calcCameraMovement(GLFWwindow* window, glm::vec3 cameraPos, glm::vec3 cameraFront, glm::vec3 cameraUp){
+glm::vec3 calcCameraMovement(GLFWwindow* window){
     if(!mouseVisable){
+
+        glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraFront));
+        glm::vec3 cameraUp = glm::cross(cameraFront, cameraRight);
+
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
             cameraPos += cameraSpeed * cameraFront;
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -216,6 +261,7 @@ void calculateFrameTime(){ //call this exactly once per frame
     cameraSpeed = cameraSpeedMultiplier * frameTime;
 }
 
-glm::vec3 getCameraDirection(){
+glm::vec3 getCameraFront(){
     return cameraFront;
 }
+

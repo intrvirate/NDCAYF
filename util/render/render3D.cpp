@@ -14,6 +14,8 @@
 #include "util/vertexGrid.hpp"
 #include "util/groundGridGeneration.hpp"
 
+#include "util/handleinput.hpp"
+
 //global variables (need to be accessed accross load functions)
 
 GLuint vertexShaderID3D;
@@ -23,11 +25,6 @@ GLuint shaderProgramID3D;
 GLuint VBO3D; //Vertex Buffer Object
 GLuint VAO3D; //Vertex Array Object
 GLuint EBO3D; //Element Buffer Object
-
-const glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-glm::vec3 cameraPos;
-glm::vec3 cameraTarget;
-glm::vec3 cameraDirection;
 
 glm::mat4 model;
 glm::mat4 projection;
@@ -87,7 +84,7 @@ void load3DMatrices(){
 
     cameraPos = glm::vec3(0.0f, 0.7f, 0.0f);
     cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-    cameraDirection = glm::normalize(cameraPos - cameraTarget);
+    cameraFront = glm::normalize(cameraPos - cameraTarget);
 
     view = glm::lookAt(cameraPos, cameraTarget, up);
 
@@ -116,18 +113,15 @@ void renderLoop3D(GLFWwindow *window){ //called once per frame in the render loo
     //switch to 3D shader
     glUseProgram(shaderProgramID3D);
     glBindVertexArray(VAO3D);
-    cameraDirection = getCameraDirection();
+    cameraFront = getCameraFront();
 
-    glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
-    glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight);
-
-    cameraPos = calcCameraMovement(window, cameraPos,  cameraDirection, cameraUp);
+    cameraPos = calcCameraMovement(window);
 
     rendered_center.x = (int)cameraPos.x;
-    rendered_center.y =     (int)cameraPos.z;
+    rendered_center.y = (int)cameraPos.z;
 
     //update matrices
-    view = glm::lookAt(cameraPos, cameraPos + cameraDirection, up);
+    view = glm::lookAt(cameraPos, cameraPos + cameraFront, up);
     projection = glm::perspective(glm::radians(45.0f), CurrentWindowRatio, 0.1f, 100.0f);
     model = glm::rotate(model, glm::radians(0.0f), glm::vec3(0.5f, 1.0f, 0.0f));
 /*

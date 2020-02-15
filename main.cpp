@@ -27,6 +27,8 @@
 #include "util/object/model.hpp"
 
 #include "util/bulletDebug/collisiondebugdrawer.hpp"
+#include "BulletCollision/NarrowPhaseCollision/btRaycastCallback.h"
+
 
 
 using json = nlohmann::json;
@@ -92,9 +94,9 @@ int main()
     Shader ourShader("util/object/shader/vShader.glsl", "util/object/shader/fShader.glsl");
 
 
-    Model ourModel("obj/objects/terrain03.obj", false, new btSphereShape(btScalar(1.)), 0.0, btVector3(-5,5,0),btVector3(100,100,100));
+    Model ourModel("obj/objects/terrain03.obj", false, new btSphereShape(btScalar(1.)), 0.0, btVector3(0,-8,0),btVector3(100,100,100));
 
-    Model ourModel2("obj/objects/plannets/moon.obj", true, new btSphereShape(btScalar(1.)), 1.0 , btVector3(0,50,0),btVector3(1,1,1));
+    Model ourModel2("obj/objects/plannets/moon.obj", true, new btSphereShape(btScalar(5.)), 1.0 , btVector3(0,50,0),btVector3(5,5,5));
 
     Model ourModel3("obj/objects/building02.obj", false, new btSphereShape(btScalar(1.)), 0.0 , btVector3(1,-30,0),btVector3(1,1,1));
 
@@ -155,7 +157,7 @@ int main()
         //add the body to the dynamics world
         dynamicsWorld->addRigidBody(body);
     }
-    */
+
 btRigidBody* body ;
     {
         //create a dynamic rigidbody
@@ -189,6 +191,9 @@ btRigidBody* body ;
 
     }
 ;
+    */
+
+
 //=========== RENDER =========================================================
 
     load3DShaders();
@@ -214,82 +219,64 @@ btRigidBody* body ;
         renderLoop3D(window);
         renderLoop2D(window);
 
-        //ASSIMP render loop (not cleaned up yet)
-
         //Bullet Simulation:
         Model::RunStepSimulation();
 
-        //dynamicsWorld->stepSimulation(getFrameTime(), 10);
-
-        glm::mat4 modelPhys = glm::mat4(1.0f);
-
-        /*
-        for (int j = dynamicsWorld->getNumCollisionObjects() - 1; j >= 0; j--)
-        {
-            btCollisionObject* obj = dynamicsWorld->getCollisionObjectArray()[j];
-            btRigidBody* body = btRigidBody::upcast(obj);
-            btTransform trans;
-            if (body && body->getMotionState())
-            {
-                body->getMotionState()->getWorldTransform(trans);
-            }
-            else
-            {
-                trans = obj->getWorldTransform();
-            }
-
-            //obj->getWorldTransform().getOpenGLMatrix(glm::value_ptr(modelPhys));
-            modelPhys = glm::translate(modelPhys, glm::vec3(float(trans.getOrigin().getX()),float(trans.getOrigin().getY()),float(trans.getOrigin().getZ())));
-            //modelPhys = glm::scale(modelPhys, glm::vec3(1.0f, 1.0f, 1.0f));
-
-        }
-*/
-
-        btCollisionObject* obj = dynamicsWorld->getCollisionObjectArray()[1]; //moon is object 1
-        body->getWorldTransform().getOpenGLMatrix(glm::value_ptr(modelPhys));  //get it's transform matrix
+        //draw debug line
 
 
         //draw debug stuff from bullet
         debugDraw.SetMatrices(getViewMatrix(), getprojectionMatrix());
-        //dynamicsWorld->debugDrawWorld();
-//debugDraw.draw();
 
+        if(physicsDebugEnabled){
+            dynamicsWorld->debugDrawWorld();
+            //debugDraw.draw();
+        }
+//=-----=-=-=-=-==--=-==-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-^-^-^-^-^-^-^-
+
+
+
+        //btVector3 to(0, 0, 0);
+        btVector3 from(cameraPos.x,cameraPos.y,cameraPos.z);
+        //to = to * 50;
+
+        btVector3 to(cameraPos.x+cameraFront.x*100,cameraPos.y+cameraFront.y*100,cameraPos.z+cameraFront.z*100);
+
+        //dynamicsWorld->getDebugDrawer()->drawSphere(blackpos, 0.5, btVector4(1, 1, 1, 1));
+
+
+        dynamicsWorld->getDebugDrawer()->drawLine(from, to, btVector4(1, 0, 0, 1));
+        btVector3 red(1, 0, 0);
+        dynamicsWorld->getDebugDrawer()->drawSphere(btVector3(0,0,0), 0.5, red);
+
+        btCollisionWorld::AllHitsRayResultCallback allResults(from, to);
+        allResults.m_flags |= btTriangleRaycastCallback::kF_KeepUnflippedNormal;
+        allResults.m_flags |= btTriangleRaycastCallback::kF_UseSubSimplexConvexCastRaytest;
+        //cast the ray
+        dynamicsWorld->rayTest(from, to, allResults);
+
+        for (int i = 0; i < allResults.m_hitFractions.size(); i++)
+        {
+            btVector3 p = from.lerp(to, allResults.m_hitFractions[i]);
+            dynamicsWorld->getDebugDrawer()->drawSphere(p, 0.1, red);
+            dynamicsWorld->getDebugDrawer()->drawLine(p, p + allResults.m_hitNormalWorld[i], red);
+        }
+
+
+        debugDraw.draw();
 
 //end physics loop=====================================================================================
 
         ourShader.use();
 
-        glm::mat4 projection = getprojectionMatrix();
-        glm::mat4 view = getViewMatrix();
-        ourShader.setMat4("projection", projection);
-        ourShader.setMat4("view", view);
-
-
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, -7.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(40.0f, 40.0f, 40.0f));
-        ourShader.setMat4("model", model);
         ourModel.Draw(ourShader);
-
-        //moonobj->getWorldTransform().getOpenGLMatrix(glm::value_ptr(modelPhys));
-        //model = glm::mat4(1.0f);
-        //model = glm::translate(model, glm::vec3(3.0f, 60.0f, 3.0f));
-        //model = glm::scale(model, glm::vec3(12.9f, 12.9f, 12.9f));
-        //ourShader.setMat4("model", model);
-        ourShader.setMat4("model", modelPhys);
         ourModel2.Draw(ourShader);
-
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-14.0f, -2.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
-        ourShader.setMat4("model", model);
         ourModel3.Draw(ourShader);
 
 
         // Swap buffers
         glfwSwapBuffers(window);
         glfwPollEvents();
-
     }
 
     //draw model physics debug
@@ -298,34 +285,7 @@ btRigidBody* body ;
 
     //cleanup physics code
     //TODO: clean this up
-    for (int i = dynamicsWorld->getNumCollisionObjects() - 1; i >= 0; i--)
-    {
-        btCollisionObject* obj = dynamicsWorld->getCollisionObjectArray()[i];
-        btRigidBody* body = btRigidBody::upcast(obj);
-        if (body && body->getMotionState())
-        {
-            delete body->getMotionState();
-        }
-        dynamicsWorld->removeCollisionObject(obj);
-        delete obj;
-    }
 
-    //delete collision shapes
-    /*
-    for (int j = 0; j < collisionShapes.size(); j++)
-    {
-        btCollisionShape* shape = collisionShapes[j];
-        collisionShapes[j] = 0;
-        delete shape;
-    }
-    delete dynamicsWorld;
-    delete solver;
-    delete overlappingPairCache;
-    delete dispatcher;
-    delete collisionConfiguration;
-    collisionShapes.clear();
-
-*/
     Model::Cleanup();
 
     cleanup3D();
