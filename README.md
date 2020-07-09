@@ -13,7 +13,7 @@ Lightweight first person shooter focused on multiplayer LAN-based gameplay, and 
 * Lightweight FPS game
 * Native Linux compatibility
 
-## Installation Requirements
+## Dependencies
 * cmake
 * glfw3 (glfw-x11 on archlinux)
 * glew
