@@ -21,6 +21,16 @@ Lightweight first person shooter focused on multiplayer LAN-based gameplay, and 
 * bullet
 * glm
 
+## Linux Installation:
+1. Clone this git repo
+2. Ensure you have all proper dependencies installed
+3. `cd` into the repo directory and run `cmake ./*`
+4. Run `make`
+5. Run `./NDCAYF`
+
+## Windows Installation:
+1. [Our more detailed, recommended method](https://wiki.artixlinux.org/Main/Installation)
+
 ## Current Progress
 * Render engine
 
