@@ -11,6 +11,10 @@
 
 #include <btBulletDynamicsCommon.h>
 
+#include "util/imgui/imgui.h"
+#include "util/imgui/imgui_impl_glfw.h"
+#include "util/imgui/imgui_impl_opengl3.h"
+
 #include "util/json.hpp"
 
 #include "util/render/render3D.hpp"
@@ -28,7 +32,6 @@
 
 #include "util/bulletDebug/collisiondebugdrawer.hpp"
 #include "BulletCollision/NarrowPhaseCollision/btRaycastCallback.h"
-
 
 
 using json = nlohmann::json;
@@ -56,14 +59,19 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
     //change default window size in otherHandlers.cpp
-    window = glfwCreateWindow( CurrentWindowX, CurrentWindowY, "NDCAYF", NULL, NULL); //create window
+    window = glfwCreateWindow( CurrentWindowX, CurrentWindowY, "NDCAYF", NULL, NULL); //create window. TODO: setting first NULL to glfwGetPrimaryMonitor() results in full screen mode
     if( window == NULL ){
-        fprintf( stderr, "Failed to open GLFW window. Double check that the GPU is 3.3 compatible\n" );
+        fprintf( stderr, "Failed to open GLFW window. Double check that the GPU is openGL 3.3 compatible\n" );
         glfwTerminate();
         return -1;
     }
     glfwMakeContextCurrent(window);
+    /* TODO: actualy make this work with optimus laptops (it doesn't; you get mag fps and pegged gpu)
+        //vsync: 1=enabled, 0=disabled, -1=adaptive
+        glfwSwapInterval(1);
+    */
     glViewport(0, 0, CurrentWindowX, CurrentWindowY);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback); //allow window to be resized
 
@@ -102,96 +110,24 @@ int main()
 
     Model::InitializeModelPhysicsWorld();
 
-//=========== BULLET =========================================================
-//TODO: mmove this out of main, this is just for testing
+//=========== IMGUI =========================================================
 
 
-
-    //see the helloWorld bullet example file for documentation on these functions
-    //TODO: use a multithreaded initializer instead of this single threaded one
-
-
-    //btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
-    //btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
-    //btBroadphaseInterface* overlappingPairCache = new btDbvtBroadphase();
-    //btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver;
-    //btDiscreteDynamicsWorld* dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
-    //dynamicsWorld->setGravity(btVector3(0, -5, 0));
-
-    //set up debugging view
-    //BulletDebugDrawer_OpenGL debugDraw;
-    //debugDraw.loadDebugShaders();
-    //dynamicsWorld->setDebugDrawer(&debugDraw);
-
-    //btAlignedObjectArray<btCollisionShape*> collisionShapes;
-
-    ///create a few basic rigid bodies
-
-    //the ground is a cube of side 100 at position y = -56.
-    //the sphere will hit it at y = -6, with center at -5
-
-    /*
-    {
-        //btCollisionShape* groundShape = new btBoxShape(btVector3(btScalar(50.), btScalar(50.), btScalar(50.)));
-        btCollisionShape* groundShape = new btSphereShape(btScalar(15.));
-        collisionShapes.push_back(groundShape);
-
-        btTransform groundTransform;
-        groundTransform.setIdentity();
-        groundTransform.setOrigin(btVector3(0, 0, 0));
-
-        btScalar mass(0.);
-
-        //rigidbody is dynamic if and only if mass is non zero, otherwise static
-        bool isDynamic = (mass != 0.f);
-
-        btVector3 localInertia(0, 0, 0);
-        if (isDynamic)
-            groundShape->calculateLocalInertia(mass, localInertia);
-
-        //using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
-        btDefaultMotionState* myMotionState = new btDefaultMotionState(groundTransform);
-        btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, groundShape, localInertia);
-        btRigidBody* body = new btRigidBody(rbInfo);
-
-        //add the body to the dynamics world
-        dynamicsWorld->addRigidBody(body);
-    }
-
-btRigidBody* body ;
-    {
-        //create a dynamic rigidbody
-
-        //btCollisionShape* colShape = new btBoxShape(btVector3(1,1,1));
-        btCollisionShape* colShape = new btSphereShape(btScalar(1.2));
-        collisionShapes.push_back(colShape);
-
-        /// Create Dynamic Objects
-        btTransform startTransform;
-        startTransform.setIdentity();
-
-        btScalar mass(1.f);
-
-        //rigidbody is dynamic if and only if mass is non zero, otherwise static
-        bool isDynamic = (mass != 0.f);
-
-        btVector3 localInertia(0, 0, 0);
-        if (isDynamic)
-            colShape->calculateLocalInertia(mass, localInertia);
-
-        startTransform.setOrigin(btVector3(0.7, 40, 0));
-
-        //using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
-        btDefaultMotionState* myMotionState = new btDefaultMotionState(startTransform);
-        btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, colShape, localInertia);
-         body = new btRigidBody(rbInfo);
-
-        dynamicsWorld->addRigidBody(body);
+IMGUI_CHECKVERSION();
+ImGui::CreateContext();
+ImGuiIO& io = ImGui::GetIO(); (void)io;
+ImGui::StyleColorsDark();
+//ImGui::StyleColorsClassic();
 
 
-    }
-;
-    */
+//bindings: consider writing our own. this is the default demo one provided
+const char* glsl_version = "#version 130";
+ImGui_ImplGlfw_InitForOpenGL(window, true);
+ImGui_ImplOpenGL3_Init(glsl_version);
+
+bool show_demo_window = true;
+    bool show_another_window = false;
+    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 
 //=========== RENDER =========================================================
@@ -207,7 +143,6 @@ btRigidBody* body ;
     loadAutoMapGen();
 
 //=========== LOOP ===========================================================
-
 
     while( glfwWindowShouldClose(window) == 0){
 
@@ -232,35 +167,55 @@ btRigidBody* body ;
             dynamicsWorld->debugDrawWorld();
             //debugDraw.draw();
         }
-//=-----=-=-=-=-==--=-==-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-^-^-^-^-^-^-^-
 
+    //============imgui===========
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+        static float f = 0.0f;
+        static int counter = 0;
+        ImGui::Begin("Hello, world!");
+        ImGui::Text("This is some useful text.");
+        ImGui::Checkbox("Demo Window", &show_demo_window);
+        ImGui::Checkbox("Another Window", &show_another_window);
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        ImGui::End();
 
+        if (show_another_window){
+            ImGui::Begin("Another Window", &show_another_window);
+            ImGui::Text("Hello from another window!");
+            if (ImGui::Button("Close Me"))
+                show_another_window = false;
+            ImGui::End();
+        }
 
-        //btVector3 to(0, 0, 0);
+        ImGui::Render();
+        int display_w, display_h;
+        glfwGetFramebufferSize(window, &display_w, &display_h);
+        glViewport(0, 0, display_w, display_h);
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    //=-----=-=-=-=-==--=-==-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-^-^-^-^-^-^-^-
+
         btVector3 from(cameraPos.x,cameraPos.y,cameraPos.z);
-        //to = to * 50;
-
         btVector3 to(cameraPos.x+cameraFront.x*100,cameraPos.y+cameraFront.y*100,cameraPos.z+cameraFront.z*100);
 
-        //dynamicsWorld->getDebugDrawer()->drawSphere(blackpos, 0.5, btVector4(1, 1, 1, 1));
+        btVector3 blue(0.1, 0.3, 0.9);
+        dynamicsWorld->getDebugDrawer()->drawSphere(btVector3(0,0,0), 0.5, blue); //at origin
 
+        btCollisionWorld::ClosestRayResultCallback closestResults(from, to);
+        closestResults.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
 
-        dynamicsWorld->getDebugDrawer()->drawLine(from, to, btVector4(1, 0, 0, 1));
-        btVector3 red(1, 0, 0);
-        dynamicsWorld->getDebugDrawer()->drawSphere(btVector3(0,0,0), 0.5, red);
+        dynamicsWorld->rayTest(from, to, closestResults);
 
-        btCollisionWorld::AllHitsRayResultCallback allResults(from, to);
-        allResults.m_flags |= btTriangleRaycastCallback::kF_KeepUnflippedNormal;
-        allResults.m_flags |= btTriangleRaycastCallback::kF_UseSubSimplexConvexCastRaytest;
-        //cast the ray
-        dynamicsWorld->rayTest(from, to, allResults);
-
-        for (int i = 0; i < allResults.m_hitFractions.size(); i++)
+        if (closestResults.hasHit())
         {
-            btVector3 p = from.lerp(to, allResults.m_hitFractions[i]);
-            dynamicsWorld->getDebugDrawer()->drawSphere(p, 0.1, red);
-            dynamicsWorld->getDebugDrawer()->drawLine(p, p + allResults.m_hitNormalWorld[i], red);
+            btVector3 p = from.lerp(to, closestResults.m_closestHitFraction);
+            dynamicsWorld->getDebugDrawer()->drawSphere(p, 0.1, blue);
+            dynamicsWorld->getDebugDrawer()->drawLine(p, p + closestResults.m_hitNormalWorld, blue);
+
+            //ourModel3.setPosition(p);
         }
+
 
 
         debugDraw.draw();
@@ -273,6 +228,9 @@ btRigidBody* body ;
         ourModel2.Draw(ourShader);
         ourModel3.Draw(ourShader);
 
+
+        //render imgui (render this last so it's on top of other stuff
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         // Swap buffers
         glfwSwapBuffers(window);

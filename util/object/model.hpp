@@ -162,6 +162,28 @@ public:
             meshes[i].Draw(shader);
 
     }
+
+    void setPosition(glm::vec3 pos){
+
+        btTransform tr = body->getWorldTransform();
+
+        tr.setOrigin(btVector3(pos.z,pos.y,pos.z));
+        //scale;
+
+        body->setWorldTransform(tr);
+
+    }
+    void setPosition(btVector3 pos){
+
+        btTransform tr = body->getWorldTransform();
+
+        tr.setOrigin(pos);
+        //scale;
+
+        body->setWorldTransform(tr);
+
+    }
+
     static void InitializeModelPhysicsWorld(){
 
     /*
