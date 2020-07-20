@@ -44,6 +44,22 @@ add_executable(NDCAYF
                 util/groundGridGeneration.hpp
                 util/bulletDebug/collisiondebugdrawer.cpp
                 util/bulletDebug/collisiondebugdrawer.hpp
+#IMGUI files. There is certainly a better way to do this than listing them *all* here, but it works.
+                util/imgui/imgui.h
+                util/imgui/imgui.cpp
+                util/imgui/imconfig.h
+                util/imgui/imgui_demo.cpp
+                util/imgui/imgui_widgets.cpp
+                util/imgui/imstb_textedit.h
+                util/imgui/imgui_draw.cpp
+                util/imgui/imgui_internal.h
+                util/imgui/imstb_rectpack.h
+                util/imgui/imstb_truetype.h
+                util/imgui/imgui_impl_glfw.h
+                util/imgui/imgui_impl_glfw.cpp
+                util/imgui/imgui_impl_opengl3.h
+                util/imgui/imgui_impl_opengl3.cpp
+
 )
 
 target_link_libraries(NDCAYF glfw)

@@ -100,7 +100,6 @@ void load3DMatrices(){
     glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(model));
     glUniformMatrix4fv(view_location, 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(projection_location, 1, GL_FALSE, glm::value_ptr(projection));
-
 }
 
 void loadAutoMapGen(){
@@ -124,6 +123,8 @@ void renderLoop3D(GLFWwindow *window){ //called once per frame in the render loo
     view = glm::lookAt(cameraPos, cameraPos + cameraFront, up);
     projection = glm::perspective(glm::radians(45.0f), CurrentWindowRatio, 0.1f, 100.0f);
     model = glm::rotate(model, glm::radians(0.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+
+    //old dynamic terain code; don't remove
 /*
     glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(model));
     glUniformMatrix4fv(view_location, 1, GL_FALSE, glm::value_ptr(view));
@@ -143,7 +144,7 @@ void renderLoop3D(GLFWwindow *window){ //called once per frame in the render loo
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO3D);
     //glDrawElements(GL_TRIANGLES, sizeof(indices) * 3, GL_UNSIGNED_INT, 0);
     glDrawElements(GL_TRIANGLES, indicesSize_2 , GL_UNSIGNED_INT, 0);
-*/
+//*/
 }
 
 void cleanup3D(){
