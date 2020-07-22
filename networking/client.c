@@ -11,7 +11,8 @@
 
 #define PORT  12345
 #define BUFSIZE 2048
-#define SUPERSECRETKEY "ndcayfserver"
+#define SUPERSECRETKEY_SERVER "ndcayfserver"
+#define SUPERSECRETKEY_CLIENT "ndcayfclient"
 
 struct ifa {
     char name[128];
@@ -68,7 +69,7 @@ void broadcastAllInterfaces(int sock, struct ifa interfaces[], int elements, cha
 {
     struct sockaddr_in broadcast_addr;
     char msg[100];
-    sprintf(msg, "ndcayfclient$%s", name);
+    sprintf(msg, "%s$%s", SUPERSECRETKEY_CLIENT, name);
 
     socklen_t addrlen = sizeof(broadcast_addr);        /* length of addresses */
 
@@ -124,7 +125,7 @@ void getResponses(int sock)
             char *ip = inet_ntoa(in_addr.sin_addr);
             //printf("%s == %s\n", serverKey, SUPERSECRETKEY);
 
-            if (strcmp(serverKey, SUPERSECRETKEY) == 0)
+            if (strcmp(serverKey, SUPERSECRETKEY_CLIENT) == 0)
             {
                 strcpy(name, strtok(NULL, "$"));
                 printf("Key: %s, Name: %s\n", serverKey, name);

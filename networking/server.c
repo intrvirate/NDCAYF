@@ -8,6 +8,8 @@
 
 #define SERVICE_PORT 12345
 #define BUFSIZE 2048
+#define SUPERSECRETKEY_SERVER "ndcayfserver"
+#define SUPERSECRETKEY_CLIENT "ndcayfclient"
 
 int main(int argc, char **argv)
 {
@@ -24,7 +26,7 @@ int main(int argc, char **argv)
 
     gethostname(hostname, 128);
 
-    sprintf(reply, "ndcayfserver$%s", hostname);
+    sprintf(reply, "%s$%s", SUPERSECRETKEY_SERVER, hostname);
 
     /* create a UDP socket */
 
