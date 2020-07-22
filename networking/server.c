@@ -6,10 +6,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
-#define SERVICE_PORT 12345
-#define BUFSIZE 2048
-#define SUPERSECRETKEY_SERVER "ndcayfserver"
-#define SUPERSECRETKEY_CLIENT "ndcayfclient"
+#include "networkConfig.c"
 
 int main(int argc, char **argv)
 {
@@ -40,7 +37,7 @@ int main(int argc, char **argv)
     memset((char *)&myaddr, 0, sizeof(myaddr));
     myaddr.sin_family = AF_INET;
     myaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    myaddr.sin_port = htons(SERVICE_PORT);
+    myaddr.sin_port = htons(PORT);
 
     if (bind(fd, (struct sockaddr *)&myaddr, sizeof(myaddr)) < 0) {
         perror("bind failed");
@@ -49,7 +46,7 @@ int main(int argc, char **argv)
 
     /* now loop, receiving data and printing what we received */
     for (;;) {
-        printf("waiting on port %d\n", SERVICE_PORT);
+        printf("waiting on port %d\n", PORT);
         recvlen = recvfrom(fd, buf, BUFSIZE, 0, (struct sockaddr *)&remaddr, &addrlen);
         printf("received %d bytes\n", recvlen);
         if (recvlen > 0) {
