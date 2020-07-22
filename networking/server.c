@@ -4,6 +4,7 @@
 #include <netdb.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <unistd.h>
 
 #define SERVICE_PORT 12345
 #define BUFSIZE 2048
@@ -11,13 +12,19 @@
 int main(int argc, char **argv)
 {
     struct sockaddr_in myaddr;    /* our address */
+    struct sockaddr_in ether;
     struct sockaddr_in remaddr;    /* remote address */
     socklen_t addrlen = sizeof(remaddr);        /* length of addresses */
     int recvlen;            /* # bytes received */
     int fd;                /* our socket */
+    int other;
     unsigned char buf[BUFSIZE];    /* receive buffer */
-    char reply[] = "Hello person";
+    char reply[128];
+    char hostname[128]; /* host name, for debugging */
 
+    gethostname(hostname, 128);
+
+    sprintf(reply, "ndcayfserver$%s", hostname);
 
     /* create a UDP socket */
 
