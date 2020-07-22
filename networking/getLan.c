@@ -25,18 +25,16 @@ struct server {
 };
 
 char lo[128];
-int NUMSERVERS = 5;
 int DELAY_SECS = 1;
 int DELAY_USECS = 0;
 
-int getInterfaces(struct ifa interfaces[]);
+void getInterfaces(struct ifa interfaces[], int *numFaces);
 void broadcastAllInterfaces(int sock, struct ifa interfaces[], int elements, char name[]);
 void getResponses(int sock, struct server servers[]);
 void getAllServers(struct server servers[]);
 
-int getInterfaces(struct ifa interfaces[])
+void getInterfaces(struct ifa interfaces[], int *numFaces)
 {
-    int i = 0;
     struct ifaddrs *ifaddr;
     int family, s;
     char host[NI_MAXHOST];
@@ -65,9 +63,9 @@ int getInterfaces(struct ifa interfaces[])
             }
 
             // adds to the array
-            strcpy(interfaces[i].name, ifaddr->ifa_name);
-            strcpy(interfaces[i].ip, host);
-            i++;
+            strcpy(interfaces[*numFaces].name, ifaddr->ifa_name);
+            strcpy(interfaces[*numFaces].ip, host);
+            (*numFaces)++;
 
             //printf("Interface: %-20sBroadcast: %s\n", ifaddr->ifa_name, host);
 
@@ -79,7 +77,6 @@ int getInterfaces(struct ifa interfaces[])
 
     // free up the space, and return the amount of elements in the array
     freeifaddrs(ifaddr);
-    return i;
 }
 
 void broadcastAllInterfaces(int sock, struct ifa interfaces[], int elements, char name[])
@@ -146,36 +143,40 @@ void getResponses(int sock, struct server servers[])
                 printf("IP of %s \"%-10s\"", name, ip);
 
 
-                // add ip to a new server, or to an
-                // old server with same name
-                bool newServer = true;
-                int index = numServers;
-                for (int j = 0; j < numServers; j++)
+                if (numServers != MAXSERVERS)
                 {
-                    if (strcmp(servers[j].name, name) == 0)
+                    // add ip to a new server, or to an
+                    // old server with same name
+                    bool newServer = true;
+                    int index = numServers;
+                    for (int j = 0; j < numServers; j++)
                     {
-                        newServer = false;
-                        index = j;
+                        if (strcmp(servers[j].name, name) == 0)
+                        {
+                            newServer = false;
+                            index = j;
+                        }
+
                     }
 
+                    // add server info
+                    servers[index].routes[servers[index].numRoutes] = in_addr;
+                    servers[index].numRoutes++;
+
+                    if (strcmp(ip, lo) == 0)
+                    {
+                        servers[index].hasLo = true;
+                        servers[index].loIndex = index;
+                        printf("\tLO");
+                    }
+
+                    if (newServer)
+                    {
+                        strcpy(servers[index].name, name);
+                        numServers++;
+                    }
                 }
 
-                // add server info
-                servers[index].routes[servers[index].numRoutes] = in_addr;
-                servers[index].numRoutes++;
-
-                if (strcmp(ip, lo) == 0)
-                {
-                    servers[index].hasLo = true;
-                    servers[index].loIndex = index;
-                    printf("\tLO");
-                }
-
-                if (newServer)
-                {
-                    strcpy(servers[index].name, name);
-                    numServers++;
-                }
                 printf("\n");
 
                 //printf("Key: %s, Name: %s\n", serverKey, name);
@@ -239,16 +240,15 @@ void getAllServers(struct server servers[])
     int bcast_sock;
 
     // make the struct start with 0, and servername is empty str
-    for (int i = 0; i < NUMSERVERS; i++)
+    for (int i = 0; i < MAXSERVERS; i++)
     {
         servers[i].numRoutes = 0;
         servers[i].hasLo = false;
         strcpy(servers[i].name, "");
     }
-
-    numFaces = getInterfaces(interfaces);
-
     gethostname(hostname, 128);
+
+    getInterfaces(interfaces, &numFaces);
 
     bcast_sock = makeBroadcastSocket();
 
@@ -258,7 +258,7 @@ void getAllServers(struct server servers[])
 
 
     /*
-    for (int j = 0; j < NUMSERVERS; j = j + 1)
+    for (int j = 0; j < MAXSERVERS; j = j + 1)
     {
         if (strcmp(servers[j].name, "") != 0)
         {
@@ -285,11 +285,11 @@ void getAllServers(struct server servers[])
 /*
 int main(void)
 {
-    struct server serverList[NUMSERVERS];
+    struct server serverList[MAXSERVERS];
 
     getAllServers(serverList);
 
-    for (int j = 0; j < NUMSERVERS; j = j + 1)
+    for (int j = 0; j < MAXSERVERS; j = j + 1)
     {
         if (strcmp(serverList[j].name, "") != 0)
         {

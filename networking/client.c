@@ -14,11 +14,11 @@
 
 int main(void)
 {
-    struct server serverList[NUMSERVERS];
+    struct server serverList[MAXSERVERS];
 
     getAllServers(serverList);
 
-    for (int j = 0; j < NUMSERVERS; j = j + 1)
+    for (int j = 0; j < MAXSERVERS; j = j + 1)
     {
         if (strcmp(serverList[j].name, "") != 0)
         {
