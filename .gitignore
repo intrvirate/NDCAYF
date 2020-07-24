@@ -10,4 +10,4 @@
 /.cmake
 **/*.swp
 *.sh
-imgui.ini
+/imgui.ini
