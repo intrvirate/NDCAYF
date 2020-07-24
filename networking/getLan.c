@@ -115,7 +115,7 @@ void getResponses(int sock, struct server servers[])
     struct sockaddr_in in_addr;
     socklen_t addrlen = sizeof(in_addr);
 
-    unsigned char buf[BUFSIZE];
+    char buf[BUFSIZE];
     int recvlen;
 
     char name[128];
