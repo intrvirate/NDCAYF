@@ -33,6 +33,23 @@
 #include "util/bulletDebug/collisiondebugdrawer.hpp"
 #include "BulletCollision/NarrowPhaseCollision/btRaycastCallback.h"
 
+// this is a horrible way to do this
+
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <stdbool.h>
+#include <sys/types.h>
+#include <ifaddrs.h>
+
+extern "C"
+{
+    #include "networking/networkConfig.c"
+    #include "networking/getLan.h"
+    #include "networking/getLan.c"
+}
+
 
 using json = nlohmann::json;
 using namespace std;
@@ -125,7 +142,7 @@ const char* glsl_version = "#version 130";
 ImGui_ImplGlfw_InitForOpenGL(window, true);
 ImGui_ImplOpenGL3_Init(glsl_version);
 
-bool show_demo_window = true;
+bool show_demo_window = true; //TODO why is this on a different tab level?
     bool show_another_window = false;
     bool show_server_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
@@ -195,6 +212,32 @@ bool show_demo_window = true;
         {
             ImGui::Begin("Server Information", &show_server_window);
             ImGui::Text("Assorted Server Information");
+
+            // ================= trying to implement networking/client.c =======
+            struct server serverList[MAXSERVERS];
+
+            printf("yeehaw");
+
+            getAllServers(serverList);
+
+            //for (int j = 0; j < MAXSERVERS; j = j + 1)
+            //{
+            //    if (strcmp(serverList[j].name, "") != 0)
+            //    {
+            //        printf("For server %s\n", serverList[j].name);
+            //        //printf("%d  %d\n", servers[j].hasLo, servers[j].loIndex);
+            //        for (int q = 0; q < serverList[j].numRoutes; q++)
+            //        {
+            //            printf("\tFound route \"%s\"", inet_ntoa(serverList[j].routes[q].sin_addr));
+            //            if (serverList[j].hasLo && q == serverList[j].loIndex)
+            //            {
+            //                printf("\tLO");
+            //            }
+            //            printf("\n");
+            //        }
+            //    }
+            //}
+
             if (ImGui::Button("exit"))
             {
                 show_server_window = false;
