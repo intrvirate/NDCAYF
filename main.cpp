@@ -127,6 +127,7 @@ ImGui_ImplOpenGL3_Init(glsl_version);
 
 bool show_demo_window = true;
     bool show_another_window = false;
+    bool show_server_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 
@@ -178,6 +179,7 @@ bool show_demo_window = true;
         ImGui::Text("This is some useful text.");
         ImGui::Checkbox("Demo Window", &show_demo_window);
         ImGui::Checkbox("Another Window", &show_another_window);
+        ImGui::Checkbox("Server Information", &show_server_window);
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
         ImGui::End();
 
@@ -186,6 +188,17 @@ bool show_demo_window = true;
             ImGui::Text("Hello from another window!");
             if (ImGui::Button("Close Me"))
                 show_another_window = false;
+            ImGui::End();
+        }
+
+        if (show_server_window)
+        {
+            ImGui::Begin("Server Information", &show_server_window);
+            ImGui::Text("Assorted Server Information");
+            if (ImGui::Button("exit"))
+            {
+                show_server_window = false;
+            }
             ImGui::End();
         }
 
