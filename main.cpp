@@ -144,6 +144,10 @@ bool show_demo_window = true;
 
 //=========== LOOP ===========================================================
 
+
+    Model *currentModel = NULL; //current pointed-at model
+    Model *lastModel = NULL;    //last pointed-at model
+
     while( glfwWindowShouldClose(window) == 0){
 
         //setup
@@ -167,6 +171,42 @@ bool show_demo_window = true;
             dynamicsWorld->debugDrawWorld();
             //debugDraw.draw();
         }
+
+    //=-----=-=-=-=-==--=-==-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-^-^-^-^-^-^-^-
+
+        btVector3 from(cameraPos.x,cameraPos.y,cameraPos.z);
+        btVector3 to(cameraPos.x+cameraFront.x*100,cameraPos.y+cameraFront.y*100,cameraPos.z+cameraFront.z*100);
+
+        btVector3 blue(0.1, 0.3, 0.9);
+        dynamicsWorld->getDebugDrawer()->drawSphere(btVector3(0,0,0), 0.5, blue); //at origin
+
+        btCollisionWorld::ClosestRayResultCallback closestResults(from, to);
+        closestResults.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
+
+        dynamicsWorld->rayTest(from, to, closestResults);
+
+        if (closestResults.hasHit())
+        {
+            currentModel = ((Model *)closestResults.m_collisionObject->getCollisionShape()->getUserPointer());
+            currentModel->tint = glm::vec3(0.2,0.2,0.2);
+
+            if(currentModel != lastModel && lastModel != NULL){
+                lastModel->tint = glm::vec3(0,0,0);
+            }
+            lastModel = currentModel;
+
+            btVector3 p = from.lerp(to, closestResults.m_closestHitFraction);
+            dynamicsWorld->getDebugDrawer()->drawSphere(p, 0.1, blue);
+            dynamicsWorld->getDebugDrawer()->drawLine(p, p + closestResults.m_hitNormalWorld, blue);
+
+            //ourModel3.setPosition(p);
+        }else{
+            currentModel->tint = glm::vec3(0,0,0);
+        }
+
+        debugDraw.draw();
+
+//end physics loop=====================================================================================
 
     //============imgui===========
         ImGui_ImplOpenGL3_NewFrame();
@@ -194,33 +234,7 @@ bool show_demo_window = true;
         glfwGetFramebufferSize(window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    //=-----=-=-=-=-==--=-==-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-^-^-^-^-^-^-^-
-
-        btVector3 from(cameraPos.x,cameraPos.y,cameraPos.z);
-        btVector3 to(cameraPos.x+cameraFront.x*100,cameraPos.y+cameraFront.y*100,cameraPos.z+cameraFront.z*100);
-
-        btVector3 blue(0.1, 0.3, 0.9);
-        dynamicsWorld->getDebugDrawer()->drawSphere(btVector3(0,0,0), 0.5, blue); //at origin
-
-        btCollisionWorld::ClosestRayResultCallback closestResults(from, to);
-        closestResults.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
-
-        dynamicsWorld->rayTest(from, to, closestResults);
-
-        if (closestResults.hasHit())
-        {
-            btVector3 p = from.lerp(to, closestResults.m_closestHitFraction);
-            dynamicsWorld->getDebugDrawer()->drawSphere(p, 0.1, blue);
-            dynamicsWorld->getDebugDrawer()->drawLine(p, p + closestResults.m_hitNormalWorld, blue);
-
-            //ourModel3.setPosition(p);
-        }
-
-
-
-        debugDraw.draw();
-
-//end physics loop=====================================================================================
+    //end imgui
 
         ourShader.use();
 

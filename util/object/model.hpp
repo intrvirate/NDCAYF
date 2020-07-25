@@ -54,6 +54,9 @@ public:
     string directory;
     bool gammaCorrection;
 
+    //stores tint color; used for selection in editor.
+    glm::vec3 tint = glm::vec3(0,0,0);
+
     //setup collision stuff
     bool usePrimitive = true;
 
@@ -84,6 +87,8 @@ public:
             }else{
 
                 collisionShapes.push_back(primitaveShape); //used to cleanup all objects later
+
+                primitaveShape->setUserPointer(this); //set user pointer to point to the model opject it refers to. used in collision detection.
 
 
                 bool isDynamic = (mass != 0.f);
@@ -118,7 +123,7 @@ public:
             bool useQuantizedAabbCompression = true;
             btCollisionShape* meshShape = new btBvhTriangleMeshShape(indexVertexArrays, useQuantizedAabbCompression);
 
-
+            meshShape->setUserPointer(this);
             meshShape->setLocalScaling(btScale);
 
             btVector3 localInertia(0, 0, 0);
@@ -157,6 +162,7 @@ public:
         shader.setMat4("projection", projection);
         shader.setMat4("view", view);
         shader.setMat4("model", modelPhys);
+        shader.setVec3("tint", tint);
 
         for(unsigned int i = 0; i < meshes.size(); i++)
             meshes[i].Draw(shader);
