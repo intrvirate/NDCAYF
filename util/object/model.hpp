@@ -68,6 +68,9 @@ public:
 
     glm::vec3 scale = glm::vec3(1,1,1);
 
+    string objectPath;
+    bool primitaveColisionShape;
+
     Model(string const &path, bool primitaveColisionShape = true, btCollisionShape* primitaveShape = NULL, btScalar mass = 0.0, btVector3 location = btVector3(0.,0.,0.), btVector3 btScale = btVector3(0.,0.,0.))
     {
         //initialize collision stuff
@@ -76,6 +79,8 @@ public:
         objectTransform.setIdentity();
         objectTransform.setOrigin(btVector3(location));
         scale = glm::vec3(btScale.x(), btScale.y(), btScale.z());
+
+        objectPath = path;
 
         loadModel(path);
 
@@ -89,7 +94,7 @@ public:
                 collisionShapes.push_back(primitaveShape); //used to cleanup all objects later
 
                 primitaveShape->setUserPointer(this); //set user pointer to point to the model opject it refers to. used in collision detection.
-
+                primitaveShape->setLocalScaling(btScale);
 
                 bool isDynamic = (mass != 0.f);
                 btVector3 localInertia(100, 100, 100);
@@ -155,7 +160,7 @@ public:
 
         glm::mat4 modelPhys = glm::mat4(1.0f);
         body->getWorldTransform().getOpenGLMatrix(glm::value_ptr(modelPhys));  //get transform matrix
-        modelPhys = glm::scale(modelPhys, scale); //apply scaling matrix (it's not stored in the WorldTransform matrix
+        modelPhys = glm::scale(modelPhys, scale); //apply scaling matrix (it's not stored in the WorldTransform matrix)
 
         glm::mat4 projection = getprojectionMatrix();
         glm::mat4 view = getViewMatrix();
@@ -167,6 +172,14 @@ public:
         for(unsigned int i = 0; i < meshes.size(); i++)
             meshes[i].Draw(shader);
 
+    }
+
+    void syncScale(){ //updates bullet scale values to match graphics scale values. allows modifying only graphics scale value in imgui
+        btVector3 primitiveScale;
+        primitiveScale.setX(scale[0]);
+        primitiveScale.setY(scale[1]);
+        primitiveScale.setZ(scale[2]);
+        body->getCollisionShape()->setLocalScaling(primitiveScale);
     }
 
     void setPosition(glm::vec3 pos){

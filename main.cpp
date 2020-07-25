@@ -102,11 +102,11 @@ int main()
     Shader ourShader("util/object/shader/vShader.glsl", "util/object/shader/fShader.glsl");
 
 
-    Model ourModel("obj/objects/terrain03.obj", false, new btSphereShape(btScalar(1.)), 0.0, btVector3(0,-8,0),btVector3(100,100,100));
+    Model ourModel("obj/objects/terrain03.obj", false, NULL, 0.0, btVector3(0,-8,0),btVector3(100,100,100));
 
-    Model ourModel2("obj/objects/plannets/moon.obj", true, new btSphereShape(btScalar(5.)), 1.0 , btVector3(0,50,0),btVector3(5,5,5));
+    Model ourModel2("obj/objects/plannets/moon.obj", true, new btSphereShape(btScalar(1.)), 1.0 , btVector3(0,50,0),btVector3(5,5,5));
 
-    Model ourModel3("obj/objects/building02.obj", false, new btSphereShape(btScalar(1.)), 0.0 , btVector3(1,-30,0),btVector3(1,1,1));
+    Model ourModel3("obj/objects/building02.obj", false, NULL, 0.0 , btVector3(1,-30,0),btVector3(1,1,1));
 
     Model::InitializeModelPhysicsWorld();
 
@@ -128,7 +128,6 @@ ImGui_ImplOpenGL3_Init(glsl_version);
 bool show_demo_window = true;
     bool show_another_window = false;
     bool show_server_window = false;
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 
 //=========== RENDER =========================================================
@@ -146,8 +145,10 @@ bool show_demo_window = true;
 //=========== LOOP ===========================================================
 
 
-    Model *currentModel = NULL; //current pointed-at model
+    Model *currentModel = NULL; //current pointed-at model *****TODO****** initialize this to the forst model loaded to avoid crashing if the world loads not pointing at a model
     Model *lastModel = NULL;    //last pointed-at model
+    bool showProperties = true;
+    bool singleScale = true; //ajust scale as single value, or as x, y, and z values
 
     while( glfwWindowShouldClose(window) == 0){
 
@@ -173,6 +174,10 @@ bool show_demo_window = true;
             //debugDraw.draw();
         }
 
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
     //=-----=-=-=-=-==--=-==-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-^-^-^-^-^-^-^-
 
         btVector3 from(cameraPos.x,cameraPos.y,cameraPos.z);
@@ -186,7 +191,7 @@ bool show_demo_window = true;
 
         dynamicsWorld->rayTest(from, to, closestResults);
 
-        if (closestResults.hasHit())
+        if (closestResults.hasHit() && !isMouseVisable())
         {
             currentModel = ((Model *)closestResults.m_collisionObject->getCollisionShape()->getUserPointer());
             currentModel->tint = glm::vec3(0.2,0.2,0.2);
@@ -202,7 +207,45 @@ bool show_demo_window = true;
 
             //ourModel3.setPosition(p);
         }else{
-            currentModel->tint = glm::vec3(0,0,0);
+            if(currentModel != NULL){
+                currentModel->tint = glm::vec3(0,0,0);
+            }
+        }
+
+        if(showProperties){ //Properties edit window
+            ImGuiWindowFlags window_flags = 0;
+            window_flags |= ImGuiWindowFlags_NoScrollbar;
+            window_flags |= ImGuiWindowFlags_NoResize;
+            window_flags |= ImGuiWindowFlags_NoCollapse;
+
+            ImGui::Begin("Properties", NULL, window_flags);
+            ImGui::Text(currentModel->objectPath.c_str()); //name of object file
+            ImGui::Checkbox("single scale value", &singleScale);
+            //scaling change
+            if(singleScale){
+
+                ImGui::SliderFloat("scale", &(currentModel->scale[0]), 0.1f, 100.0f, "%1.0f");
+                currentModel->scale[1] = currentModel->scale[0];
+                currentModel->scale[2] = currentModel->scale[0];
+
+                currentModel->syncScale();
+
+
+            }else{
+                ImGui::InputFloat("scale X", &(currentModel->scale[0]), 0.01f, 1.0f, "%.3f");
+                ImGui::InputFloat("scale Y", &(currentModel->scale[1]), 0.01f, 1.0f, "%.3f");
+                ImGui::InputFloat("scale Z", &(currentModel->scale[2]), 0.01f, 1.0f, "%.3f");
+                currentModel->syncScale();
+            }
+            //position change
+            btVector3 pos = currentModel->body->getWorldTransform().getOrigin();
+            ImGui::SliderFloat("pos X", &(pos[0]), -100.0f, 100.0f, "%10.0f");
+            ImGui::SliderFloat("pos Y", &(pos[2]), -100.0f, 100.0f, "%10.0f");
+            ImGui::SliderFloat("pos Z", &(pos[1]), -100.0f, 100.0f, "%10.0f");
+            currentModel->body->getWorldTransform().setOrigin(pos);
+
+            ImGui::End();
+
         }
 
         debugDraw.draw();
@@ -210,11 +253,7 @@ bool show_demo_window = true;
 //end physics loop=====================================================================================
 
     //============imgui===========
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-        static float f = 0.0f;
-        static int counter = 0;
+
         ImGui::Begin("Hello, world!");
         ImGui::Text("This is some useful text.");
         ImGui::Checkbox("Demo Window", &show_demo_window);
@@ -272,6 +311,9 @@ bool show_demo_window = true;
     //TODO: clean this up
 
     Model::Cleanup();
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 
     cleanup3D();
     glfwTerminate();
