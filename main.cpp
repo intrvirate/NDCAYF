@@ -45,7 +45,7 @@
 
 extern "C"
 {
-    #include "networking/networkConfig.c"
+    #include "networking/networkConfig.h"
     #include "networking/getLan.h"
     #include "networking/getLan.c"
 }

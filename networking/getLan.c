@@ -9,7 +9,7 @@
 #include <sys/types.h>
 #include <ifaddrs.h>
 
-#include "networkConfig.c"
+#include "networkConfig.h"
 #include "getLan.h"
 
 /*
@@ -25,16 +25,16 @@ struct server {
     bool hasLo;
     int loIndex;
 };
+
+
+    for (int i
+
 */
 
 char lo[128];
 int DELAY_SECS = 1;
 int DELAY_USECS = 0;
 
-//void getInterfaces(struct ifa interfaces[], int *numFaces);
-//void broadcastAllInterfaces(int sock, struct ifa interfaces[], int elements, char name[]);
-//void getResponses(int sock, struct server servers[]);
-//void getAllServers(struct server servers[]);
 
 
 void getInterfaces(struct ifa interfaces[], int *numFaces)
@@ -236,6 +236,7 @@ int makeBroadcastSocket()
 
 void getAllServers(struct server servers[])
 {
+    printf("Getting servers...");
     char hostname[128];
 
     struct ifa interfaces[10];
@@ -253,7 +254,7 @@ void getAllServers(struct server servers[])
 
     for (int i = 0; i < MAXSERVERS; i++)
     {
-        printf("name %s routes %d lo %d\n\n", servers[i].name, servers[i].numRoutes, servers[i].hasLo);
+        //printf("name %s routes %d lo %d\n\n", servers[i].name, servers[i].numRoutes, servers[i].hasLo);
     }
     gethostname(hostname, 128);
 

@@ -9,8 +9,8 @@
 #include <sys/types.h>
 #include <ifaddrs.h>
 
-#include "networkConfig.c"
-#include "getLan.c"
+#include "networkConfig.h"
+#include "getLan.h"
 
 int main(void)
 {
