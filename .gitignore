@@ -9,3 +9,5 @@
 !/.gitignore
 /.cmake
 **/*.swp
+*.sh
+/imgui.ini
