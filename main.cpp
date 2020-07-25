@@ -58,6 +58,8 @@ GLFWwindow* window;
 
 int main()
 {
+    // netowrk
+    bool networkLoaded = false;
     //=========== SETUP ==========================================================
 
     //do this first because settings.json will contain things like default window size
@@ -256,9 +258,13 @@ bool show_demo_window = true; //TODO why is this on a different tab level?
             // ================= trying to implement networking/client.c =======
             struct server serverList[MAXSERVERS];
 
-            printf("yeehaw");
 
-            getAllServers(serverList);
+            if (!networkLoaded)
+            {
+                printf("yeehaw");
+                getAllServers(serverList);
+                networkLoaded = true;
+            }
 
             //for (int j = 0; j < MAXSERVERS; j = j + 1)
             //{

@@ -12,18 +12,20 @@
 #include "networkConfig.c"
 #include "getLan.h"
 
-//struct ifa {
-//    char name[128];
-//    char ip[128];
-//};
-//
-//struct server {
-//    struct sockaddr_in routes[5];
-//    int numRoutes;
-//    char name[128];
-//    bool hasLo;
-//    int loIndex;
-//};
+/*
+struct ifa {
+    char name[128];
+    char ip[128];
+};
+
+struct server {
+    struct sockaddr_in routes[5];
+    int numRoutes;
+    char name[128];
+    bool hasLo;
+    int loIndex;
+};
+*/
 
 char lo[128];
 int DELAY_SECS = 1;
@@ -33,6 +35,7 @@ int DELAY_USECS = 0;
 //void broadcastAllInterfaces(int sock, struct ifa interfaces[], int elements, char name[]);
 //void getResponses(int sock, struct server servers[]);
 //void getAllServers(struct server servers[]);
+
 
 void getInterfaces(struct ifa interfaces[], int *numFaces)
 {
@@ -246,6 +249,11 @@ void getAllServers(struct server servers[])
         servers[i].numRoutes = 0;
         servers[i].hasLo = false;
         strcpy(servers[i].name, "");
+    }
+
+    for (int i = 0; i < MAXSERVERS; i++)
+    {
+        printf("name %s routes %d lo %d\n\n", servers[i].name, servers[i].numRoutes, servers[i].hasLo);
     }
     gethostname(hostname, 128);
 

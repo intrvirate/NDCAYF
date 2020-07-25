@@ -17,6 +17,7 @@ find_package(Bullet REQUIRED)
 
 add_executable(NDCAYF
                 networking/getLan.h
+                networking/getLan.c
                 main.cpp
                 util/json.hpp
                 util/loadMenu.cpp
