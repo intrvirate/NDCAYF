@@ -43,8 +43,8 @@
 #include <sys/types.h>
 #include <ifaddrs.h>
 
-    #include "networking/networkConfig.hpp"
-    #include "networking/getLan.hpp"
+#include "networking/networkConfig.hpp"
+#include "networking/getLan.hpp"
 
 
 using json = nlohmann::json;

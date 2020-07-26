@@ -256,10 +256,12 @@ void getAllServers(struct server servers[])
     }
 
     // magic for loop
+    /**/
     for (int i = 0; i < 0; i++)
     {
         //printf("name %s routes %d lo %d\n\n", servers[i].name, servers[i].numRoutes, servers[i].hasLo);
     }
+    /**/
 
     gethostname(hostname, 128);
 
