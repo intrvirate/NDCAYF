@@ -90,7 +90,7 @@ void broadcastAllInterfaces(int sock, struct ifa interfaces[], int elements, cha
 {
     struct sockaddr_in broadcast_addr;
     char msg[100];
-    sprintf(msg, "%s$%s", SUPERSECRETKEY_CLIENT, name);
+    sprintf(msg, "%s$%s$%s", SUPERSECRETKEY_CLIENT, name, PING);
 
     socklen_t addrlen = sizeof(broadcast_addr);        /* length of addresses */
 
@@ -127,6 +127,7 @@ void getResponses(int sock, struct server servers[])
 
     char name[128];
     char serverKey[128];
+    char protocol[128];
 
     // go through the queue of recieved messages if there are any
     printf("Going through sock queue...\n");
@@ -147,6 +148,7 @@ void getResponses(int sock, struct server servers[])
             if (strcmp(serverKey, SUPERSECRETKEY_SERVER) == 0)
             {
                 strcpy(name, strtok(NULL, "$"));
+                strcpy(protocol, strtok(NULL, "$"));
                 printf("IP of %s \"%-10s\"", name, ip);
 
 
@@ -239,7 +241,7 @@ int makeBroadcastSocket()
 
 void getAllServers(struct server servers[])
 {
-    printf("Getting servers...");
+    printf("Getting servers...\n");
     char hostname[128];
 
     struct ifa interfaces[10];

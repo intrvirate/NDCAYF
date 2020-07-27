@@ -260,28 +260,29 @@ bool show_demo_window = true; //TODO why is this on a different tab level?
                 printf("yeehaw");
                 getAllServers(serverList);
                 networkLoaded = true;
-            }
 
-            //for (int j = 0; j < MAXSERVERS; j = j + 1)
-            //{
-            //    if (strcmp(serverList[j].name, "") != 0)
-            //    {
-            //        printf("For server %s\n", serverList[j].name);
-            //        //printf("%d  %d\n", servers[j].hasLo, servers[j].loIndex);
-            //        for (int q = 0; q < serverList[j].numRoutes; q++)
-            //        {
-            //            printf("\tFound route \"%s\"", inet_ntoa(serverList[j].routes[q].sin_addr));
-            //            if (serverList[j].hasLo && q == serverList[j].loIndex)
-            //            {
-            //                printf("\tLO");
-            //            }
-            //            printf("\n");
-            //        }
-            //    }
-            //}
+                for (int j = 0; j < MAXSERVERS; j = j + 1)
+                {
+                    if (strcmp(serverList[j].name, "") != 0)
+                    {
+                        printf("For server %s\n", serverList[j].name);
+                        //printf("%d  %d\n", servers[j].hasLo, servers[j].loIndex);
+                        for (int q = 0; q < serverList[j].numRoutes; q++)
+                        {
+                            printf("\tFound route \"%s\"", inet_ntoa(serverList[j].routes[q].sin_addr));
+                            if (serverList[j].hasLo && q == serverList[j].loIndex)
+                            {
+                                printf("\tLO");
+                            }
+                            printf("\n");
+                        }
+                    }
+                }
+            }
 
             if (ImGui::Button("exit"))
             {
+                networkLoaded = false;
                 show_server_window = false;
             }
             ImGui::End();

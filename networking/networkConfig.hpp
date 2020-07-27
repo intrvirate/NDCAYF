@@ -8,6 +8,9 @@
 #define PORT  12345
 #define SUPERSECRETKEY_SERVER "ndcayfserver"
 #define SUPERSECRETKEY_CLIENT "ndcayfclient"
+#define PING "ping"
+#define PONG "pong"
+#define GETDELAY "msd"
 #define MAXSERVERS 5
 
 // not sure if this value is important enough

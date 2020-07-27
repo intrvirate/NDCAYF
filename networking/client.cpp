@@ -10,7 +10,7 @@
 #include <ifaddrs.h>
 
 #include "networkConfig.hpp"
-#include "getLan.hpp"
+#include "getLan.cpp"
 
 int main(void)
 {
