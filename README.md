@@ -38,6 +38,7 @@ Lightweight first person shooter focused on multiplayer LAN-based gameplay, and 
 
 ### GitHub Repository
 [NDCAYF](https://github.com/intrvirate/NDCAYF)
+[NDCAYF-Server](https://github.com/lukeg32/NDCAYF-Server)
 
 ### Lore and Story Concepts
 [No_Longer_Human.pdf](https://github.com/intrvirate/NDCAYF/tree/master/lore)
