@@ -123,6 +123,8 @@ int main()
 
     Model ourModel3("obj/objects/building02.obj", false, new btSphereShape(btScalar(1.)), 0.0 , btVector3(1,-30,0),btVector3(1,1,1));
 
+    Model ourModel4("obj/objects/plannets/moon.obj", false, new btSphereShape(btScalar(1.)), 0.0 , btVector3(20,50,20), btVector3(1,1,1));
+
     Model::InitializeModelPhysicsWorld();
 
 //=========== IMGUI =========================================================
@@ -158,8 +160,10 @@ bool show_demo_window = true; //TODO why is this on a different tab level?
 
     loadAutoMapGen();
 
-//=========== LOOP ===========================================================
 
+//================networking stuff====================================
+
+//=========== LOOP ===========================================================
 
     Model *currentModel = NULL; //current pointed-at model
     Model *lastModel = NULL;    //last pointed-at model
@@ -219,6 +223,9 @@ bool show_demo_window = true; //TODO why is this on a different tab level?
         }else{
             currentModel->tint = glm::vec3(0,0,0);
         }
+
+        btVector3 infront((cameraPos.x + cameraFront.x), (cameraPos.y + cameraFront.y), (cameraPos.z + cameraFront.z));
+        ourModel4.setPosition(infront);
 
         debugDraw.draw();
 
@@ -300,6 +307,7 @@ bool show_demo_window = true; //TODO why is this on a different tab level?
         ourModel.Draw(ourShader);
         ourModel2.Draw(ourShader);
         ourModel3.Draw(ourShader);
+        ourModel4.Draw(ourShader);
 
 
         //render imgui (render this last so it's on top of other stuff

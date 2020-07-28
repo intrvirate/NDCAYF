@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <sys/types.h>
 #include <ifaddrs.h>
+#include <sys/time.h>
 
 #include "networkConfig.hpp"
 #include "getLan.hpp"
@@ -90,7 +91,16 @@ void broadcastAllInterfaces(int sock, struct ifa interfaces[], int elements, cha
 {
     struct sockaddr_in broadcast_addr;
     char msg[100];
-    sprintf(msg, "%s$%s$%s", SUPERSECRETKEY_CLIENT, name, PING);
+
+    struct timeval tv;
+
+    gettimeofday(&tv, NULL);
+
+    unsigned long long millisecondsSinceEpoch =
+        (unsigned long long)(tv.tv_sec) * 1000 +
+        (unsigned long long)(tv.tv_usec) / 1000;
+
+    sprintf(msg, "%s$%s$%s$%llu", SUPERSECRETKEY_CLIENT, name, PING, millisecondsSinceEpoch);
 
     socklen_t addrlen = sizeof(broadcast_addr);        /* length of addresses */
 
@@ -102,7 +112,6 @@ void broadcastAllInterfaces(int sock, struct ifa interfaces[], int elements, cha
     for (int i = 0; i < elements; i++)
     {
         broadcast_addr.sin_addr.s_addr = inet_addr(interfaces[i].ip);
-
 
         printf("Broadcast to %-15s %s\n", interfaces[i].name, interfaces[i].ip);
 
