@@ -45,6 +45,7 @@
 
 #include "networking/networkConfig.hpp"
 #include "networking/getLan.hpp"
+#include "networking/client.hpp"
 
 
 using json = nlohmann::json;
@@ -162,7 +163,51 @@ bool show_demo_window = true; //TODO why is this on a different tab level?
 
 
 //================networking stuff====================================
+    struct server serverList[MAXSERVERS];
 
+    printf("Loading network");
+    getAllServers(serverList);
+
+    for (int j = 0; j < MAXSERVERS; j = j + 1)
+    {
+        if (strcmp(serverList[j].name, "") != 0)
+        {
+            printf("For server %s\n", serverList[j].name);
+            //printf("%d  %d\n", servers[j].hasLo, servers[j].loIndex);
+            for (int q = 0; q < serverList[j].numRoutes; q++)
+            {
+                printf("\tFound route \"%s\"", inet_ntoa(serverList[j].routes[q].sin_addr));
+                if (serverList[j].hasLo && q == serverList[j].loIndex)
+                {
+                    printf("\tLO");
+                }
+                printf("\n");
+            }
+        }
+    }
+
+    // choose the first option
+    struct sockaddr_in serverAddr = serverList[0].routes[0];
+    struct entities all[10];
+
+
+    // get our id from the server, and the msg
+    int clientId;
+    struct packet msg;
+    if (connectToServer(serverAddr, &clientId, &msg) < 0)
+    {
+        printf("Failed to connect to: %s\n", inet_ntoa(serverAddr.sin_addr));
+    }
+
+    printf("Connection successful to: %s\n", inet_ntoa(serverAddr.sin_addr));
+    printf("Data %s  %d   %llu  %s\n", msg.name, msg.ptl, msg.time, msg.extra);
+    printf("ID %d\n", clientId);
+
+    setPositions(all, msg.extra);
+
+    cameraPos = glm::vec3(all[clientId].x, all[clientId].y, all[clientId].z);
+
+    printf("%f, %f, %f\n", cameraPos.x, cameraPos.y, cameraPos.z);
 //=========== LOOP ===========================================================
 
     Model *currentModel = NULL; //current pointed-at model
@@ -224,8 +269,8 @@ bool show_demo_window = true; //TODO why is this on a different tab level?
             currentModel->tint = glm::vec3(0,0,0);
         }
 
-        btVector3 infront((cameraPos.x + cameraFront.x), (cameraPos.y + cameraFront.y), (cameraPos.z + cameraFront.z));
-        ourModel4.setPosition(infront);
+        //btVector3 infront((cameraPos.x + cameraFront.x), (cameraPos.y + cameraFront.y), (cameraPos.z + cameraFront.z));
+        //ourModel4.setPosition(infront);
 
         debugDraw.draw();
 

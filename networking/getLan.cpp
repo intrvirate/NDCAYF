@@ -100,7 +100,7 @@ void broadcastAllInterfaces(int sock, struct ifa interfaces[], int elements, cha
         (unsigned long long)(tv.tv_sec) * 1000 +
         (unsigned long long)(tv.tv_usec) / 1000;
 
-    sprintf(msg, "%s$%s$%s$%llu", SUPERSECRETKEY_CLIENT, name, PING, millisecondsSinceEpoch);
+    sprintf(msg, "%s$%s$%d$%llu", SUPERSECRETKEY_CLIENT, name, PING, millisecondsSinceEpoch);
 
     socklen_t addrlen = sizeof(broadcast_addr);        /* length of addresses */
 

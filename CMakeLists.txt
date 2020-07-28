@@ -19,6 +19,8 @@ add_executable(NDCAYF
                 main.cpp
                 networking/getLan.hpp
                 networking/getLan.cpp
+                networking/client.cpp
+                networking/client.hpp
                 util/json.hpp
                 util/loadMenu.cpp
                 util/loadMenu.hpp
