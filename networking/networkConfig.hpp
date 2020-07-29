@@ -18,6 +18,8 @@
 #define MOVE 6
 #define DUMP 7
 
+#define IPLEN 30
+
 #define MAXSERVERS 5
 
 // not sure if this value is important enough
@@ -30,7 +32,7 @@ struct ifa {
 };
 
 struct server {
-    struct sockaddr_in *routes[5];
+    char routes[5][100];
     int numRoutes;
     char name[128];
     bool hasLo;

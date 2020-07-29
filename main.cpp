@@ -165,30 +165,12 @@ int main()
 //================networking stuff====================================
     struct server serverList[MAXSERVERS];
 
-    printf("Loading network");
+    printf("Loading network\n");
     getAllServers(serverList);
 
-    for (int j = 0; j < MAXSERVERS; j = j + 1)
-    {
-        if (strcmp(serverList[j].name, "") != 0)
-        {
-            printf("For server %s\n", serverList[j].name);
-            //printf("%d  %d\n", servers[j].hasLo, servers[j].loIndex);
-            for (int q = 0; q < serverList[j].numRoutes; q++)
-            {
-                printf("\tFound route \"%s\"", inet_ntoa(serverList[j].routes[q]->sin_addr));
-                if (serverList[j].hasLo && q == serverList[j].loIndex)
-                {
-                    printf("\tLO");
-                }
-                printf("\n");
-            }
-        }
-    }
+    printServerList(serverList);
 
     /*
-    // choose the first option
-    struct sockaddr_in serverAddr = *(serverList[0].routes[0]);
     struct entities all[10];
 
     // get our id from the server, and the msg
@@ -214,7 +196,6 @@ int main()
     Model *currentModel = &ourModel; //current pointed-at model
     Model *lastModel = NULL;    //last pointed-at model
     bool showProperties = true;
-    bool lanwindow = true;
     bool singleScale = true; //ajust scale as single value, or as x, y, and z values
 
 
@@ -235,29 +216,41 @@ int main()
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
 
-            ImGui::Begin("Lan View", &lanwindow);
+
+            ImGuiWindowFlags window_flags = 0;
+            window_flags |= ImGuiWindowFlags_NoScrollbar;
+            window_flags |= ImGuiWindowFlags_NoCollapse;
+
+            ImGui::Begin("Lan View", NULL, window_flags);
             ImGui::Text("All servers:");
             ImGui::Text("");
+
 
 
             for (int j = 0; j < MAXSERVERS; j = j + 1)
             {
                 if (strcmp(serverList[j].name, "") != 0)
                 {
-                    //printf("For server %s\n", serverList[j].name);
-                    ImGui::Text("%d: %s", j, serverList[j].name);
+                    ImGui::Text("Server %s\n", serverList[j].name);
                     //printf("%d  %d\n", servers[j].hasLo, servers[j].loIndex);
                     for (int q = 0; q < serverList[j].numRoutes; q++)
                     {
                         char txt[100];
-                        sprintf(txt, "\tIP \"%s\"", inet_ntoa(serverList[j].routes[q]->sin_addr));
+                        int len = sprintf(txt, "\tIP \"%s\"", (serverList[j].routes[q])) + 5;
+
                         if (serverList[j].hasLo && q == serverList[j].loIndex)
                         {
-                            sprintf(txt, "%s\tLO", txt);
+                            sprintf(txt, "%s%5s", txt, "LO");
+                        }
+                        else
+                        {
+                            sprintf(txt, "%s    ", txt);
                         }
 
                         if (ImGui::Button(txt))
-                            printf("clicked, %d, %d", j, q);
+                        {
+                            printf("Server %s, IP %s\n", serverList[j].name, serverList[j].routes[q]);
+                        }
                     }
                 }
             }
@@ -418,23 +411,8 @@ int main()
                     getAllServers(serverList);
                     networkLoaded = true;
 
-                    for (int j = 0; j < MAXSERVERS; j = j + 1)
-                    {
-                        if (strcmp(serverList[j].name, "") != 0)
-                        {
-                            printf("For server %s\n", serverList[j].name);
-                            //printf("%d  %d\n", servers[j].hasLo, servers[j].loIndex);
-                            for (int q = 0; q < serverList[j].numRoutes; q++)
-                            {
-                                printf("\tFound route \"%s\"", inet_ntoa(serverList[j].routes[q]->sin_addr));
-                                if (serverList[j].hasLo && q == serverList[j].loIndex)
-                                {
-                                    printf("\tLO");
-                                }
-                                printf("\n");
-                            }
-                        }
-                    }
+                    printServerList(serverList);
+
                 }
 
                 if (ImGui::Button("exit"))

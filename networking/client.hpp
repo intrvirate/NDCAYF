@@ -11,6 +11,16 @@ struct packet
     char extra[BUFSIZE];
 };
 
+/*
+struct server {
+    struct sockaddr_in routes[5];
+    int numRoutes;
+    char name[128];
+    bool hasLo;
+    int loIndex;
+};
+*/
+
 void composeMsg(char msg[], int protocol, char extra[] = "none");
 int connectToServer(struct sockaddr_in addr, int *id, struct packet *msg);
 int makePacket(char msg[], struct packet *out);

@@ -85,15 +85,21 @@ int makePacket(char msg[], struct packet *out, int *id)
     return state;
 }
 
-int connectToServer(struct sockaddr_in addr, int *id, struct packet *msg)
+int connectToServer(char ip[], int *id, struct packet *msg)
 {
     gethostname(hostname, 128);
     int success = 1;
     struct sockaddr_in in_addr;
     socklen_t addrlen = sizeof(in_addr);
-    socklen_t addrlen_in = sizeof(addr);
     char buf[BUFSIZE];
     int recvlen;
+    struct sockaddr_in addr;
+    socklen_t addrlen_in = sizeof(addr);
+
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(PORT);
+    addr.sin_addr.s_addr = inet_addr(ip);
 
     char connectMsg[BUFSIZE];
 
@@ -105,9 +111,8 @@ int connectToServer(struct sockaddr_in addr, int *id, struct packet *msg)
         success = -1;
     }
 
-    serverAddr = addr;
 
-    if (sendto(actualSock, connectMsg, strlen(connectMsg), 0, (struct sockaddr *)&serverAddr, addrlen_in) < 0)
+    if (sendto(actualSock, connectMsg, strlen(connectMsg), 0, (struct sockaddr *)&addr, addrlen_in) < 0)
     {
         printf("Failed to send\n");
         success = -1;

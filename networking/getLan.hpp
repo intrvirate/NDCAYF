@@ -6,5 +6,6 @@ void broadcastAllInterfaces(int sock, struct ifa interfaces[], int elements, cha
 void getResponses(int sock, struct server servers[]);
 void getAllServers(struct server servers[]);
 int makeBroadcastSocket();
+void printServerList(struct server *list);
 
 #endif

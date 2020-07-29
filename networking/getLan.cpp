@@ -128,11 +128,11 @@ void getResponses(int sock, struct server servers[])
 {
     int numServers = 0;
     bool waiting = true;
-    struct sockaddr_in in_addr;
-    socklen_t addrlen = sizeof(in_addr);
 
     char buf[BUFSIZE];
     int recvlen;
+    struct sockaddr_in in_addr;
+    socklen_t addrlen = sizeof(in_addr);
 
     char name[128];
     char serverKey[128];
@@ -178,8 +178,9 @@ void getResponses(int sock, struct server servers[])
                     }
 
                     // add server info
-                    servers[index].routes[servers[index].numRoutes] = &in_addr;
+                    strcpy(servers[index].routes[servers[index].numRoutes], ip);
                     servers[index].numRoutes++;
+
 
                     if (strcmp(ip, lo) == 0)
                     {
@@ -211,17 +212,28 @@ void getResponses(int sock, struct server servers[])
         }
     }
 
-    /*
-    for (int j = 0; j < i; j = j + 1)
+}
+
+void printServerList(struct server *list)
+{
+
+    for (int j = 0; j < MAXSERVERS; j = j + 1)
     {
-        printf("For server %s\n", servers[j].name);
-        for (int q = 0; q < servers[j].numRoutes; q++)
+        if (strcmp(list[j].name, "") != 0)
         {
-            printf("\tFound route \"%s\"\n", inet_ntoa(servers[j].routes[q].sin_addr));
+            printf("For server %s\n", list[j].name);
+            //printf("%d  %d\n", servers[j].hasLo, servers[j].loIndex);
+            for (int q = 0; q < list[j].numRoutes; q++)
+            {
+                printf("\tFound route \"%s\"", (list[j].routes[q]));
+                if (list[j].hasLo && q == list[j].loIndex)
+                {
+                    printf("\tLO");
+                }
+                printf("\n");
+            }
         }
     }
-    */
-
 }
 
 int makeBroadcastSocket()
@@ -295,7 +307,7 @@ void getAllServers(struct server servers[])
             //printf("%d  %d\n", servers[j].hasLo, servers[j].loIndex);
             for (int q = 0; q < servers[j].numRoutes; q++)
             {
-                printf("\tFound route \"%s\"", inet_ntoa(servers[j].routes[q].sin_addr));
+                printf("\tFound route \"%s\"", (servers[j].routes[q]));
                 if (servers[j].hasLo && q == servers[j].loIndex)
                 {
                     printf("\tLO");
