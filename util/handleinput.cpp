@@ -49,6 +49,8 @@ string textEntryString = "";
 bool inTextBox = false;
 bool physicsDebugEnabled = false;
 
+bool exitMenuVal = false;
+
 void updateCameraFront(double xpos, double ypos) {
 
     float xoffset = xpos - lastX;
@@ -112,6 +114,10 @@ void mouse_button_callback_Menu(GLFWwindow* window, int button, int action, int 
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS){
         handleMenuClick();
     }
+    if (exitMenuVal == true){
+        toggleMouseVisibility(window);
+        exitMenuVal = false;
+    }
 }
 
 void mouse_button_callback_3D(GLFWwindow* window, int button, int action, int mods){
@@ -161,6 +167,10 @@ void toggleMouseVisibility(GLFWwindow* window){
 
 bool isMouseVisable(){
     return mouseVisable;
+}
+
+void exitMenu(){
+    exitMenuVal = true;
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)

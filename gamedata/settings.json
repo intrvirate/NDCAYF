@@ -10,6 +10,25 @@
         "name": "settings item 2",
         "target": "something that tells the code what the setting edits",
         "type": "string"
+    },
+    "select loop":{
+        "name": "Select Loop",
+        "target": "something that tells the code what the setting edits",
+        "type": "select",
+        "numChoices": 5,
+        "choices": [
+            {
+                "name": "menu"
+            },{
+                "name": "network"
+            },{
+                "name": "edit"
+            },{
+                "name": "play"
+            },{
+                "name": "legacy"
+            }
+        ]
     }
 
 }

@@ -1,11 +1,8 @@
-<<<<<<< HEAD
 #ifndef CLIENT_H
 #define CLIENT_H
 
 #include <glm/glm.hpp>
 
-=======
->>>>>>> 6ee2f505820b4a9240c35fe488b01873041a734a
 struct packet
 {
     char name[128];

@@ -25,6 +25,7 @@
 #include "util/loadShaders.hpp"
 #include "util/handleinput.hpp"
 #include "util/otherhandlers.hpp"
+#include "util/globalStateHandlers.hpp"
 
 #include "util/object/mesh.hpp"
 #include "util/object/shader.hpp"
@@ -52,6 +53,7 @@ using json = nlohmann::json;
 using namespace std;
 using namespace glm;
 GLFWwindow* window;
+
 
 int main()
 {
@@ -131,19 +133,17 @@ int main()
 //=========== IMGUI =========================================================
 
 
-IMGUI_CHECKVERSION();
-ImGui::CreateContext();
-ImGuiIO& io = ImGui::GetIO(); (void)io;
-ImGui::StyleColorsDark();
-//ImGui::StyleColorsClassic();
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGui::StyleColorsDark();
+    //ImGui::StyleColorsClassic();
 
+    const char* glsl_version = "#version 130";
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init(glsl_version);
 
-//bindings: consider writing our own. this is the default demo one provided
-const char* glsl_version = "#version 130";
-ImGui_ImplGlfw_InitForOpenGL(window, true);
-ImGui_ImplOpenGL3_Init(glsl_version);
-
-bool show_demo_window = true; //TODO why is this on a different tab level?
+    bool show_demo_window = true;
     bool show_another_window = false;
     bool show_server_window = false;
 
@@ -162,6 +162,7 @@ bool show_demo_window = true; //TODO why is this on a different tab level?
 
 
 //================networking stuff====================================
+    /*
     struct server serverList[MAXSERVERS];
 
     printf("Loading network");
@@ -189,7 +190,6 @@ bool show_demo_window = true; //TODO why is this on a different tab level?
     struct sockaddr_in serverAddr = *(serverList[0].routes[0]);
     struct entities all[10];
 
-
     // get our id from the server, and the msg
     int clientId;
     struct packet msg;
@@ -207,213 +207,228 @@ bool show_demo_window = true; //TODO why is this on a different tab level?
     cameraPos = glm::vec3(all[clientId].x, all[clientId].y, all[clientId].z);
 
     printf("%f, %f, %f\n", cameraPos.x, cameraPos.y, cameraPos.z);
+    */
 //=========== LOOP ===========================================================
 
-    Model *currentModel = NULL; //current pointed-at model
+    Model *currentModel = &ourModel; //current pointed-at model
     Model *lastModel = NULL;    //last pointed-at model
     bool showProperties = true;
     bool singleScale = true; //ajust scale as single value, or as x, y, and z values
 
     while( glfwWindowShouldClose(window) == 0){
 
-        //setup
+        //setup stuff that runs regardless of the menu mode
         calculateFrameTime();
         //glClearColor(0.0f, 0.0f, 0.4f, 0.0f); //default background color
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        renderLoop3D(window);
-        renderLoop2D(window);
 
-        //Bullet Simulation:
-        Model::RunStepSimulation();
-
-        //draw debug line
-
-
-        //draw debug stuff from bullet
-        debugDraw.SetMatrices(getViewMatrix(), getprojectionMatrix());
-
-        if(physicsDebugEnabled){
-            dynamicsWorld->debugDrawWorld();
-            //debugDraw.draw();
-        }
-
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-
-    //=-----=-=-=-=-==--=-==-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-^-^-^-^-^-^-^-
-
-        btVector3 from(cameraPos.x,cameraPos.y,cameraPos.z);
-        btVector3 to(cameraPos.x+cameraFront.x*100,cameraPos.y+cameraFront.y*100,cameraPos.z+cameraFront.z*100);
-
-        btVector3 blue(0.1, 0.3, 0.9);
-        dynamicsWorld->getDebugDrawer()->drawSphere(btVector3(0,0,0), 0.5, blue); //at origin
-
-        btCollisionWorld::ClosestRayResultCallback closestResults(from, to);
-        closestResults.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
-
-        dynamicsWorld->rayTest(from, to, closestResults);
-
-        if (closestResults.hasHit() && !isMouseVisable())
-        {
-            currentModel = ((Model *)closestResults.m_collisionObject->getCollisionShape()->getUserPointer());
-            currentModel->tint = glm::vec3(0.2,0.2,0.2);
-
-            if(currentModel != lastModel && lastModel != NULL){
-                lastModel->tint = glm::vec3(0,0,0);
+        switch (getLoopMode()){
+        case LOOP_MODE_MENU :    {
+            renderLoop3D(window);
+            renderLoop2D(window);
             }
-            lastModel = currentModel;
+            break;
+        case LOOP_MODE_NETWORK : {
 
-            btVector3 p = from.lerp(to, closestResults.m_closestHitFraction);
-            dynamicsWorld->getDebugDrawer()->drawSphere(p, 0.1, blue);
-            dynamicsWorld->getDebugDrawer()->drawLine(p, p + closestResults.m_hitNormalWorld, blue);
-
-            //ourModel3.setPosition(p);
-        }else{
-            if(currentModel != NULL){
-                currentModel->tint = glm::vec3(0,0,0);
             }
-        }
+            break;
+        case LOOP_MODE_EDIT :    {
+            renderLoop3D(window);
+            renderLoop2D(window);
 
-        if(showProperties){ //Properties edit window
-            ImGuiWindowFlags window_flags = 0;
-            window_flags |= ImGuiWindowFlags_NoScrollbar;
-            window_flags |= ImGuiWindowFlags_NoResize;
-            window_flags |= ImGuiWindowFlags_NoCollapse;
+            //Bullet Simulation:
+            Model::RunStepSimulation();
 
-            ImGui::Begin("Properties", NULL, window_flags);
-            ImGui::Text(currentModel->objectPath.c_str()); //name of object file
-            ImGui::Checkbox("single scale value", &singleScale);
-            //scaling change
-            if(singleScale){
+            //draw debug stuff from bullet
+            debugDraw.SetMatrices(getViewMatrix(), getprojectionMatrix());
 
-                ImGui::SliderFloat("scale", &(currentModel->scale[0]), 0.1f, 100.0f, "%1.0f");
-                currentModel->scale[1] = currentModel->scale[0];
-                currentModel->scale[2] = currentModel->scale[0];
-
-                currentModel->syncScale();
-
-
-            }else{
-                ImGui::InputFloat("scale X", &(currentModel->scale[0]), 0.01f, 1.0f, "%.3f");
-                ImGui::InputFloat("scale Y", &(currentModel->scale[1]), 0.01f, 1.0f, "%.3f");
-                ImGui::InputFloat("scale Z", &(currentModel->scale[2]), 0.01f, 1.0f, "%.3f");
-                currentModel->syncScale();
+            if(physicsDebugEnabled){
+                dynamicsWorld->debugDrawWorld();
+                //debugDraw.draw();
             }
-            //position change
-            btVector3 pos = currentModel->body->getWorldTransform().getOrigin();
-            ImGui::SliderFloat("pos X", &(pos[0]), -100.0f, 100.0f, "%10.0f");
-            ImGui::SliderFloat("pos Y", &(pos[2]), -100.0f, 100.0f, "%10.0f");
-            ImGui::SliderFloat("pos Z", &(pos[1]), -100.0f, 100.0f, "%10.0f");
-            currentModel->body->getWorldTransform().setOrigin(pos);
 
-            ImGui::End();
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplGlfw_NewFrame();
+            ImGui::NewFrame();
 
-        }
+        //=-----=-=-=-=-==--=-==-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-^-^-^-^-^-^-^-
 
-        //btVector3 infront((cameraPos.x + cameraFront.x), (cameraPos.y + cameraFront.y), (cameraPos.z + cameraFront.z));
-        //ourModel4.setPosition(infront);
+            btVector3 from(cameraPos.x,cameraPos.y,cameraPos.z);
+            btVector3 to(cameraPos.x+cameraFront.x*100,cameraPos.y+cameraFront.y*100,cameraPos.z+cameraFront.z*100);
 
-        debugDraw.draw();
+            btVector3 blue(0.1, 0.3, 0.9);
 
-//end physics loop=====================================================================================
+            dynamicsWorld->getDebugDrawer()->drawSphere(btVector3(0,0,0), 0.5, blue); //at origin
+            btCollisionWorld::ClosestRayResultCallback closestResults(from, to);
+            closestResults.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
 
-    //============imgui===========
-
-        ImGui::Begin("Hello, world!");
-        ImGui::Text("This is some useful text.");
-        ImGui::Checkbox("Demo Window", &show_demo_window);
-        ImGui::Checkbox("Another Window", &show_another_window);
-        ImGui::Checkbox("Server Information", &show_server_window);
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-        ImGui::End();
-
-        if (show_another_window){
-            ImGui::Begin("Another Window", &show_another_window);
-            ImGui::Text("Hello from another window!");
-            if (ImGui::Button("Close Me"))
-                show_another_window = false;
-            ImGui::End();
-        }
-
-        if (show_server_window)
-        {
-            ImGui::Begin("Server Information", &show_server_window);
-            ImGui::Text("Assorted Server Information");
-
-            // ================= trying to implement networking/client.c =======
-            struct server serverList[MAXSERVERS];
-
-
-            if (!networkLoaded)
+            dynamicsWorld->rayTest(from, to, closestResults);
+            if (closestResults.hasHit() && !isMouseVisable())
             {
-                printf("yeehaw");
-                getAllServers(serverList);
-                networkLoaded = true;
+                currentModel = ((Model *)closestResults.m_collisionObject->getCollisionShape()->getUserPointer());
+                currentModel->tint = glm::vec3(0.2,0.2,0.2);
 
-                for (int j = 0; j < MAXSERVERS; j = j + 1)
-                {
-                    if (strcmp(serverList[j].name, "") != 0)
-                    {
-                        printf("For server %s\n", serverList[j].name);
-                        //printf("%d  %d\n", servers[j].hasLo, servers[j].loIndex);
-                        for (int q = 0; q < serverList[j].numRoutes; q++)
-                        {
-                            printf("\tFound route \"%s\"", inet_ntoa(serverList[j].routes[q]->sin_addr));
-                            if (serverList[j].hasLo && q == serverList[j].loIndex)
-                            {
-                                printf("\tLO");
-                            }
-                            printf("\n");
-                        }
-                    }
+                if(currentModel != lastModel && lastModel != NULL){
+                    lastModel->tint = glm::vec3(0,0,0);
+                }
+                lastModel = currentModel;
+
+                btVector3 p = from.lerp(to, closestResults.m_closestHitFraction);
+                dynamicsWorld->getDebugDrawer()->drawSphere(p, 0.1, blue);
+                dynamicsWorld->getDebugDrawer()->drawLine(p, p + closestResults.m_hitNormalWorld, blue);
+
+                //ourModel3.setPosition(p);
+            }else{
+                if(currentModel != NULL){
+                    currentModel->tint = glm::vec3(0,0,0);
                 }
             }
 
-            if (ImGui::Button("exit"))
-            {
-                networkLoaded = false;
-                show_server_window = false;
+            if(showProperties){ //Properties edit window
+                ImGuiWindowFlags window_flags = 0;
+                window_flags |= ImGuiWindowFlags_NoScrollbar;
+                window_flags |= ImGuiWindowFlags_NoResize;
+                window_flags |= ImGuiWindowFlags_NoCollapse;
+
+                ImGui::Begin("Properties", NULL, window_flags);
+                ImGui::Text(currentModel->objectPath.c_str()); //name of object file
+                ImGui::Checkbox("single scale value", &singleScale);
+                //scaling change
+
+                if(singleScale){
+
+                    ImGui::SliderFloat("scale", &(currentModel->scale[0]), 0.1f, 100.0f, "%1.0f");
+                    currentModel->scale[1] = currentModel->scale[0];
+                    currentModel->scale[2] = currentModel->scale[0];
+
+                    currentModel->syncScale();
+
+
+                }else{
+                    ImGui::InputFloat("scale X", &(currentModel->scale[0]), 0.01f, 1.0f, "%.3f");
+                    ImGui::InputFloat("scale Y", &(currentModel->scale[1]), 0.01f, 1.0f, "%.3f");
+                    ImGui::InputFloat("scale Z", &(currentModel->scale[2]), 0.01f, 1.0f, "%.3f");
+                    currentModel->syncScale();
+                }
+
+                //position change
+                btVector3 pos = currentModel->body->getWorldTransform().getOrigin();
+                ImGui::SliderFloat("pos X", &(pos[0]), -100.0f, 100.0f, "%10.0f");
+                ImGui::SliderFloat("pos Y", &(pos[2]), -100.0f, 100.0f, "%10.0f");
+                ImGui::SliderFloat("pos Z", &(pos[1]), -100.0f, 100.0f, "%10.0f");
+                currentModel->body->getWorldTransform().setOrigin(pos);
+
+                ImGui::End();
+
             }
+
+            //btVector3 infront((cameraPos.x + cameraFront.x), (cameraPos.y + cameraFront.y), (cameraPos.z + cameraFront.z));
+            //ourModel4.setPosition(infront);
+
+            debugDraw.draw();
+
+        //end physics loop=====================================================================================
+
+        //============imgui===========
+
+            ImGui::Begin("Hello, world!");
+            ImGui::Text("This is some useful text.");
+            ImGui::Checkbox("Demo Window", &show_demo_window);
+            ImGui::Checkbox("Another Window", &show_another_window);
+            ImGui::Checkbox("Server Information", &show_server_window);
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
             ImGui::End();
+
+            if (show_another_window){
+                ImGui::Begin("Another Window", &show_another_window);
+                ImGui::Text("Hello from another window!");
+                if (ImGui::Button("Close Me"))
+                    show_another_window = false;
+                ImGui::End();
+            }
+
+            if (show_server_window)
+            {
+                ImGui::Begin("Server Information", &show_server_window);
+                ImGui::Text("Assorted Server Information");
+
+                // ================= trying to implement networking/client.c =======
+                struct server serverList[MAXSERVERS];
+
+
+                if (!networkLoaded)
+                {
+                    printf("yeehaw");
+                    getAllServers(serverList);
+                    networkLoaded = true;
+
+                    for (int j = 0; j < MAXSERVERS; j = j + 1)
+                    {
+                        if (strcmp(serverList[j].name, "") != 0)
+                        {
+                            printf("For server %s\n", serverList[j].name);
+                            //printf("%d  %d\n", servers[j].hasLo, servers[j].loIndex);
+                            for (int q = 0; q < serverList[j].numRoutes; q++)
+                            {
+                                printf("\tFound route \"%s\"", inet_ntoa(serverList[j].routes[q]->sin_addr));
+                                if (serverList[j].hasLo && q == serverList[j].loIndex)
+                                {
+                                    printf("\tLO");
+                                }
+                                printf("\n");
+                            }
+                        }
+                    }
+                }
+
+                if (ImGui::Button("exit"))
+                {
+                    networkLoaded = false;
+                    show_server_window = false;
+                }
+                ImGui::End();
+            }
+
+            ImGui::Render();
+            int display_w, display_h;
+            glfwGetFramebufferSize(window, &display_w, &display_h);
+            glViewport(0, 0, display_w, display_h);
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        //end imgui
+
+            ourShader.use();
+
+            ourModel.Draw(ourShader);
+            ourModel2.Draw(ourShader);
+            ourModel3.Draw(ourShader);
+            ourModel4.Draw(ourShader);
+
+            //render imgui (render this last so it's on top of other stuff)
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+            }
+            break;
+        case LOOP_MODE_PLAY :    {
+
+        }
+            break;
+        case LOOP_MODE_LEGACY :  {
+
+        }
+            break;
         }
 
-        ImGui::Render();
-        int display_w, display_h;
-        glfwGetFramebufferSize(window, &display_w, &display_h);
-        glViewport(0, 0, display_w, display_h);
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    //end imgui
-
-        ourShader.use();
-
-        ourModel.Draw(ourShader);
-        ourModel2.Draw(ourShader);
-        ourModel3.Draw(ourShader);
-        ourModel4.Draw(ourShader);
-
-
-        //render imgui (render this last so it's on top of other stuff
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-        // Swap buffers
+        // Swap buffers (write to screen)
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    //draw model physics debug
-    Model::DrawDebugModels();
-
-
-    //cleanup physics code
-    //TODO: clean this up
-
+    //cleanup
     Model::Cleanup();
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
-
     cleanup3D();
     glfwTerminate();
 

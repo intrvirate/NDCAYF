@@ -29,6 +29,12 @@
             "format": "default",
             "type": "setting",
             "target": "setting 2"
+        },
+        {
+            "name": "select loop",
+            "format": "default",
+            "type": "setting",
+            "target": "select loop"
         }
     ],
     "m1":[

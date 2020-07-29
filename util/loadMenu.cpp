@@ -98,6 +98,19 @@ void updateMenu(){
                 i++;//last entry:   back
                 addTextString("back", menuLeftOffsetFromCenter, menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize, activeColor, passiveColor );
 
+            }else if(settingsjson[settingMenu]["type"] == "select"){
+                name = settingsjson[settingMenu]["name"];
+                    //first entry:  name
+                addTextString(name, menuLeftOffsetFromCenter, menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize, passiveColor, passiveColor ); //both passive color so it doesn't highlight when moused over
+                i++;//next entries: the choices
+
+
+                for(int j = 0; !settingsjson[settingMenu]["choices"][j].is_null(); j++){
+                    name = settingsjson[settingMenu]["choices"][j]["name"];
+                    addTextString(name, menuLeftOffsetFromCenter, menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize, activeColor, passiveColor );
+                    i++;
+                }
+
             }
 
         }
@@ -202,7 +215,6 @@ void handleMenuClick(){
 
                    for(uint i = 0; i < boolLinkArraySize; i++){
                        if (boolLinkArray[i].ID == settingMenu){
-                            //1 is name, can't click it. TODO: remove mouse highlight for it
 
                             if(index == 1){//first line is true
 
@@ -210,11 +222,11 @@ void handleMenuClick(){
 
                             }else if(index == 2){
 
-                                *(boolLinkArray[i].ptr) = false; //set true
+                                *(boolLinkArray[i].ptr) = false; //set false
 
                             }else if(index == 3){//3 == "back"
 
-                                settingMenu = "";//exit menu
+                                settingMenu = "";//return to root menu
 
                             }
 
@@ -225,6 +237,22 @@ void handleMenuClick(){
                }
                //else if setting is int
                else if(settingsjson[settingMenu]["type"] == "int"){
+
+
+               }
+               else if(settingsjson[settingMenu]["type"] == "select"){
+                   for(uint i = 0; i < selectLinkArraySize; i++){
+                       if (selectLinkArray[i].ID == settingMenu){
+                           if (index <= settingsjson[settingMenu]["numChoices"] && index > 0){ //if it clicked on a choice
+                                *(selectLinkArray[i].ptr) = index;
+                                fprintf(stderr, "\n%i\n", index);
+                                exitMenu();
+                                settingMenu = "";//return to root menu
+                           }
+
+                       }
+
+                   }
 
 
                }
@@ -245,9 +273,6 @@ void handleMenuClick(){
        }
     }
 }
-
-
-
 
 
 

@@ -41,8 +41,15 @@ bool GetFPScounter()            { return FPScounter; }
 void SetFPScounter(bool state)  { FPScounter = state; }
 
 
-//link variables to setting name
+int loopMode = LOOP_MODE_MENU; //stores what main render loop to use
+int getLoopMode()            { return loopMode; }
+void setLoopMode(int val) { loopMode = val;  }
 
+
+
+/* ==============link variables to setting name========================*/
+
+//bool
 const uint boolLinkArraySize = 1;
 
 boolLink boolLinkArray[boolLinkArraySize]{
@@ -50,21 +57,12 @@ boolLink boolLinkArray[boolLinkArraySize]{
 
 };
 
-//int
-const uint intLinkArraySize = 1;
+//select
+const uint selectLinkArraySize = 1;
 
-boolLink intLinkArray[intLinkArraySize]{
-    {.ID = "FPScounter", .ptr = &FPScounter}
-
+selectLink selectLinkArray[selectLinkArraySize]{
+    {.ID = "select loop", .ptr = &loopMode}
 };
-
-
-
-
-
-
-
-
 
 
 

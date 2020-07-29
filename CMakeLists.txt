@@ -17,6 +17,7 @@ find_package(Bullet REQUIRED)
 
 add_executable(NDCAYF
                 main.cpp
+                main.hpp
                 networking/getLan.hpp
                 networking/getLan.cpp
                 networking/client.cpp
