@@ -108,6 +108,7 @@ int main()
 
     initializeMouse(window);
     toggleMouseVisibility(window);
+    toggleMouseVisibility(window);
 
     glEnable(GL_PROGRAM_POINT_SIZE);
     glEnable(GL_DEPTH_TEST);
@@ -215,6 +216,7 @@ int main()
     bool showProperties = true;
     bool singleScale = true; //ajust scale as single value, or as x, y, and z values
 
+
     while( glfwWindowShouldClose(window) == 0){
 
         //setup stuff that runs regardless of the menu mode
@@ -227,6 +229,29 @@ int main()
         case LOOP_MODE_MENU :    {
             renderLoop3D(window);
             renderLoop2D(window);
+
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplGlfw_NewFrame();
+            ImGui::NewFrame();
+
+            ImGui::Begin("Stuff and things");
+            ImGui::Text("This is some useful text.");
+            if (ImGui::Button("network loop"))
+                setLoopMode(LOOP_MODE_NETWORK);
+
+            if (ImGui::Button("edit mode"))
+                setLoopMode(LOOP_MODE_EDIT);
+
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+            ImGui::End();
+
+
+            ImGui::Render();
+            int display_w, display_h;
+            glfwGetFramebufferSize(window, &display_w, &display_h);
+            glViewport(0, 0, display_w, display_h);
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
             }
             break;
         case LOOP_MODE_NETWORK : {
