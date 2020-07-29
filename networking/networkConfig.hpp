@@ -1,3 +1,6 @@
+#ifndef NETWORK_H
+#define NETWORK_H
+
 /*
  * store all network constants here,
  * or elsewhere once integrated into
@@ -42,3 +45,5 @@ struct entities
     int y;
     int z;
 };
+
+#endif

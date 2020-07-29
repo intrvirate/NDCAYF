@@ -1,3 +1,6 @@
+#ifndef CLIENT_H
+#define CLIENT_H
+
 #include <glm/glm.hpp>
 
 struct packet
@@ -14,3 +17,5 @@ int makePacket(char msg[], struct packet *out);
 int makeSocket();
 unsigned long long getMilliSeconds();
 void setPositions(struct entities all[], char extra[]);
+
+#endif
