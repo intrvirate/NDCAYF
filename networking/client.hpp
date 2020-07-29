@@ -1,5 +1,3 @@
-#include <glm/glm.hpp>
-
 struct packet
 {
     char name[128];

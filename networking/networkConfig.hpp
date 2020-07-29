@@ -4,8 +4,6 @@
  * the main code, ikc
  *
  */
-#include <glm/glm.hpp>
-
 #define PORT  12345
 #define SUPERSECRETKEY_SERVER "ndcayfserver"
 #define SUPERSECRETKEY_CLIENT "ndcayfclient"
@@ -29,7 +27,7 @@ struct ifa {
 };
 
 struct server {
-    struct sockaddr_in routes[5];
+    struct sockaddr_in *routes[5];
     int numRoutes;
     char name[128];
     bool hasLo;

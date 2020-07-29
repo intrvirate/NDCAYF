@@ -178,7 +178,7 @@ void getResponses(int sock, struct server servers[])
                     }
 
                     // add server info
-                    servers[index].routes[servers[index].numRoutes] = in_addr;
+                    servers[index].routes[servers[index].numRoutes] = &in_addr;
                     servers[index].numRoutes++;
 
                     if (strcmp(ip, lo) == 0)
