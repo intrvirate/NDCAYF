@@ -6,7 +6,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
-#include "networkConfig.c"
+#include "networkConfig.h"
 
 int main(int argc, char **argv)
 {

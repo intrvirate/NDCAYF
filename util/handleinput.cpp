@@ -11,6 +11,9 @@
 #include "util/bulletDebug/collisiondebugdrawer.hpp"
 #include "BulletCollision/NarrowPhaseCollision/btRaycastCallback.h"
 
+#include "networkConfig.hpp"
+#include "client.hpp"
+
 using namespace std;
 
 uint8_t renderMode = 1; // 1 = fill, 2 = line, 3 = point

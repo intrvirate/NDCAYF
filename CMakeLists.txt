@@ -17,6 +17,10 @@ find_package(Bullet REQUIRED)
 
 add_executable(NDCAYF
                 main.cpp
+                networking/getLan.hpp
+                networking/getLan.cpp
+                networking/client.cpp
+                networking/client.hpp
                 util/json.hpp
                 util/loadMenu.cpp
                 util/loadMenu.hpp
@@ -76,7 +80,9 @@ target_link_libraries(NDCAYF ${GLEW_LIBRARIES})
 target_include_directories(NDCAYF PUBLIC ${BULLET_INCLUDE_DIRS})
 target_link_libraries(NDCAYF ${BULLET_LIBRARIES})
 
+
 target_include_directories(NDCAYF PRIVATE
                           "${PROJECT_BINARY_DIR}"
                           "${PROJECT_SOURCE_DIR}/util"
+                          "${PROJECT_SOURCE_DIR}/networking"
                           )

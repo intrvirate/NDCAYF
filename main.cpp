@@ -33,6 +33,20 @@
 #include "util/bulletDebug/collisiondebugdrawer.hpp"
 #include "BulletCollision/NarrowPhaseCollision/btRaycastCallback.h"
 
+// this is a horrible way to do this
+
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <stdbool.h>
+#include <sys/types.h>
+#include <ifaddrs.h>
+
+#include "networking/networkConfig.hpp"
+#include "networking/getLan.hpp"
+#include "networking/client.hpp"
+
 
 using json = nlohmann::json;
 using namespace std;
@@ -41,6 +55,8 @@ GLFWwindow* window;
 
 int main()
 {
+    // netowrk
+    bool networkLoaded = false;
     //=========== SETUP ==========================================================
 
     //do this first because settings.json will contain things like default window size
@@ -108,6 +124,8 @@ int main()
 
     Model ourModel3("obj/objects/building02.obj", false, NULL, 0.0 , btVector3(1,-30,0),btVector3(1,1,1));
 
+    Model ourModel4("obj/objects/plannets/moon.obj", false, new btSphereShape(btScalar(1.)), 0.0 , btVector3(20,50,20), btVector3(1,1,1));
+
     Model::InitializeModelPhysicsWorld();
 
 //=========== IMGUI =========================================================
@@ -125,7 +143,7 @@ const char* glsl_version = "#version 130";
 ImGui_ImplGlfw_InitForOpenGL(window, true);
 ImGui_ImplOpenGL3_Init(glsl_version);
 
-bool show_demo_window = true;
+bool show_demo_window = true; //TODO why is this on a different tab level?
     bool show_another_window = false;
     bool show_server_window = false;
 
@@ -142,10 +160,56 @@ bool show_demo_window = true;
 
     loadAutoMapGen();
 
+
+//================networking stuff====================================
+    struct server serverList[MAXSERVERS];
+
+    printf("Loading network");
+    getAllServers(serverList);
+
+    for (int j = 0; j < MAXSERVERS; j = j + 1)
+    {
+        if (strcmp(serverList[j].name, "") != 0)
+        {
+            printf("For server %s\n", serverList[j].name);
+            //printf("%d  %d\n", servers[j].hasLo, servers[j].loIndex);
+            for (int q = 0; q < serverList[j].numRoutes; q++)
+            {
+                printf("\tFound route \"%s\"", inet_ntoa(serverList[j].routes[q].sin_addr));
+                if (serverList[j].hasLo && q == serverList[j].loIndex)
+                {
+                    printf("\tLO");
+                }
+                printf("\n");
+            }
+        }
+    }
+
+    // choose the first option
+    struct sockaddr_in serverAddr = serverList[0].routes[0];
+    struct entities all[10];
+
+
+    // get our id from the server, and the msg
+    int clientId;
+    struct packet msg;
+    if (connectToServer(serverAddr, &clientId, &msg) < 0)
+    {
+        printf("Failed to connect to: %s\n", inet_ntoa(serverAddr.sin_addr));
+    }
+
+    printf("Connection successful to: %s\n", inet_ntoa(serverAddr.sin_addr));
+    printf("Data %s  %d   %llu  %s\n", msg.name, msg.ptl, msg.time, msg.extra);
+    printf("ID %d\n", clientId);
+
+    setPositions(all, msg.extra);
+
+    cameraPos = glm::vec3(all[clientId].x, all[clientId].y, all[clientId].z);
+
+    printf("%f, %f, %f\n", cameraPos.x, cameraPos.y, cameraPos.z);
 //=========== LOOP ===========================================================
 
-
-    Model *currentModel = NULL; //current pointed-at model *****TODO****** initialize this to the forst model loaded to avoid crashing if the world loads not pointing at a model
+    Model *currentModel = NULL; //current pointed-at model
     Model *lastModel = NULL;    //last pointed-at model
     bool showProperties = true;
     bool singleScale = true; //ajust scale as single value, or as x, y, and z values
@@ -248,6 +312,9 @@ bool show_demo_window = true;
 
         }
 
+        //btVector3 infront((cameraPos.x + cameraFront.x), (cameraPos.y + cameraFront.y), (cameraPos.z + cameraFront.z));
+        //ourModel4.setPosition(infront);
+
         debugDraw.draw();
 
 //end physics loop=====================================================================================
@@ -274,8 +341,39 @@ bool show_demo_window = true;
         {
             ImGui::Begin("Server Information", &show_server_window);
             ImGui::Text("Assorted Server Information");
+
+            // ================= trying to implement networking/client.c =======
+            struct server serverList[MAXSERVERS];
+
+
+            if (!networkLoaded)
+            {
+                printf("yeehaw");
+                getAllServers(serverList);
+                networkLoaded = true;
+
+                for (int j = 0; j < MAXSERVERS; j = j + 1)
+                {
+                    if (strcmp(serverList[j].name, "") != 0)
+                    {
+                        printf("For server %s\n", serverList[j].name);
+                        //printf("%d  %d\n", servers[j].hasLo, servers[j].loIndex);
+                        for (int q = 0; q < serverList[j].numRoutes; q++)
+                        {
+                            printf("\tFound route \"%s\"", inet_ntoa(serverList[j].routes[q].sin_addr));
+                            if (serverList[j].hasLo && q == serverList[j].loIndex)
+                            {
+                                printf("\tLO");
+                            }
+                            printf("\n");
+                        }
+                    }
+                }
+            }
+
             if (ImGui::Button("exit"))
             {
+                networkLoaded = false;
                 show_server_window = false;
             }
             ImGui::End();
@@ -293,6 +391,7 @@ bool show_demo_window = true;
         ourModel.Draw(ourShader);
         ourModel2.Draw(ourShader);
         ourModel3.Draw(ourShader);
+        ourModel4.Draw(ourShader);
 
 
         //render imgui (render this last so it's on top of other stuff

@@ -10,4 +10,6 @@
 /.cmake
 **/*.swp
 *.sh
-/imgui.ini
+*.ini*
+*.vim*
+*.o

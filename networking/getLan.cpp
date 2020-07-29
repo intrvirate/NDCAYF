@@ -8,9 +8,12 @@
 #include <stdbool.h>
 #include <sys/types.h>
 #include <ifaddrs.h>
+#include <sys/time.h>
 
-#include "networkConfig.c"
+#include "networkConfig.hpp"
+#include "getLan.hpp"
 
+/*
 struct ifa {
     char name[128];
     char ip[128];
@@ -24,14 +27,19 @@ struct server {
     int loIndex;
 };
 
-char lo[128];
-int DELAY_SECS = 1;
-int DELAY_USECS = 0;
 
 void getInterfaces(struct ifa interfaces[], int *numFaces);
 void broadcastAllInterfaces(int sock, struct ifa interfaces[], int elements, char name[]);
 void getResponses(int sock, struct server servers[]);
 void getAllServers(struct server servers[]);
+
+*/
+
+char lo[128];
+int DELAY_SECS = 1;
+int DELAY_USECS = 0;
+
+
 
 void getInterfaces(struct ifa interfaces[], int *numFaces)
 {
@@ -83,7 +91,16 @@ void broadcastAllInterfaces(int sock, struct ifa interfaces[], int elements, cha
 {
     struct sockaddr_in broadcast_addr;
     char msg[100];
-    sprintf(msg, "%s$%s", SUPERSECRETKEY_CLIENT, name);
+
+    struct timeval tv;
+
+    gettimeofday(&tv, NULL);
+
+    unsigned long long millisecondsSinceEpoch =
+        (unsigned long long)(tv.tv_sec) * 1000 +
+        (unsigned long long)(tv.tv_usec) / 1000;
+
+    sprintf(msg, "%s$%s$%d$%llu", SUPERSECRETKEY_CLIENT, name, PING, millisecondsSinceEpoch);
 
     socklen_t addrlen = sizeof(broadcast_addr);        /* length of addresses */
 
@@ -95,7 +112,6 @@ void broadcastAllInterfaces(int sock, struct ifa interfaces[], int elements, cha
     for (int i = 0; i < elements; i++)
     {
         broadcast_addr.sin_addr.s_addr = inet_addr(interfaces[i].ip);
-
 
         printf("Broadcast to %-15s %s\n", interfaces[i].name, interfaces[i].ip);
 
@@ -120,6 +136,7 @@ void getResponses(int sock, struct server servers[])
 
     char name[128];
     char serverKey[128];
+    char protocol[128];
 
     // go through the queue of recieved messages if there are any
     printf("Going through sock queue...\n");
@@ -140,6 +157,7 @@ void getResponses(int sock, struct server servers[])
             if (strcmp(serverKey, SUPERSECRETKEY_SERVER) == 0)
             {
                 strcpy(name, strtok(NULL, "$"));
+                strcpy(protocol, strtok(NULL, "$"));
                 printf("IP of %s \"%-10s\"", name, ip);
 
 
@@ -232,6 +250,7 @@ int makeBroadcastSocket()
 
 void getAllServers(struct server servers[])
 {
+    printf("Getting servers...\n");
     char hostname[128];
 
     struct ifa interfaces[10];
@@ -246,6 +265,15 @@ void getAllServers(struct server servers[])
         servers[i].hasLo = false;
         strcpy(servers[i].name, "");
     }
+
+    // magic for loop
+    /**/
+    for (int i = 0; i < 0; i++)
+    {
+        //printf("name %s routes %d lo %d\n\n", servers[i].name, servers[i].numRoutes, servers[i].hasLo);
+    }
+    /**/
+
     gethostname(hostname, 128);
 
     getInterfaces(interfaces, &numFaces);
