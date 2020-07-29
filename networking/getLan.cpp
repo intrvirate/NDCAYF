@@ -70,7 +70,8 @@ void getInterfaces(struct ifa interfaces[], int *numFaces)
                 strcpy(lo, host);
             }
 
-            // adds to the array
+            // adds to the array"before %s
+
             strcpy(interfaces[*numFaces].name, ifaddr->ifa_name);
             strcpy(interfaces[*numFaces].ip, host);
             (*numFaces)++;
@@ -80,7 +81,6 @@ void getInterfaces(struct ifa interfaces[], int *numFaces)
        }
 
         ifaddr = ifaddr->ifa_next;
-
     }
 
     // free up the space, and return the amount of elements in the array
@@ -254,7 +254,7 @@ void getAllServers(struct server servers[])
     char hostname[128];
 
     struct ifa interfaces[10];
-    int numFaces;
+    int numFaces = 0;
 
     int bcast_sock;
 

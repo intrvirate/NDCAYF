@@ -163,7 +163,6 @@ int main()
 
 
 //================networking stuff====================================
-    /*
     struct server serverList[MAXSERVERS];
 
     printf("Loading network");
@@ -187,6 +186,7 @@ int main()
         }
     }
 
+    /*
     // choose the first option
     struct sockaddr_in serverAddr = *(serverList[0].routes[0]);
     struct entities all[10];
@@ -214,6 +214,7 @@ int main()
     Model *currentModel = &ourModel; //current pointed-at model
     Model *lastModel = NULL;    //last pointed-at model
     bool showProperties = true;
+    bool lanwindow = true;
     bool singleScale = true; //ajust scale as single value, or as x, y, and z values
 
 
@@ -234,13 +235,42 @@ int main()
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
 
-            ImGui::Begin("Stuff and things");
-            ImGui::Text("This is some useful text.");
-            if (ImGui::Button("network loop"))
-                setLoopMode(LOOP_MODE_NETWORK);
+            ImGui::Begin("Lan View", &lanwindow);
+            ImGui::Text("All servers:");
+            ImGui::Text("");
 
-            if (ImGui::Button("edit mode"))
-                setLoopMode(LOOP_MODE_EDIT);
+
+            for (int j = 0; j < MAXSERVERS; j = j + 1)
+            {
+                if (strcmp(serverList[j].name, "") != 0)
+                {
+                    //printf("For server %s\n", serverList[j].name);
+                    ImGui::Text("%d: %s", j, serverList[j].name);
+                    //printf("%d  %d\n", servers[j].hasLo, servers[j].loIndex);
+                    for (int q = 0; q < serverList[j].numRoutes; q++)
+                    {
+                        char txt[100];
+                        sprintf(txt, "\tIP \"%s\"", inet_ntoa(serverList[j].routes[q]->sin_addr));
+                        if (serverList[j].hasLo && q == serverList[j].loIndex)
+                        {
+                            sprintf(txt, "%s\tLO", txt);
+                        }
+
+                        if (ImGui::Button(txt))
+                            printf("clicked, %d, %d", j, q);
+                    }
+                }
+            }
+
+            ImGui::Text("");
+
+
+            if (ImGui::Button("Update"))
+            {
+                printf("Loading network\n");
+
+                getAllServers(serverList);
+            }
 
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
             ImGui::End();
