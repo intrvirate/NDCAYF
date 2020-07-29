@@ -175,7 +175,7 @@ bool show_demo_window = true; //TODO why is this on a different tab level?
             //printf("%d  %d\n", servers[j].hasLo, servers[j].loIndex);
             for (int q = 0; q < serverList[j].numRoutes; q++)
             {
-                printf("\tFound route \"%s\"", inet_ntoa(serverList[j].routes[q].sin_addr));
+                printf("\tFound route \"%s\"", inet_ntoa(serverList[j].routes[q]->sin_addr));
                 if (serverList[j].hasLo && q == serverList[j].loIndex)
                 {
                     printf("\tLO");
@@ -186,7 +186,7 @@ bool show_demo_window = true; //TODO why is this on a different tab level?
     }
 
     // choose the first option
-    struct sockaddr_in serverAddr = serverList[0].routes[0];
+    struct sockaddr_in serverAddr = *(serverList[0].routes[0]);
     struct entities all[10];
 
 
@@ -360,7 +360,7 @@ bool show_demo_window = true; //TODO why is this on a different tab level?
                         //printf("%d  %d\n", servers[j].hasLo, servers[j].loIndex);
                         for (int q = 0; q < serverList[j].numRoutes; q++)
                         {
-                            printf("\tFound route \"%s\"", inet_ntoa(serverList[j].routes[q].sin_addr));
+                            printf("\tFound route \"%s\"", inet_ntoa(serverList[j].routes[q]->sin_addr));
                             if (serverList[j].hasLo && q == serverList[j].loIndex)
                             {
                                 printf("\tLO");
