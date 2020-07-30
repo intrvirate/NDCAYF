@@ -226,7 +226,7 @@ void handleMenuClick(){
 
                             }else if(index == 3){//3 == "back"
 
-                                settingMenu = "";//return to root menu
+                                settingMenu = "";//return to root menu`
 
                             }
 

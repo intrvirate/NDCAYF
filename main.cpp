@@ -212,6 +212,16 @@ int main()
             renderLoop3D(window);
             renderLoop2D(window);
 
+            int display_w, display_h;
+            glfwGetFramebufferSize(window, &display_w, &display_h);
+            glViewport(0, 0, display_w, display_h);
+
+            }
+            break;
+        case LOOP_MODE_NETWORK : {
+            renderLoop3D(window);
+            renderLoop2D(window);
+
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
@@ -274,11 +284,6 @@ int main()
             glfwGetFramebufferSize(window, &display_w, &display_h);
             glViewport(0, 0, display_w, display_h);
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-            }
-            break;
-        case LOOP_MODE_NETWORK : {
-
             }
             break;
         case LOOP_MODE_EDIT :    {
