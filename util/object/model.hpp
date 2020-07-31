@@ -151,7 +151,6 @@ public:
             body->setCcdSweptSphereRadius(0);
 
             dynamicsWorld->addRigidBody(body);
-            fprintf(stderr, "gothere");
         }
     }
     // draws the model, and thus all its meshes

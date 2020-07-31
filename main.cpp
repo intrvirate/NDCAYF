@@ -125,9 +125,9 @@ int main()
 
     Model ourModel2("obj/objects/plannets/moon.obj", true, new btSphereShape(btScalar(1.)), 1.0 , btVector3(0,50,0),btVector3(5,5,5));
 
-    Model ourModel3("obj/objects/building02.obj", false, NULL, 0.0 , btVector3(1,-30,0),btVector3(1,1,1));
+    Model ourModel3("obj/objects/building-fixed.obj", false, NULL, 0.0 , btVector3(1,-30,0),btVector3(1,1,1));
 
-    Model ourModel4("obj/objects/plannets/moon.obj", false, new btSphereShape(btScalar(1.)), 0.0 , btVector3(20,50,20), btVector3(1,1,1));
+    Model ourModel4("obj/objects/Rifle.obj", false, new btSphereShape(btScalar(1.)), 0.0 , btVector3(20,50,20), btVector3(1,1,1));
 
     Model::InitializeModelPhysicsWorld();
 
