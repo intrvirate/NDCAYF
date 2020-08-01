@@ -56,6 +56,8 @@ public:
 
     //stores tint color; used for selection in editor.
     glm::vec3 tint = glm::vec3(0,0,0);
+    bool selected = false;
+
 
     //setup collision stuff
     bool usePrimitive = true;
@@ -71,8 +73,9 @@ public:
     string objectPath;
     bool primitaveColisionShape;
 
-    Model(string const &path, bool primitaveColisionShape = true, btCollisionShape* primitaveShape = NULL, btScalar mass = 0.0, btVector3 location = btVector3(0.,0.,0.), btVector3 btScale = btVector3(0.,0.,0.))
+    Model( string const &path, bool primitaveColisionShape = true, btCollisionShape* primitaveShape = NULL, btScalar mass = 0.0, btVector3 location = btVector3(0.,0.,0.), btVector3 btScale = btVector3(0.,0.,0.))
     {
+
         //initialize collision stuff
         usePrimitive = primitaveColisionShape;
         btTransform objectTransform;
@@ -154,7 +157,7 @@ public:
         }
     }
     // draws the model, and thus all its meshes
-    void Draw(Shader shader)
+    void Draw(Shader shader, Shader outlineShader)
     {
 
         glm::mat4 modelPhys = glm::mat4(1.0f);
@@ -167,6 +170,23 @@ public:
         shader.setMat4("view", view);
         shader.setMat4("model", modelPhys);
         shader.setVec3("tint", tint);
+        glm::vec3 lightPos = glm::vec3(70,200,10);
+        shader.setVec3("lightPos", lightPos);
+        glm::vec3 lightColor = glm::vec3(1.0,1.0,1.0);
+        shader.setVec3("lightColor", lightColor);
+
+        if(selected){
+
+            outlineShader.use();
+            glCullFace(GL_FRONT);
+            shader.setMat4("projection", projection);
+            shader.setMat4("view", view);
+            shader.setMat4("model", modelPhys);
+            for(unsigned int i = 0; i < meshes.size(); i++)
+                meshes[i].Draw(outlineShader);
+            glCullFace(GL_BACK);
+            shader.use();
+        }
 
         for(unsigned int i = 0; i < meshes.size(); i++)
             meshes[i].Draw(shader);
@@ -201,6 +221,7 @@ public:
         body->setWorldTransform(tr);
 
     }
+
 
     static void InitializeModelPhysicsWorld(){
 

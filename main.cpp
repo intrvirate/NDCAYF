@@ -119,15 +119,16 @@ int main()
 
     //TODO: move this out of main; this is just for testing
     Shader ourShader("util/object/shader/vShader.glsl", "util/object/shader/fShader.glsl");
-
+    Shader outlineShader("util/object/shader/VoutlineShader.glsl", "util/object/shader/FoutlineShader.glsl");
 
     Model ourModel("obj/objects/terrain03.obj", false, NULL, 0.0, btVector3(0,-8,0),btVector3(100,100,100));
 
-    Model ourModel2("obj/objects/plannets/moon.obj", true, new btSphereShape(btScalar(1.)), 1.0 , btVector3(0,50,0),btVector3(5,5,5));
+    Model ourModel2("obj/objects/plannets/smoothmoon.obj", true, new btSphereShape(btScalar(1.)), 1.0 , btVector3(0,50,0),btVector3(5,5,5));
 
-    Model ourModel3("obj/objects/building-fixed.obj", false, NULL, 0.0 , btVector3(1,-30,0),btVector3(1,1,1));
+    //Model ourModel3("obj/objects/building-fixed.obj", false, NULL, 0.0 , btVector3(12,12,-20),btVector3(1,1,1));
+    Model ourModel3("obj/objects/Tree02-v3-normals.obj", false, NULL, 0.0 , btVector3(12,12,-20),btVector3(1,1,1));
 
-    Model ourModel4("obj/objects/Rifle.obj", false, new btSphereShape(btScalar(1.)), 0.0 , btVector3(20,50,20), btVector3(1,1,1));
+    Model ourModel4("obj/objects/smootharch.obj", false, new btSphereShape(btScalar(1.)), 0.0 , btVector3(10,10,10), btVector3(1,1,1));
 
     Model::InitializeModelPhysicsWorld();
 
@@ -320,10 +321,12 @@ int main()
             if (closestResults.hasHit() && !isMouseVisable())
             {
                 currentModel = ((Model *)closestResults.m_collisionObject->getCollisionShape()->getUserPointer());
-                currentModel->tint = glm::vec3(0.2,0.2,0.2);
+                //currentModel->tint = glm::vec3(0.2,0.2,0.2);
+                currentModel->selected = true;
 
                 if(currentModel != lastModel && lastModel != NULL){
-                    lastModel->tint = glm::vec3(0,0,0);
+                    //lastModel->tint = glm::vec3(0,0,0);
+                    lastModel->selected = false;
                 }
                 lastModel = currentModel;
 
@@ -334,7 +337,8 @@ int main()
                 //ourModel3.setPosition(p);
             }else{
                 if(currentModel != NULL){
-                    currentModel->tint = glm::vec3(0,0,0);
+                    //currentModel->tint = glm::vec3(0,0,0);
+                    currentModel->selected = false;
                 }
             }
 
@@ -437,10 +441,19 @@ int main()
 
             ourShader.use();
 
-            ourModel.Draw(ourShader);
-            ourModel2.Draw(ourShader);
-            ourModel3.Draw(ourShader);
-            ourModel4.Draw(ourShader);
+            ourModel.Draw(ourShader, outlineShader);
+            ourModel2.Draw(ourShader, outlineShader);
+/*
+            outlineShader.use();
+            glCullFace(GL_FRONT);
+            ourModel3.Draw(outlineShader,outlineShader);
+            glCullFace(GL_BACK);
+            ourShader.use();
+*/
+
+            ourModel3.Draw(ourShader, outlineShader);
+
+            ourModel4.Draw(ourShader, outlineShader);
 
             //render imgui (render this last so it's on top of other stuff)
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
