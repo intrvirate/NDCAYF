@@ -172,7 +172,7 @@ public:
         shader.setVec3("tint", tint);
         glm::vec3 lightPos = glm::vec3(70,200,10);
         shader.setVec3("lightPos", lightPos);
-        glm::vec3 lightColor = glm::vec3(1.0,1.0,1.0);
+        glm::vec3 lightColor = glm::vec3(0.2,0.2,0.2);
         shader.setVec3("lightColor", lightColor);
 
         if(selected){

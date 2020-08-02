@@ -17,7 +17,7 @@ void main()
 {
 
     // ambient
-    float ambientStrength = 0.4;
+    float ambientStrength = 3;
     vec3 ambient = ambientStrength * lightColor;
 
     //vec3 norm = normalize(Normal);
@@ -35,7 +35,12 @@ void main()
     vec3 diffuse = diff * lightColor;
     vec4 objectColor = texture(texture_diffuse1, TexCoords);
     vec3 result = (ambient + diffuse) * objectColor.xyz;
-    FragColor = vec4(result, 1.0);
+    FragColor = vec4(result, objectColor.a);
+
+    if (FragColor.a < 0.1)
+    {
+        discard;
+    }
 
 
     //FragColor = texture(texture_diffuse1, TexCoords);

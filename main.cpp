@@ -121,14 +121,14 @@ int main()
     Shader ourShader("util/object/shader/vShader.glsl", "util/object/shader/fShader.glsl");
     Shader outlineShader("util/object/shader/VoutlineShader.glsl", "util/object/shader/FoutlineShader.glsl");
 
-    Model ourModel("obj/objects/terrain03.obj", false, NULL, 0.0, btVector3(0,-8,0),btVector3(100,100,100));
+    Model ourModel("obj/objects/terrain05.obj", false, NULL, 0.0, btVector3(0,-8,0),btVector3(4,4,4));
 
     Model ourModel2("obj/objects/plannets/smoothmoon.obj", true, new btSphereShape(btScalar(1.)), 1.0 , btVector3(0,50,0),btVector3(5,5,5));
 
     //Model ourModel3("obj/objects/building-fixed.obj", false, NULL, 0.0 , btVector3(12,12,-20),btVector3(1,1,1));
     Model ourModel3("obj/objects/Tree02-v3-normals.obj", false, NULL, 0.0 , btVector3(12,12,-20),btVector3(1,1,1));
 
-    Model ourModel4("obj/objects/smootharch.obj", false, new btSphereShape(btScalar(1.)), 0.0 , btVector3(10,10,10), btVector3(1,1,1));
+    Model ourModel4("obj/objects/Tree03.obj", false, new btSphereShape(btScalar(1.)), 0.0 , btVector3(10,10,10), btVector3(1,1,1));
 
     Model::InitializeModelPhysicsWorld();
 
