@@ -44,6 +44,7 @@ struct entities
     int x;
     int y;
     int z;
+    extern glm::vec3 cameraDirection;
 };
 
 #endif

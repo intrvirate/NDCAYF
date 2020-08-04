@@ -22,7 +22,7 @@ struct server {
 */
 
 void composeMsg(char msg[], int protocol, char extra[] = "none");
-int connectToServer(struct sockaddr_in addr, int *id, struct packet *msg);
+int connectToServer(char ip[], int *id, struct packet *msg, struct sockaddr_in *serverAddr);
 int makePacket(char msg[], struct packet *out);
 int makeSocket();
 unsigned long long getMilliSeconds();

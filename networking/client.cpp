@@ -85,7 +85,7 @@ int makePacket(char msg[], struct packet *out, int *id)
     return state;
 }
 
-int connectToServer(char ip[], int *id, struct packet *msg)
+int connectToServer(char ip[], int *id, struct packet *msg, struct sockaddr_in *serverAddr)
 {
     gethostname(hostname, 128);
     int success = 1;
@@ -93,13 +93,13 @@ int connectToServer(char ip[], int *id, struct packet *msg)
     socklen_t addrlen = sizeof(in_addr);
     char buf[BUFSIZE];
     int recvlen;
-    struct sockaddr_in addr;
-    socklen_t addrlen_in = sizeof(addr);
 
-    memset(&addr, 0, sizeof(addr));
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(PORT);
-    addr.sin_addr.s_addr = inet_addr(ip);
+    socklen_t addrlen_in = sizeof(*serverAddr);
+
+    memset(serverAddr, 0, sizeof(*serverAddr));
+    serverAddr->sin_family = AF_INET;
+    serverAddr->sin_port = htons(PORT);
+    serverAddr->sin_addr.s_addr = inet_addr(ip);
 
     char connectMsg[BUFSIZE];
 
@@ -112,7 +112,7 @@ int connectToServer(char ip[], int *id, struct packet *msg)
     }
 
 
-    if (sendto(actualSock, connectMsg, strlen(connectMsg), 0, (struct sockaddr *)&addr, addrlen_in) < 0)
+    if (sendto(actualSock, connectMsg, strlen(connectMsg), 0, (struct sockaddr *)serverAddr, addrlen_in) < 0)
     {
         printf("Failed to send\n");
         success = -1;
@@ -161,6 +161,12 @@ void setPositions(struct entities all[], char extra[])
 
         ptr = strtok(NULL, "&,");
     }
+
+
+}
+
+void makeMouseString(glm::vec3 pos, glm::vec3 dir)
+{
 
 
 }

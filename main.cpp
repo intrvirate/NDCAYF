@@ -130,6 +130,8 @@ int main()
 
     Model ourModel4("obj/objects/Tree03.obj", false, new btSphereShape(btScalar(1.)), 0.0 , btVector3(10,10,10), btVector3(1,1,1));
 
+    Model ourModel5("obj/objects/character.obj", false, new btSphereShape(btScalar(1.)), 0.0 , btVector3(10,10,10), btVector3(1,1,1));
+
     Model::InitializeModelPhysicsWorld();
 
 //=========== IMGUI =========================================================
@@ -164,12 +166,17 @@ int main()
 
 
 //================networking stuff====================================
+    bool connected = false;
+    struct sockaddr_in serverAddr;
     struct server serverList[MAXSERVERS];
 
     printf("Loading network\n");
     getAllServers(serverList);
 
     printServerList(serverList);
+
+    //===entites==
+    struct entities all[10];
 
     /*
     struct entities all[10];
@@ -237,6 +244,8 @@ int main()
             ImGui::Text("");
 
 
+            int clientId;
+            struct packet msg;
 
             for (int j = 0; j < MAXSERVERS; j = j + 1)
             {
@@ -261,10 +270,20 @@ int main()
                         if (ImGui::Button(txt))
                         {
                             printf("Server %s, IP %s\n", serverList[j].name, serverList[j].routes[q]);
+                            if (connectToServer(serverList[j].routes[q], &clientId, &msg, &serverAddr) < 0)
+                            {
+                                printf("Failed to connect to: %s at %s\n", serverList[j].name, serverList[j].routes[q]);
+                            }
+                            else
+                            {
+                                connected = true;
+                            }
                         }
                     }
                 }
             }
+
+
 
             ImGui::Text("");
 
@@ -285,6 +304,27 @@ int main()
             glfwGetFramebufferSize(window, &display_w, &display_h);
             glViewport(0, 0, display_w, display_h);
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+            if (connected)
+            {
+                printf("Connection successful to: %s\n", inet_ntoa(serverAddr.sin_addr));
+                printf("Data %s  %d   %llu  %s\n", msg.name, msg.ptl, msg.time, msg.extra);
+                printf("ID %d\n", clientId);
+                setLoopMode(LOOP_MODE_EDIT);
+
+                setPositions(all, msg.extra);
+
+                cameraPos = glm::vec3(all[clientId].x, all[clientId].y, all[clientId].z);
+                cameraFront = all[clientId].cameraDirection;
+
+                printf("%f, %f, %f\n", cameraPos.x, cameraPos.y, cameraPos.z);
+
+                btVector3 infront(cameraPos.x, cameraPos.y, cameraPos.z);
+                ourModel5.setPosition(infront);
+            }
+
+
+
             }
             break;
         case LOOP_MODE_EDIT :    {
@@ -380,8 +420,8 @@ int main()
 
             }
 
-            //btVector3 infront((cameraPos.x + cameraFront.x), (cameraPos.y + cameraFront.y), (cameraPos.z + cameraFront.z));
-            //ourModel4.setPosition(infront);
+            btVector3 infront((cameraPos.x + cameraFront.x), (cameraPos.y + cameraFront.y), (cameraPos.z + cameraFront.z));
+            ourModel5.setPosition(infront);
 
             debugDraw.draw();
 
@@ -424,6 +464,7 @@ int main()
 
                 }
 
+
                 if (ImGui::Button("exit"))
                 {
                     networkLoaded = false;
@@ -431,6 +472,8 @@ int main()
                 }
                 ImGui::End();
             }
+
+
 
             ImGui::Render();
             int display_w, display_h;
@@ -454,9 +497,18 @@ int main()
             ourModel3.Draw(ourShader, outlineShader);
 
             ourModel4.Draw(ourShader, outlineShader);
+            ourModel5.Draw(ourShader, outlineShader);
 
             //render imgui (render this last so it's on top of other stuff)
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+            //=== do the network
+
+            if (connected)
+            {
+
+            }
+
 
             }
             break;
