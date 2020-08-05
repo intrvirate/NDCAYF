@@ -42,5 +42,6 @@ bool getConnection();
 int sendMoveData(struct datapoint point);
 struct sockaddr_in getServerAddr();
 int getID();
+void checkServer();
 
 #endif

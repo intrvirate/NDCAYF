@@ -184,7 +184,7 @@ int sendMoveData(struct datapoint point)
 
 
     composeMsg(msg, MOVE, data);
-    printf("Sending: %s\n", msg);
+    //printf("Sending: %s\n", msg);
 
 
     if (sendto(actualSock, msg, strlen(msg), 0, (struct sockaddr *)&serverAddr, addrlen_in) < 0)
@@ -194,6 +194,21 @@ int sendMoveData(struct datapoint point)
     }
 
     return success;
+}
+
+void checkServer()
+{
+    struct sockaddr_in in_addr;
+    socklen_t addrlen = sizeof(in_addr);
+    char buf[BUFSIZE*2];
+    int recvlen = -1;
+
+    recvlen = recvfrom(actualSock, buf, BUFSIZE, 0, (struct sockaddr *)&in_addr, &addrlen);
+
+    if (in_addr.sin_addr.s_addr == serverAddr.sin_addr.s_addr)
+    {
+        printf("buffer [%s]\n", buf);
+    }
 }
 
 void setPositions(struct entities all[], char extra[])

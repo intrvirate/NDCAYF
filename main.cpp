@@ -54,11 +54,11 @@ using namespace std;
 using namespace glm;
 GLFWwindow* window;
 
-bool test-nw = false;
+bool test_nw = false;
 
 int main()
 {
-    if (test-nw)
+    if (test_nw)
     {
         struct entities alls[10];
 
@@ -535,7 +535,7 @@ int main()
 
             if (connected)
             {
-
+                checkServer();
             }
 
 
