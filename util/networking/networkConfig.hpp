@@ -49,10 +49,17 @@ struct server {
     int loIndex;
 };
 
+struct move {
+    char moves[10];
+    glm::vec3 dir;
+};
+
 struct entities
 {
     glm::vec3 cameraPos;
     glm::vec3 cameraDirection;
+    struct move keys[100];
+    int numMoves;
 };
 
 extern bool connected;

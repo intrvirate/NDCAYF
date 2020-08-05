@@ -61,25 +61,56 @@ int main()
     if (test_nw)
     {
         struct entities alls[10];
+        char tmsg1[] = "ndcayfserver$sn00py$7$1596650173307$(0&8.95,25.78,-2.91&-0.66,-0.49,0.57&8552(1&17.36,-24.64,-11.73&-0.47,-0.27,0.84&-0.47,-0.27,0.84&a&-0.47,-0.27,0.84&a&-0.47,-0.27,0.84&a&-0.47,-0.27,0.84&a&-0.47,-0.27,0.84&a&-0.47,-0.27,0.84&a&-0.47,-0.27,0.84&a&";
 
-        // make 0
-        for (int i = 0; i < 10; i++)
+        char tmsg2[] = "ndcayfserver$sn00py$7$1596650173418$(0&9.18,25.95,-3.11&-0.66,-0.49,0.57&8559(1&17.67,-24.64,-11.56&-0.47,-0.27,0.84&-0.47,-0.27,0.84&a&-0.47,-0.27,0.84&a&-0.47,-0.27,0.84&a&-0.47,-0.27,0.84&ad&-0.47,-0.27,0.84&ad&-0.47,-0.27,0.84&ad&";
+        char tmsg3[] = "ndcayfserver$sn00py$7$1596650173518$(0&9.38,26.10,-3.28&-0.66,-0.49,0.57&8565(1&17.80,-24.64,-11.49&-0.47,-0.27,0.84&-0.47,-0.27,0.84&d&-0.47,-0.27,0.84&d&-0.47,-0.27,0.84&d&-0.47,-0.27,0.84&d&";
+        char tmsg4[] = "ndcayfserver$sn00py$7$1596650173622$(0&9.58,26.24,-3.45&-0.66,-0.49,0.57&8571(1&17.62,-24.64,-11.59&-0.47,-0.27,0.84&-0.47,-0.27,0.84&d&-0.47,-0.27,0.84&d&-0.47,-0.27,0.84&wd&-0.47,-0.27,0.84&wd&-0.47,-0.27,0.84&wd&-0.47,-0.27,0.84&w&-0.47,-0.27,0.84&w&";
+        char tmsg5[] = "ndcayfserver$sn00py$7$1596650173725$(0&9.78,26.39,-3.62&-0.66,-0.49,0.57&8577(1&17.29,-24.71,-11.50&-0.47,-0.27,0.84&-0.47,-0.27,0.84&w&-0.47,-0.27,0.84&w&-0.47,-0.27,0.84&w&-0.47,-0.27,0.84&&";
+        char tmsg6[] = "ndcayfserver$sn00py$7$1596650173822$(0&9.98,26.54,-3.79&-0.66,-0.49,0.57&8583(1&17.22,-24.75,-11.37&-0.47,-0.27,0.84&-0.47,-0.27,0.84&&-0.47,-0.27,0.84&&-0.47,-0.27,0.84&&-0.47,-0.27,0.84&&-0.47,-0.27,0.84&&-0.47,-0.27,0.84&&";
+        char tmsg7[] = "ndcayfserver$sn00py$7$1596650173920$(0&9.98,26.54,-3.79&-0.66,-0.49,0.57&8589(1&17.22,-24.75,-11.37&-0.47,-0.27,0.84&-0.47,-0.27,0.84&&-0.47,-0.27,0.84&&-0.47,-0.27,0.84&&-0.47,-0.27,0.84&&";
+        char tmsg8[] = "ndcayfserver$sn00py$7$1596650174033$(0&9.98,26.54,-3.79&-0.66,-0.49,0.57&8595(1&17.22,-24.75,-11.37&-0.47,-0.27,0.84&-0.47,-0.27,0.84&&-0.47,-0.27,0.84&&-0.47,-0.27,0.84&&-0.47,-0.27,0.84&&";
+        char tmsg9[] = "ndcayfserver$sn00py$7$1596650174122$(0&9.81,26.42,-3.65&-0.66,-0.49,0.57&8601(1&17.22,-24.75,-11.37&-0.47,-0.27,0.84&-0.47,-0.27,0.84&&-0.47,-0.27,0.84&&-0.47,-0.27,0.84&&-0.47,-0.27,0.84&&-0.47,-0.27,0.84&&-0.47,-0.27,0.84&&";
+        char tmsg10[] = "ndcayfserver$sn00py$7$1596666822326$(0&23.87,16.79,-17.52&-0.73,-0.31,0.60&1672(1&-nan,-nan,-nan&0.00,0.00,0.00&0.00,0.00,0.00&w&0.00,0.00,0.00&w&0.00,0.00,0.00&w&0.00,0.00,0.00&w&0.00,0.00,0.00&w&0.00,0.00,0.00&w&0.00,0.00,0.00&w&";
+
+        printf("asdf\n");
+        struct MsgPacket pack;
+        int numAlls = 0;
+        processMsg(tmsg10, &pack);
+
+        printf("name %s, ptl %d, time %llu, data %s\n\n", pack.name, pack.ptl, pack.time, pack.data);
+
+        applyDumpData(alls, pack.data, &numAlls);
+        /*
+{
+    glm::vec3 cameraPos;
+    glm::vec3 cameraDirection;
+    struct move moves[100];
+    int numMoves;
+};
+         */
+
+        printf("asdfasfd%d\n", numAlls);
+        for (int i = 0; i < numAlls; i++)
         {
-            alls[i].cameraPos = glm::vec3(0.0, 0.0, 0.0);
-            alls[i].cameraDirection = glm::vec3(0.0, 0.0, 0.0);
+            printf("Pos [%.2f,%.2f,%.2f], Dir [%.2f,%.2f,%.2f]\n", alls[i].cameraPos.x, alls[i].cameraPos.y, alls[i].cameraPos.z,
+                alls[i].cameraDirection.x, alls[i].cameraDirection.y, alls[i].cameraDirection.z);
+            if (i == 0)
+            {
+                printf("this is this comupter\n");
+
+            }
+            else
+            {
+                for (int j = 0; j < alls[i].numMoves; j++)
+                {
+                    printf("\tMove, dir [%.2f,%.2f,%.2f], keys [%s]\n", alls[i].keys[j].dir.x, alls[i].keys[j].dir.y, alls[i].keys[j].dir.z,
+                        alls[i].keys[j].moves);
+                }
+            }
         }
 
-        char test[] = "0&0&0.0,20.0,0.0";
-        setPositions(alls, test);
-        for (int i = 0; i < 10; i++)
-        {
-            printf("%f, %f, %f\n", alls[i].cameraPos.x, alls[i].cameraPos.y, alls[i].cameraPos.z);
-        }
 
-        string test2 = "wasd";
-        printf("%s\n", test2.c_str());
-        glm::vec3 testvec = glm::vec3(0.0f, 0.0f, -1.0f);
-        netLog(test2, testvec);
         return -1;
     }
 
@@ -156,6 +187,8 @@ int main()
 
     Model ourModel4("obj/objects/Tree03.obj", false, new btSphereShape(btScalar(1.)), 0.0 , btVector3(10,10,10), btVector3(1,1,1));
 
+    Model ourModel5("obj/objects/Tree03.obj", false, new btSphereShape(btScalar(1.)), 0.0 , btVector3(0,0,0), btVector3(1,5,1));
+
     //Model ourModel5("obj/objects/character.obj", false, new btSphereShape(btScalar(1.)), 0.0 , btVector3(10,10,10), btVector3(1,1,1));
 
     Model::InitializeModelPhysicsWorld();
@@ -204,6 +237,7 @@ int main()
 
     //===entites==
     struct entities all[10];
+    int numEntities = 0;
 
     //startClient();
 
@@ -273,7 +307,7 @@ int main()
             ImGui::Text("");
 
 
-            struct packet msg;
+            struct MsgPacket msg;
 
             for (int j = 0; j < MAXSERVERS; j = j + 1)
             {
@@ -337,11 +371,11 @@ int main()
             {
                 serverAddr = getServerAddr();
                 printf("Connection successful to: %s\n", inet_ntoa(serverAddr.sin_addr));
-                printf("Data %s  %d   %llu  %s\n", msg.name, msg.ptl, msg.time, msg.extra);
+                printf("Data %s  %d   %llu  %s\n", msg.name, msg.ptl, msg.time, msg.data);
                 printf("ID %d\n", getID());
                 setLoopMode(LOOP_MODE_EDIT);
 
-                setPositions(all, msg.extra);
+                setPositions(all, msg.data);
 
                 cameraPos = all[getID()].cameraPos;
                 cameraFront = all[getID()].cameraDirection;
@@ -449,8 +483,6 @@ int main()
 
             }
 
-            btVector3 infront((cameraPos.x + cameraFront.x), (cameraPos.y + cameraFront.y), (cameraPos.z + cameraFront.z));
-            //ourModel5.setPosition(infront);
 
             debugDraw.draw();
 
@@ -526,7 +558,6 @@ int main()
             ourModel3.Draw(ourShader, outlineShader);
 
             ourModel4.Draw(ourShader, outlineShader);
-            //ourModel5.Draw(ourShader, outlineShader);
 
             //render imgui (render this last so it's on top of other stuff)
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -535,8 +566,38 @@ int main()
 
             if (connected)
             {
-                checkServer();
+                char buf[BUFSIZE*2];
+                struct MsgPacket msg;
+                strcpy(buf, "");
+                int type;
+                // get msg
+                if (checkServer(buf) > 0)
+                {
+                    type = processMsg(buf, &msg);
+
+                    if (type == DUMP)
+                    {
+                        applyDumpData(all, msg.data, &numEntities);
+
+                        for (int i = 0; i < numEntities; i++)
+                        {
+                            if (i != getID())
+                            {
+                                btVector3 infront(all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
+                                ourModel5.setPosition(infront);
+                            }
+                            else
+                            {
+                                cameraPos = all[i].cameraPos;
+                            }
+                        }
+                    }
+
+
+                }
+
             }
+                                ourModel5.Draw(ourShader, outlineShader);
 
 
             }

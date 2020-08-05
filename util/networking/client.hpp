@@ -3,12 +3,12 @@
 
 #include <glm/glm.hpp>
 
-struct packet
+struct MsgPacket
 {
     char name[128];
     int ptl;
     unsigned long long time;
-    char extra[BUFSIZE];
+    char data[BUFSIZE];
 };
 
 // stores the key press and the direciton before key press
@@ -31,8 +31,8 @@ struct server {
 */
 
 void composeMsg(char msg[], int protocol, char extra[] = "none");
-int connectToServer(char ip[], struct packet *msg);
-int makePacket(char msg[], struct packet *out);
+int connectToServer(char ip[], struct MsgPacket *msg);
+int makePacket(char msg[], struct MsgPacket *out);
 int makeSocket();
 unsigned long long getMilliSeconds();
 void setPositions(struct entities all[], char extra[]);
@@ -42,6 +42,9 @@ bool getConnection();
 int sendMoveData(struct datapoint point);
 struct sockaddr_in getServerAddr();
 int getID();
-void checkServer();
+int checkServer(char buf[]);
+int processMsg(char msg[], struct MsgPacket *packet);
+void getMovePoint(struct MsgPacket packet, glm::vec3 *front, char moves[], char frontstr[], int *id);
+void applyDumpData(struct entities *them, char data[], int *count);
 
 #endif

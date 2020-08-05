@@ -45,7 +45,7 @@ struct sockaddr_in getServerAddr()
 
 int getID()
 {
-    return keyID;
+    return clientID;
 }
 
 int makeSocket()
@@ -87,7 +87,7 @@ void composeMsg(char msg[], int protocol, char extra[])
     sprintf(msg, "%s$%s$%d$%llu$%d$%s", SUPERSECRETKEY_CLIENT, hostname, protocol, milliSeconds, clientID, extra);
 }
 
-int makePacket(char msg[], struct packet *out)
+int makePacket(char msg[], struct MsgPacket *out)
 {
     int state = 0;
     char key[128];
@@ -100,8 +100,8 @@ int makePacket(char msg[], struct packet *out)
         strcpy(out->name, strtok(NULL, "$"));
         out->ptl = std::stoi(strtok(NULL, "$"));
         out->time = std::stoull(strtok(NULL, "$"));
-        strcpy(out->extra, strtok(NULL, "$"));
-        strcpy(extra, out->extra);
+        strcpy(out->data, strtok(NULL, "$"));
+        strcpy(extra, out->data);
         clientID = std::stoi(strtok(extra, "&"));
     }
     else
@@ -112,7 +112,7 @@ int makePacket(char msg[], struct packet *out)
     return state;
 }
 
-int connectToServer(char ip[], struct packet *msg)
+int connectToServer(char ip[], struct MsgPacket *msg)
 {
     gethostname(hostname, 128);
     int success = 1;
@@ -196,18 +196,217 @@ int sendMoveData(struct datapoint point)
     return success;
 }
 
-void checkServer()
+int checkServer(char buf[])
 {
     struct sockaddr_in in_addr;
     socklen_t addrlen = sizeof(in_addr);
-    char buf[BUFSIZE*2];
+    char in[BUFSIZE*2];
     int recvlen = -1;
 
-    recvlen = recvfrom(actualSock, buf, BUFSIZE, 0, (struct sockaddr *)&in_addr, &addrlen);
+    recvlen = recvfrom(actualSock, in, (BUFSIZE*2), 0, (struct sockaddr *)&in_addr, &addrlen);
 
     if (in_addr.sin_addr.s_addr == serverAddr.sin_addr.s_addr)
     {
+        strcpy(buf, in);
         printf("buffer [%s]\n", buf);
+
+    }
+
+    return recvlen;
+}
+
+
+int processMsg(char msg[], struct MsgPacket *packet)
+{
+    char clientKey[128];
+    char name[128];
+    char protocol[128];
+    char data[BUFSIZE];
+    int ptl;
+    char time[256];
+    strcpy(clientKey, strtok(msg, "$"));
+
+
+    if (strcmp(clientKey, SUPERSECRETKEY_SERVER) == 0)
+    {
+        strcpy(name, strtok(NULL, "$"));
+
+        // get protocol and make it a number
+        strcpy(protocol, strtok(NULL, "$"));
+        ptl = std::stoi(protocol);
+
+        strcpy(time, strtok(NULL, "$"));
+
+        // safe guard
+        if (ptl == PING)
+        {
+            strcpy(data, " ");;
+        }
+        else
+        {
+            strcpy(data, strtok(NULL, "$"));
+        }
+
+
+        strcpy(packet->name, name);
+        strcpy(packet->data, data);
+        packet->ptl = ptl;
+        packet->time = atoll(time);
+
+        if (ptl == PING)
+        {
+            printf("Send response\n");
+            return PONG;
+        }
+        else if (ptl ==  CONNECT)
+        {
+            printf("\"Connecting\" client\n");
+            return CONNECT;
+        }
+        else if (ptl == DUMP)
+        {
+            printf("Got a server dump\n");
+            return DUMP;
+        }
+    }
+    else
+    {
+        printf("Not a NDCAYF client\n");
+        return -1;
+    }
+}
+
+void getParts(std::string parts[], std::string raw, int amount, std::string deli)
+{
+    size_t pos = 0;
+    int cur = 0;
+    std::string token;
+    while ((pos = raw.find(deli)) != std::string::npos) {
+        token = raw.substr(0, pos);
+        parts[cur] = token;
+        cur++;
+        raw.erase(0, pos + deli.length());
+    }
+    parts[cur] = raw;
+}
+
+void getMovePoint(struct MsgPacket packet, glm::vec3 *front, char moves[], char frontstr[], int *id)
+{
+    std::string raw = packet.data;
+    std::string parts[3];
+    std::string partdeli("&");
+
+    std::string floats[3];
+    std::string subdeli(",");
+
+    float x, y, z;
+
+
+    // get the front raw
+    getParts(parts, raw, 3, partdeli);
+    /*
+    for (int i = 0; i < 3; i++)
+    {
+        printf("%s\n", parts[i].c_str());
+    }
+    */
+
+
+    // get the floats
+    strcpy(frontstr, parts[0].c_str());
+    getParts(floats, parts[0], 3, subdeli);
+
+    //apply
+    *front = glm::vec3(std::stof(floats[0]), std::stof(floats[1]), std::stof(floats[2]));
+
+    // the moves
+    strcpy(moves, parts[1].c_str());
+
+    // get id
+    *id = stoi(parts[2]);
+
+    printf("%s\n", moves);
+
+}
+
+void applyDumpData(struct entities *them, char data[], int *count)
+{
+    ///////remove/////////////
+    //clientID = 0;
+    ////////////////////////
+    *count = 0;
+
+    std::string raw = data;
+    // one for each player
+    std::string parts[10];
+    std::string playerdeli("(");
+
+    std::string section[31];
+    std::string secdeli("&");
+
+    // store pos, float
+    std::string floats[3];
+    std::string fldeli(",");
+    // which entity we are on
+    int id;
+
+
+    getParts(parts, raw, 10, playerdeli);
+    for (int i = 0; i < 10; i++)
+    {
+        // for each player/entity
+        if (strcmp(parts[i].c_str(), "") != 0)
+        {
+            (*count)++;
+            //printf("%s\n", parts[i].c_str());
+            // get each section
+            getParts(section, parts[i], 31, secdeli);
+
+            id = std::stoi(section[0].c_str());
+
+
+            // get pos
+            getParts(floats, section[1], 3, fldeli);
+            them[id].cameraPos = glm::vec3(std::stof(floats[0]), std::stof(floats[1]), std::stof(floats[2]));
+
+            // get dir
+            getParts(floats, section[2], 3, fldeli);
+            them[id].cameraDirection = glm::vec3(std::stof(floats[0]), std::stof(floats[1]), std::stof(floats[2]));
+
+            // small differences
+            if (id == clientID)
+            {
+                // last value is the keyid, apply all key ids greater than this one, for reconciliation
+                // reconcileServerClient(std::stoi(section[3]);
+
+            }
+            else
+            {
+                // all remaining sections are of the format
+                // f,f,f s
+                // but we want both a f,f,f and a s
+                // ex 10.0,10.0,10.0&was&0.0,0.0,0.0,&w
+                them[id].numMoves = 0;
+                for (int j = 3; j < 31; j = j + 2)
+                {
+                    struct move action;
+                    if (strcmp(section[j].c_str(), "") != 0)
+                    {
+                        //get the dir
+
+                        getParts(floats, section[j], 3, fldeli);
+                        action.dir = glm::vec3(std::stof(floats[0]), std::stof(floats[1]), std::stof(floats[2]));
+
+                        // get the moves
+                        strcpy(action.moves, section[j + 1].c_str());
+
+                        them[id].keys[them[id].numMoves] = action;
+                        them[id].numMoves++;
+
+                    }
+                }
+            }
+        }
     }
 }
 
