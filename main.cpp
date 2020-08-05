@@ -44,9 +44,9 @@
 #include <sys/types.h>
 #include <ifaddrs.h>
 
-#include "networking/networkConfig.hpp"
-#include "networking/getLan.hpp"
-#include "networking/client.hpp"
+#include "util/networking/networkConfig.hpp"
+#include "util/networking/getLan.hpp"
+#include "util/networking/client.hpp"
 
 
 using json = nlohmann::json;
@@ -54,9 +54,35 @@ using namespace std;
 using namespace glm;
 GLFWwindow* window;
 
+bool test-nw = false;
 
 int main()
 {
+    if (test-nw)
+    {
+        struct entities alls[10];
+
+        // make 0
+        for (int i = 0; i < 10; i++)
+        {
+            alls[i].cameraPos = glm::vec3(0.0, 0.0, 0.0);
+            alls[i].cameraDirection = glm::vec3(0.0, 0.0, 0.0);
+        }
+
+        char test[] = "0&0&0.0,20.0,0.0";
+        setPositions(alls, test);
+        for (int i = 0; i < 10; i++)
+        {
+            printf("%f, %f, %f\n", alls[i].cameraPos.x, alls[i].cameraPos.y, alls[i].cameraPos.z);
+        }
+
+        string test2 = "wasd";
+        printf("%s\n", test2.c_str());
+        glm::vec3 testvec = glm::vec3(0.0f, 0.0f, -1.0f);
+        netLog(test2, testvec);
+        return -1;
+    }
+
     // netowrk
     bool networkLoaded = false;
     //=========== SETUP ==========================================================
@@ -130,7 +156,7 @@ int main()
 
     Model ourModel4("obj/objects/Tree03.obj", false, new btSphereShape(btScalar(1.)), 0.0 , btVector3(10,10,10), btVector3(1,1,1));
 
-    Model ourModel5("obj/objects/character.obj", false, new btSphereShape(btScalar(1.)), 0.0 , btVector3(10,10,10), btVector3(1,1,1));
+    //Model ourModel5("obj/objects/character.obj", false, new btSphereShape(btScalar(1.)), 0.0 , btVector3(10,10,10), btVector3(1,1,1));
 
     Model::InitializeModelPhysicsWorld();
 
@@ -166,7 +192,8 @@ int main()
 
 
 //================networking stuff====================================
-    bool connected = false;
+    //bool connected = false;
+    setConnection(false);
     struct sockaddr_in serverAddr;
     struct server serverList[MAXSERVERS];
 
@@ -177,6 +204,8 @@ int main()
 
     //===entites==
     struct entities all[10];
+
+    //startClient();
 
     /*
     struct entities all[10];
@@ -244,7 +273,6 @@ int main()
             ImGui::Text("");
 
 
-            int clientId;
             struct packet msg;
 
             for (int j = 0; j < MAXSERVERS; j = j + 1)
@@ -270,7 +298,7 @@ int main()
                         if (ImGui::Button(txt))
                         {
                             printf("Server %s, IP %s\n", serverList[j].name, serverList[j].routes[q]);
-                            if (connectToServer(serverList[j].routes[q], &clientId, &msg, &serverAddr) < 0)
+                            if (connectToServer(serverList[j].routes[q], &msg) < 0)
                             {
                                 printf("Failed to connect to: %s at %s\n", serverList[j].name, serverList[j].routes[q]);
                             }
@@ -307,20 +335,21 @@ int main()
 
             if (connected)
             {
+                serverAddr = getServerAddr();
                 printf("Connection successful to: %s\n", inet_ntoa(serverAddr.sin_addr));
                 printf("Data %s  %d   %llu  %s\n", msg.name, msg.ptl, msg.time, msg.extra);
-                printf("ID %d\n", clientId);
+                printf("ID %d\n", getID());
                 setLoopMode(LOOP_MODE_EDIT);
 
                 setPositions(all, msg.extra);
 
-                cameraPos = glm::vec3(all[clientId].x, all[clientId].y, all[clientId].z);
-                cameraFront = all[clientId].cameraDirection;
+                cameraPos = all[getID()].cameraPos;
+                cameraFront = all[getID()].cameraDirection;
 
                 printf("%f, %f, %f\n", cameraPos.x, cameraPos.y, cameraPos.z);
 
                 btVector3 infront(cameraPos.x, cameraPos.y, cameraPos.z);
-                ourModel5.setPosition(infront);
+                //ourModel5.setPosition(infront);
             }
 
 
@@ -421,7 +450,7 @@ int main()
             }
 
             btVector3 infront((cameraPos.x + cameraFront.x), (cameraPos.y + cameraFront.y), (cameraPos.z + cameraFront.z));
-            ourModel5.setPosition(infront);
+            //ourModel5.setPosition(infront);
 
             debugDraw.draw();
 
@@ -497,7 +526,7 @@ int main()
             ourModel3.Draw(ourShader, outlineShader);
 
             ourModel4.Draw(ourShader, outlineShader);
-            ourModel5.Draw(ourShader, outlineShader);
+            //ourModel5.Draw(ourShader, outlineShader);
 
             //render imgui (render this last so it's on top of other stuff)
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

@@ -11,8 +11,8 @@
 #include "util/bulletDebug/collisiondebugdrawer.hpp"
 #include "BulletCollision/NarrowPhaseCollision/btRaycastCallback.h"
 
-#include "networkConfig.hpp"
-#include "client.hpp"
+#include "util/networking/networkConfig.hpp"
+#include "util/networking/client.hpp"
 
 using namespace std;
 
@@ -232,23 +232,47 @@ GLenum returnKeysetRenderMode(){
 }
 
 glm::vec3 calcCameraMovement(GLFWwindow* window){
-    if(!mouseVisable){
+if(!mouseVisable){
+        // store keys
+        std:string keys;
 
         glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraFront));
         glm::vec3 cameraUp = glm::cross(cameraFront, cameraRight);
 
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        {
             cameraPos += cameraSpeed * cameraFront;
+            keys.append(UNI_FD);
+        }
+
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        {
             cameraPos -= cameraSpeed * cameraFront;
+            keys.append(UNI_BK);
+        }
+
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        {
             cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+            keys.append(UNI_LT);
+        }
+
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        {
             cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+            keys.append(UNI_RT);
+        }
+
         if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        {
             cameraPos += cameraSpeed * cameraUp;
+        }
+
         if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        {
             cameraPos -= cameraSpeed * cameraUp;
+        }
+
         // TODO: Fix the issue where it freaks out and clears the screen
         if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
             updateCameraFront(0, yArrowSensitivity);
@@ -258,6 +282,11 @@ glm::vec3 calcCameraMovement(GLFWwindow* window){
             updateCameraFront(xArrowSensitivity, 0);
         if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
             updateCameraFront(-xArrowSensitivity, 0);
+
+        if (getConnection())
+        {
+            netLog(keys, cameraFront);
+        }
     }
     return cameraPos;
 }
