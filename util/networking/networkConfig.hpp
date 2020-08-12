@@ -25,6 +25,7 @@
 #define KEYUPDATE 60
 
 #define MAXSERVERS 5
+#define MAXPLAYERS 20
 
 // not sure if this value is important enough
 #define BUFSIZE 2048
