@@ -2,6 +2,9 @@
 #define CLIENT_H
 
 #include <glm/glm.hpp>
+//#include <libioP.h>
+#include <stdarg.h>
+#include <stdio.h>
 
 struct MsgPacket
 {
@@ -44,7 +47,8 @@ struct sockaddr_in getServerAddr();
 int getID();
 int checkServer(char buf[]);
 int processMsg(char msg[], struct MsgPacket *packet);
-void getMovePoint(struct MsgPacket packet, glm::vec3 *front, char moves[], char frontstr[], int *id);
 void applyDumpData(struct entities *them, char data[], int *count);
+int debugPrint(const char *format, ...);
+void setTestNw(bool value);
 
 #endif

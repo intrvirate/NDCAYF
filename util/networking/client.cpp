@@ -27,6 +27,7 @@ int clientID;
 struct datapoint unvalidated[100];
 int unvalidSize = 0;
 bool connected = false;
+bool test_nw_cl = false;
 
 void setConnection(bool value)
 {
@@ -46,6 +47,27 @@ struct sockaddr_in getServerAddr()
 int getID()
 {
     return clientID;
+}
+
+void setTestNw(bool value)
+{
+    test_nw_cl = value;
+}
+
+// yes i did copy the source code of printf
+int debugPrint(const char *format, ...)
+{
+   int done = 0;
+   if (test_nw_cl)
+   {
+       va_list arg;
+
+       va_start (arg, format);
+       done = vfprintf (stdout, format, arg);
+       va_end (arg);
+   }
+
+   return done;
 }
 
 int makeSocket()
@@ -265,7 +287,7 @@ int processMsg(char msg[], struct MsgPacket *packet)
         }
         else if (ptl == DUMP)
         {
-            printf("Got a server dump\n");
+            //printf("Got a server dump\n");
             return DUMP;
         }
     }
@@ -282,6 +304,7 @@ void getParts(std::string parts[], std::string raw, int amount, std::string deli
     int cur = 0;
     std::string token;
     while ((pos = raw.find(deli)) != std::string::npos) {
+        //debugPrint("cur %d\n", cur);
         token = raw.substr(0, pos);
         parts[cur] = token;
         cur++;
@@ -290,44 +313,6 @@ void getParts(std::string parts[], std::string raw, int amount, std::string deli
     parts[cur] = raw;
 }
 
-void getMovePoint(struct MsgPacket packet, glm::vec3 *front, char moves[], char frontstr[], int *id)
-{
-    std::string raw = packet.data;
-    std::string parts[3];
-    std::string partdeli("&");
-
-    std::string floats[3];
-    std::string subdeli(",");
-
-    float x, y, z;
-
-
-    // get the front raw
-    getParts(parts, raw, 3, partdeli);
-    /*
-    for (int i = 0; i < 3; i++)
-    {
-        printf("%s\n", parts[i].c_str());
-    }
-    */
-
-
-    // get the floats
-    strcpy(frontstr, parts[0].c_str());
-    getParts(floats, parts[0], 3, subdeli);
-
-    //apply
-    *front = glm::vec3(std::stof(floats[0]), std::stof(floats[1]), std::stof(floats[2]));
-
-    // the moves
-    strcpy(moves, parts[1].c_str());
-
-    // get id
-    *id = stoi(parts[2]);
-
-    printf("%s\n", moves);
-
-}
 
 void applyDumpData(struct entities *them, char data[], int *count)
 {
@@ -338,10 +323,12 @@ void applyDumpData(struct entities *them, char data[], int *count)
 
     std::string raw = data;
     // one for each player
-    std::string parts[10];
+    std::string parts[MAXPLAYERS];
     std::string playerdeli("(");
 
-    std::string section[31];
+    // movesments per dump * 2, at one second intervals thats 60 + 60, 
+    // though sometimes i get more than that, 132
+    std::string section[164];
     std::string secdeli("&");
 
     // store pos, float
@@ -351,26 +338,32 @@ void applyDumpData(struct entities *them, char data[], int *count)
     int id;
 
 
+    debugPrint("beforeLoop\n");
     getParts(parts, raw, 10, playerdeli);
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < MAXPLAYERS; i++)
     {
         // for each player/entity
         if (strcmp(parts[i].c_str(), "") != 0)
         {
+            debugPrint("loop number %d\n", i);
+            debugPrint("%s\n", parts[i].c_str());
             (*count)++;
             //printf("%s\n", parts[i].c_str());
             // get each section
-            getParts(section, parts[i], 31, secdeli);
+            getParts(section, parts[i], 60, secdeli);
+            debugPrint("got sections\n");
 
             id = std::stoi(section[0].c_str());
 
 
             // get pos
             getParts(floats, section[1], 3, fldeli);
+            debugPrint("got pos\n");
             them[id].cameraPos = glm::vec3(std::stof(floats[0]), std::stof(floats[1]), std::stof(floats[2]));
 
             // get dir
             getParts(floats, section[2], 3, fldeli);
+            debugPrint("got dir\n");
             them[id].cameraDirection = glm::vec3(std::stof(floats[0]), std::stof(floats[1]), std::stof(floats[2]));
 
             // small differences
@@ -387,11 +380,13 @@ void applyDumpData(struct entities *them, char data[], int *count)
                 // but we want both a f,f,f and a s
                 // ex 10.0,10.0,10.0&was&0.0,0.0,0.0,&w
                 them[id].numMoves = 0;
+                debugPrint("nextLoop\n");
                 for (int j = 3; j < 31; j = j + 2)
                 {
                     struct move action;
                     if (strcmp(section[j].c_str(), "") != 0)
                     {
+                        debugPrint("number %d\n", j);
                         //get the dir
 
                         getParts(floats, section[j], 3, fldeli);
