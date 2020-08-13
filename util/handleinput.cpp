@@ -232,9 +232,12 @@ GLenum returnKeysetRenderMode(){
 }
 
 glm::vec3 calcCameraMovement(GLFWwindow* window){
-if(!mouseVisable){
+    if(!mouseVisable){
         // store keys
         std:string keys;
+        char temp[100];
+        sprintf(temp, "old[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
+
 
         glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraFront));
         glm::vec3 cameraUp = glm::cross(cameraFront, cameraRight);
@@ -283,8 +286,11 @@ if(!mouseVisable){
         if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
             updateCameraFront(-xArrowSensitivity, 0);
 
+            //printf("Process move [%s]", keys.c_str());
+
         if (getConnection())
         {
+            //printf(":[%.3f,%.3f,%.3f], 3 %s  new [%.3f,%.3f,%.3f] %d, %.4f\n", cameraFront.x, cameraFront.y, cameraFront.z, temp, cameraPos.x, cameraPos.y, cameraPos.z, getKeyID(), cameraSpeed);
             netLog(keys, cameraFront);
         }
     }
@@ -300,7 +306,7 @@ void calculateFrameTime(){ //call this exactly once per frame
     frameTime = currentTime - lastFrame;
     lastFrame = currentTime;
 
-    cameraSpeed = cameraSpeedMultiplier * frameTime;
+    //cameraSpeed = cameraSpeedMultiplier * frameTime;
 }
 
 glm::vec3 getCameraFront(){

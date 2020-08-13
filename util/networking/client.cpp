@@ -24,10 +24,13 @@ int DELAY_USECS2 = 100;
 
 int keyID = 0;
 int clientID;
-struct datapoint unvalidated[100];
+struct datapoint *unvalidated = new struct datapoint[10000];
 int unvalidSize = 0;
 bool connected = false;
 bool test_nw_cl = false;
+
+const glm::vec3 upp = glm::vec3(0.0f, 1.0f, 0.0f);
+float cameraSpeedp = 0.05f;
 
 void setConnection(bool value)
 {
@@ -47,6 +50,11 @@ struct sockaddr_in getServerAddr()
 int getID()
 {
     return clientID;
+}
+
+int getKeyID()
+{
+    return keyID;
 }
 
 void setTestNw(bool value)
@@ -359,18 +367,18 @@ void applyDumpData(struct entities *them, char data[], int *count)
             // get pos
             getParts(floats, section[1], 3, fldeli);
             debugPrint("got pos\n");
-            them[id].cameraPos = glm::vec3(std::stof(floats[0]), std::stof(floats[1]), std::stof(floats[2]));
+            them[id].cameraPos = glm::vec3(std::stod(floats[0]), std::stod(floats[1]), std::stod(floats[2]));
 
             // get dir
             getParts(floats, section[2], 3, fldeli);
             debugPrint("got dir\n");
-            them[id].cameraDirection = glm::vec3(std::stof(floats[0]), std::stof(floats[1]), std::stof(floats[2]));
+            them[id].cameraDirection = glm::vec3(std::stod(floats[0]), std::stod(floats[1]), std::stod(floats[2]));
 
-            // small differences
             if (id == clientID)
             {
                 // last value is the keyid, apply all key ids greater than this one, for reconciliation
-                // reconcileServerClient(std::stoi(section[3]);
+                //reconcileClient(them[id], std::stoi(section[3]);
+                them[id].moveID = std::stoi(section[3]);
 
             }
             else
@@ -390,7 +398,7 @@ void applyDumpData(struct entities *them, char data[], int *count)
                         //get the dir
 
                         getParts(floats, section[j], 3, fldeli);
-                        action.dir = glm::vec3(std::stof(floats[0]), std::stof(floats[1]), std::stof(floats[2]));
+                        action.dir = glm::vec3(std::stod(floats[0]), std::stod(floats[1]), std::stod(floats[2]));
 
                         // get the moves
                         strcpy(action.moves, section[j + 1].c_str());
@@ -403,6 +411,150 @@ void applyDumpData(struct entities *them, char data[], int *count)
             }
         }
     }
+}
+
+void reconcileClient(struct entities *me)
+{
+    printf("im at %d servers at %d size %d\n", unvalidated[unvalidSize - 1].id, me->moveID, unvalidSize);
+
+    int end;
+    int newLen;
+    bool found = false;
+    glm::vec3 newPos = me->cameraPos;
+    glm::vec3 fakeDir;
+
+    if (unvalidSize == 0)
+    {
+        //printf("Early\n");
+        return ;
+    }
+
+    for (int i = 0; i < unvalidSize; i++)
+    {
+        if (unvalidated[i].id > me->moveID && !found)
+        {
+            end = i;
+            found = true;
+        }
+    }
+
+    if (found)
+    {
+        newLen = unvalidSize - end;
+
+        printf("Applying %d moves to client\n", newLen);
+
+        // makes new arr, with the unvalidated points from the old, and space for the new
+        struct datapoint *newUnvalid = new struct datapoint[newLen + 1000];
+
+
+        // copy to the new list
+        for (int i = 0; i < newLen; i++)
+        {
+            newUnvalid[i].id = unvalidated[i + end].id;
+            strcpy(newUnvalid[i].move, unvalidated[i + end].move);
+            strcpy(newUnvalid[i].direction, unvalidated[i + end].direction);
+
+        }
+
+
+        std::string raw;
+        std::string floats[3];
+        std::string fldeli(",");
+        // move
+        for (int i = 0; i < newLen; i++)
+        {
+            printf("\tMoving %s, dir %s, id %d\n", newUnvalid[i].move, newUnvalid[i].direction, newUnvalid[i].id);
+            // get direction
+            raw = newUnvalid[i].direction;
+            getParts(floats, raw, 3, fldeli);
+
+            fakeDir = glm::vec3(std::stod(floats[0]), std::stod(floats[1]), std::stod(floats[2]));
+
+            // move position
+                        //printf("before [%.3f,%.3f,%.3f]\n", newPos.x, newPos.y, newPos.z);
+            applyKeys(newUnvalid[i].move, fakeDir, &newPos);
+
+                        //printf("after [%.3f,%.3f,%.3f]\n", newPos.x, newPos.y, newPos.z);
+        }
+
+        // set to the new pos
+        me->cameraPos = newPos;
+
+        // remove old list replace with the new one
+        delete [] unvalidated;
+        unvalidated = newUnvalid;
+        unvalidSize = newLen;
+    }
+    else
+    {
+        // we are on insync, make a new invalid list
+        //printf("newList\n");
+        delete [] unvalidated;
+        unvalidated = new struct datapoint[1000];
+        unvalidSize = 0;
+
+    }
+
+
+
+}
+
+void applyKeys(char keys[], glm::vec3 dir, glm::vec3 *pos)
+{
+    // apply for each key
+    glm::vec3 cameraRight = glm::normalize(glm::cross(upp, dir));
+    glm::vec3 cameraUp = glm::cross(dir, cameraRight);
+
+    for (int i = 0; i < strlen(keys); i++)
+    {
+
+        if (keys[i] == *UNI_FD)
+            *pos += cameraSpeedp * dir;
+
+        if (keys[i] == *UNI_BK)
+            *pos -= cameraSpeedp * dir;
+
+        if (keys[i] == *UNI_LT)
+            *pos -= glm::normalize(glm::cross(dir, cameraUp)) * cameraSpeedp;
+
+        if (keys[i] == *UNI_RT)
+            *pos += glm::normalize(glm::cross(dir, cameraUp)) * cameraSpeedp;
+    }
+}
+
+
+void netLog(std::string key, glm::vec3 front)
+{
+    // separates each key by , useless
+    /*
+    int len = key.length();
+    for (int i = 0; i < len; i++)
+    {
+        key.insert(i*2 + 1, ",");
+    }
+    key.pop_back();
+
+    //key.insert(0, "(");
+    //key.append(")");
+    */
+
+    strcpy(unvalidated[unvalidSize].move, key.c_str());
+
+    char dir[30];
+    sprintf(dir, "%.3f,%.3f,%.3f", front.x, front.y, front.z);
+
+    strcpy(unvalidated[unvalidSize].direction, dir);
+
+    unvalidated[unvalidSize].id = keyID++;
+
+    //printf("Key: [%s], dir: [%s], [%d]\n", unvalidated[unvalidSize].move, unvalidated[unvalidSize].direction, unvalidated[unvalidSize].id);
+
+    if (sendMoveData(unvalidated[unvalidSize]) < 0)
+    {
+        printf("Something went wrong with key send\n");
+    }
+    unvalidSize++;
 }
 
 void setPositions(struct entities all[], char extra[])
@@ -437,37 +589,4 @@ void setPositions(struct entities all[], char extra[])
     }
 
 
-}
-
-
-void netLog(std::string key, glm::vec3 front)
-{
-    // separates each key by , useless
-    /*
-    int len = key.length();
-    for (int i = 0; i < len; i++)
-    {
-        key.insert(i*2 + 1, ",");
-    }
-    key.pop_back();
-
-    //key.insert(0, "(");
-    //key.append(")");
-    */
-
-    strcpy(unvalidated[unvalidSize].move, key.c_str());
-
-    char dir[30];
-    sprintf(dir, "%.2f,%.2f,%.2f", front.x, front.y, front.z);
-
-    strcpy(unvalidated[unvalidSize].direction, dir);
-
-    unvalidated[unvalidSize].id = keyID++;
-
-    //printf("Key: [%s], dir: [%s], [%d]\n", unvalidated[unvalidSize].move, unvalidated[unvalidSize].direction, unvalidated[unvalidSize].id);
-
-    if (sendMoveData(unvalidated[unvalidSize]) < 0)
-    {
-        printf("Something went wrong with key send\n");
-    }
 }

@@ -50,5 +50,8 @@ int processMsg(char msg[], struct MsgPacket *packet);
 void applyDumpData(struct entities *them, char data[], int *count);
 int debugPrint(const char *format, ...);
 void setTestNw(bool value);
+void reconcileClient(struct entities *me);
+void applyKeys(char keys[], glm::vec3 dir, glm::vec3 *pos);
+int getKeyID();
 
 #endif

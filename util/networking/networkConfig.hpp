@@ -61,6 +61,7 @@ struct entities
     glm::vec3 cameraDirection;
     struct move keys[100];
     int numMoves;
+    int moveID;
 };
 
 extern bool connected;
