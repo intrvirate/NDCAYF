@@ -336,7 +336,8 @@ void applyDumpData(struct entities *them, char data[], int *count)
 
     // movesments per dump * 2, at one second intervals thats 60 + 60, 
     // though sometimes i get more than that, 132
-    std::string section[164];
+    int numberOfMoves = 164;
+    std::string section[numberOfMoves];
     std::string secdeli("&");
 
     // store pos, float
@@ -377,7 +378,6 @@ void applyDumpData(struct entities *them, char data[], int *count)
             if (id == clientID)
             {
                 // last value is the keyid, apply all key ids greater than this one, for reconciliation
-                //reconcileClient(them[id], std::stoi(section[3]);
                 them[id].moveID = std::stoi(section[3]);
 
             }
@@ -389,12 +389,12 @@ void applyDumpData(struct entities *them, char data[], int *count)
                 // ex 10.0,10.0,10.0&was&0.0,0.0,0.0,&w
                 them[id].numMoves = 0;
                 debugPrint("nextLoop\n");
-                for (int j = 3; j < 31; j = j + 2)
+                for (int j = 3; j < numberOfMoves; j = j + 2)
                 {
                     struct move action;
-                    if (strcmp(section[j].c_str(), "") != 0)
+                    if (strcmp(section[j].c_str(), "") != 0 && section[j].length() > 15)
                     {
-                        debugPrint("number %d\n", j);
+                        debugPrint("number %d, data %s\n", j, section[j].c_str());
                         //get the dir
 
                         getParts(floats, section[j], 3, fldeli);
