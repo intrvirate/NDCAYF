@@ -31,6 +31,8 @@
 #include "util/object/shader.hpp"
 #include "util/object/model.hpp"
 
+#include "util/object/object.h"
+
 #include "util/bulletDebug/collisiondebugdrawer.hpp"
 #include "BulletCollision/NarrowPhaseCollision/btRaycastCallback.h"
 
@@ -120,6 +122,7 @@ int main()
     //TODO: move this out of main; this is just for testing
     Shader ourShader("util/object/shader/vShader.glsl", "util/object/shader/fShader.glsl");
     Shader outlineShader("util/object/shader/VoutlineShader.glsl", "util/object/shader/FoutlineShader.glsl");
+    Shader instancedShader("util/object/shader/vInstancedShader.glsl", "util/object/shader/fInstancedShader.glsl");
 
     Model ourModel("obj/objects/terrain05.obj", false, NULL, 0.0, btVector3(0,-8,0),btVector3(4,4,4));
 
@@ -192,6 +195,67 @@ int main()
 
     printf("%f, %f, %f\n", cameraPos.x, cameraPos.y, cameraPos.z);
     */
+
+    unsigned int amount = 1000;
+    glm::mat4 *modelMatrices;
+    modelMatrices = new glm::mat4[amount];
+    srand(glfwGetTime()); // initialize random seed
+    float radius = 15.0;
+    float offsetx = 35.5f;
+    float offsety = 0.5f;
+    float offsetz = 35.5f;
+    for(unsigned int i = 0; i < amount; i++)
+    {
+        glm::mat4 model = glm::mat4(1.0f);
+        // 1. translation: displace along circle with 'radius' in range [-offset, offset]
+        float angle = (float)i / (float)amount * 360.0f;
+        float displacement = (rand() % (int)(2 * offsetx * 100)) / 100.0f - offsetx;
+        float x = sin(angle) * radius + displacement;
+        displacement = (rand() % (int)(2 * offsety * 100)) / 100.0f - offsety;
+        float y = displacement * 0.4f; // keep height of field smaller compared to width of x and z
+        displacement = (rand() % (int)(2 * offsetz * 100)) / 100.0f - offsetz;
+        float z = cos(angle) * radius + displacement;
+        model = glm::translate(model, glm::vec3(x, y, z));
+
+        // 2. scale: scale between 0.05 and 0.25f
+        float scale = (rand() % 20) / 100.0f + 0.05;
+        model = glm::scale(model, glm::vec3(scale));
+
+        // 3. rotation: add random rotation around a (semi)randomly picked rotation axis vector
+        float rotAngle = (rand() % 360);
+        model = glm::rotate(model, rotAngle, glm::vec3(0.0f, 0.1f, 0.0f));
+
+        // 4. now add to list of matrices
+        modelMatrices[i] = model;
+    }
+
+    unsigned int buffer;
+    glGenBuffers(1, &buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    glBufferData(GL_ARRAY_BUFFER, amount * sizeof(glm::mat4), &modelMatrices[0], GL_STATIC_DRAW);
+
+    for(unsigned int i = 0; i < ourModel4.meshes.size(); i++)
+    {
+        unsigned int VAO = ourModel4.meshes[i].VAO;
+        glBindVertexArray(VAO);
+        // vertex attributes
+        std::size_t vec4Size = sizeof(glm::vec4);
+        glEnableVertexAttribArray(3);
+        glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)0);
+        glEnableVertexAttribArray(4);
+        glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(1 * vec4Size));
+        glEnableVertexAttribArray(5);
+        glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(2 * vec4Size));
+        glEnableVertexAttribArray(6);
+        glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void*)(3 * vec4Size));
+
+        glVertexAttribDivisor(3, 1);
+        glVertexAttribDivisor(4, 1);
+        glVertexAttribDivisor(5, 1);
+        glVertexAttribDivisor(6, 1);
+
+        glBindVertexArray(0);
+    }
 //=========== LOOP ===========================================================
 
     Model *currentModel = &ourModel; //current pointed-at model
@@ -465,6 +529,64 @@ int main()
         }
             break;
         case LOOP_MODE_LEGACY :  {
+            renderLoop3D(window);
+            renderLoop2D(window);
+
+//            btVector3 from(cameraPos.x,cameraPos.y,cameraPos.z);
+//            btVector3 to(cameraPos.x+cameraFront.x*100,cameraPos.y+cameraFront.y*100,cameraPos.z+cameraFront.z*100);
+
+
+            instancedShader.use();
+            glm::mat4 projection = getprojectionMatrix();
+            glm::mat4 view = getViewMatrix();
+            instancedShader.setMat4("projection", projection);
+            instancedShader.setMat4("view", view);
+
+            for(unsigned int i = 0; i < ourModel4.meshes.size(); i++)
+            {
+
+
+
+
+                // bind appropriate textures
+                unsigned int diffuseNr  = 1;
+                unsigned int specularNr = 1;
+                unsigned int normalNr   = 1;
+                unsigned int heightNr   = 1;
+                for(unsigned int j = 0; j < ourModel4.meshes[i].textures.size(); j++)
+                {
+                    glActiveTexture(GL_TEXTURE0 + j); // active proper texture unit before binding
+                    // retrieve texture number (the N in diffuse_textureN)
+                    string number;
+                    string name = ourModel4.meshes[i].textures[j].type;
+                    if(name == "texture_diffuse")
+                        number = std::to_string(diffuseNr++);
+                    else if(name == "texture_specular")
+                        number = std::to_string(specularNr++); // transfer unsigned int to stream
+                    else if(name == "texture_normal")
+                        number = std::to_string(normalNr++); // transfer unsigned int to stream
+
+                     else if(name == "texture_height")
+                        number = std::to_string(heightNr++); // transfer unsigned int to stream
+
+                    // now set the sampler to the correct texture unit
+                    glUniform1i(glGetUniformLocation(instancedShader.ID, (name + number).c_str()), j);
+                    // and finally bind the texture
+                    glBindTexture(GL_TEXTURE_2D, ourModel4.meshes[i].textures[j].id);
+                }
+
+
+
+
+                glBindVertexArray(ourModel4.meshes[i].VAO);
+                glDrawElementsInstanced(
+                    GL_TRIANGLES, ourModel4.meshes[i].indices.size(), GL_UNSIGNED_INT, 0, amount
+                );
+            }
+
+            int display_w, display_h;
+            glfwGetFramebufferSize(window, &display_w, &display_h);
+            glViewport(0, 0, display_w, display_h);
 
         }
             break;

@@ -1,0 +1,32 @@
+{
+    "shaders":[
+        {
+            "name": "generic",
+            "vPath": "util/object/shader/vShader.glsl",
+            "fPath": "util/object/shader/fShader.glsl",
+            "CullFace": "front"
+        },
+        {
+            "name": "instanced",
+            "vPath": "util/object/shader/vInstancedShader.glsl",
+            "Fpath": "util/object/shader/fInstancedShader.glsl",
+            "CullFace": "front"
+         }
+
+    ],
+    "models": [
+        {
+            "path": "obj/objects/Tree03.obj",
+            "shaders": ["generic","generic","generic"],
+            "hasPhysics": false,
+            "useSinglePrimitive": false,
+            "scale": 1.0,
+            "isInstanced": false,
+            "meshCountHint": 2,
+            "pos": [0.0,1.0,2.0]
+
+         }
+
+    ]
+
+}
