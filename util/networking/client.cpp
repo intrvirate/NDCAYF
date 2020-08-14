@@ -245,6 +245,27 @@ int checkServer(char buf[])
     return recvlen;
 }
 
+int pingPong(int pingOrPong)
+{
+    char data[2048];
+    char msg[BUFSIZE];
+    int success = 1;
+    socklen_t addrlen_in = sizeof(serverAddr);
+
+
+    composeMsg(msg, pingOrPong);
+    //printf("Sending: %s\n", msg);
+
+
+    if (sendto(actualSock, msg, strlen(msg), 0, (struct sockaddr *)&serverAddr, addrlen_in) < 0)
+    {
+        printf("Failed to send\n");
+        success = -1;
+    }
+
+    return success;
+}
+
 
 int processMsg(char msg[], struct MsgPacket *packet)
 {
@@ -286,11 +307,12 @@ int processMsg(char msg[], struct MsgPacket *packet)
         if (ptl == PING)
         {
             printf("Send response\n");
+            pingPong(PONG);
             return PONG;
         }
         else if (ptl ==  CONNECT)
         {
-            printf("\"Connecting\" client\n");
+            printf("\"Connecting\" to server\n");
             return CONNECT;
         }
         else if (ptl == DUMP)
@@ -415,7 +437,7 @@ void applyDumpData(struct entities *them, char data[], int *count)
 
 void reconcileClient(struct entities *me)
 {
-    printf("im at %d servers at %d size %d\n", unvalidated[unvalidSize - 1].id, me->moveID, unvalidSize);
+    //printf("im at %d servers at %d size %d\n", unvalidated[unvalidSize - 1].id, me->moveID, unvalidSize);
 
     int end;
     int newLen;

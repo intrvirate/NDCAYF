@@ -437,14 +437,60 @@ int main()
                 printf("Connection successful to: %s\n", inet_ntoa(serverAddr.sin_addr));
                 printf("Data %s  %d   %llu  %s\n", msg.name, msg.ptl, msg.time, msg.data);
                 printf("ID %d\n", getID());
+                printf("===================Waiting for server=================\n");
                 setLoopMode(LOOP_MODE_EDIT);
 
-                setPositions(all, msg.data);
+                //setPositions(all, msg.data);
+                // wait for the server to send the info
+                bool waiting = true;
+                while (waiting)
+                {
+                    char buf[BUFSIZE*2];
+                    struct MsgPacket msg;
+                    strcpy(buf, "");
+                    int type;
+                    // get msg
+                    if (checkServer(buf) > 0)
+                    {
+                        type = processMsg(buf, &msg);
+
+                        if (type == DUMP)
+                        {
+                            waiting = false;
+                            applyDumpData(all, msg.data, &numEntities);
+
+                            //printf("me [%.3f,%.3f,%.3f], server [%.3f,%.3f,%.3f]\n", cameraPos.x, cameraPos.y, cameraPos.z, all[getID()].cameraPos.x, all[getID()].cameraPos.y, all[getID()].cameraPos.z);
+
+                            reconcileClient(&all[getID()]);
+
+                            //printf("reconcile [%.3f,%.3f,%.3f]\n", all[getID()].cameraPos.x, all[getID()].cameraPos.y, all[getID()].cameraPos.z);
+
+                            interlopeCount = 0;
+
+                            for (int i = 0; i < numEntities; i++)
+                            {
+                                if (i != getID())
+                                {
+                                    btVector3 infront(all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
+                                    ourModel5.setPosition(infront);
+                                    //printf("Num of moves %d\n", all[i].numMoves);
+                                }
+                                else
+                                {
+                                    cameraPos = all[i].cameraPos;
+                                    cameraFront = all[i].cameraDirection;
+                                }
+                            }
+
+                        }
+                    }
+
+                }
 
                 cameraPos = all[getID()].cameraPos;
                 cameraFront = all[getID()].cameraDirection;
 
-                printf("%f, %f, %f\n", cameraPos.x, cameraPos.y, cameraPos.z);
+                //printf("%f, %f, %f\n", cameraPos.x, cameraPos.y, cameraPos.z);
 
                 btVector3 infront(cameraPos.x, cameraPos.y, cameraPos.z);
                 //ourModel5.setPosition(infront);
@@ -643,14 +689,18 @@ int main()
                     {
                         applyDumpData(all, msg.data, &numEntities);
 
+                        /*
                         printf("me [%.3f,%.3f,%.3f], server [%.3f,%.3f,%.3f]\n",
                             cameraPos.x, cameraPos.y, cameraPos.z,
                             all[getID()].cameraPos.x, all[getID()].cameraPos.y, all[getID()].cameraPos.z);
+                        */
 
                         reconcileClient(&all[getID()]);
 
+                        /*
                         printf("reconcile [%.3f,%.3f,%.3f]\n",
                             all[getID()].cameraPos.x, all[getID()].cameraPos.y, all[getID()].cameraPos.z);
+                        */
 
                         interlopeCount = 0;
 
@@ -660,7 +710,7 @@ int main()
                             {
                                 btVector3 infront(all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
                                 ourModel5.setPosition(infront);
-                                printf("Num of moves %d\n", all[i].numMoves);
+                                //printf("Num of moves %d\n", all[i].numMoves);
                             }
                             else
                             {
@@ -669,45 +719,27 @@ int main()
                         }
 
                     }
-                    /*
-                     *
-                     *
-struct move {
-    char moves[10];
-    glm::vec3 dir;
-};
-
-struct entities
-{
-    glm::vec3 cameraPos;
-    glm::vec3 cameraDirection;
-    struct move keys[100];
-    int numMoves;
-    int moveID;
-};
-                     *
-                     */
                 }
                     //interlope
 
-                    for (int i = 0; i < numEntities; i++)
+                for (int i = 0; i < numEntities; i++)
+                {
+                    if (i != getID())
                     {
-                        if (i != getID())
+                        //printf("Num of moves %d\n", all[i].numMoves);
+                        // applies the next move
+                        if (interlopeCount < all[i].numMoves)
                         {
-                            //printf("Num of moves %d\n", all[i].numMoves);
-                            // applies the next move
-                            if (interlopeCount < all[i].numMoves)
-                            {
-                                //printf("\tbefore [%.3f,%.3f,%.3f]\n", all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
-                                applyKeys(all[i].keys[interlopeCount].moves, all[i].keys[interlopeCount].dir, &(all[i].cameraPos));
-                                //printf("\tafter [%.3f,%.3f,%.3f]\n", all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
-                                btVector3 infront(all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
-                                ourModel5.setPosition(infront);
-                            }
+                            //printf("\tbefore [%.3f,%.3f,%.3f]\n", all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
+                            applyKeys(all[i].keys[interlopeCount].moves, all[i].keys[interlopeCount].dir, &(all[i].cameraPos));
+                            //printf("\tafter [%.3f,%.3f,%.3f]\n", all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
+                            btVector3 infront(all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
+                            ourModel5.setPosition(infront);
                         }
                     }
-                    // next time we will do the next one
-                    interlopeCount++;
+                }
+                // next time we will do the next one
+                interlopeCount++;
             }
                 //draw the players
                                 ourModel5.Draw(ourShader, outlineShader);
