@@ -8,13 +8,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "util/handleinput.hpp"
 #include "util/loadShaders.hpp"
 #include "util/handleinput.hpp"
 #include "util/otherhandlers.hpp"
 #include "util/vertexGrid.hpp"
 #include "util/groundGridGeneration.hpp"
 
-#include "util/handleinput.hpp"
 
 //global variables (need to be accessed accross load functions)
 
@@ -33,6 +33,8 @@ glm::mat4 view;
 GLuint model_location;
 GLuint view_location;
 GLuint projection_location;
+
+const glm::vec3 up = glm::vec3(0,1,0);
 
 int incolor;
 

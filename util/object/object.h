@@ -11,7 +11,10 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include "util/bulletDebug/collisiondebugdrawer.hpp"
 
+extern btDiscreteDynamicsWorld* dynamicsWorld;
+extern BulletDebugDrawer_OpenGL debugDraw;
 
 using namespace std;
 
@@ -74,11 +77,12 @@ struct Mesh{
     unsigned int VAO, VBO, EBO;
     Model* parentModel;
     bool showObjectSelection; //whether to highlight this mesh when it's object is selected
+    glm::mat4 model;
     //instancing
     bool isInstanced;
     unsigned int instancedMatrixBufferID;
     unsigned int instanceCount;
-    glm::mat4 model;
+    unsigned int instanceModelBuffer;
 
 };
 
@@ -86,9 +90,9 @@ struct Shader {
     string vPath;
     string fPath;
     unsigned int ID;
-    vector<Mesh> meshes;
+    vector<Mesh*> meshes;
     GLenum CullFaceState;
-    string name;
+    string name; //shader name
     int meshCountHint; //used during world generation to reserve memory for meshes vector;
                        //do not assume its accurate. use meshes.size() instead.
     GLint projectionLocation;
@@ -117,16 +121,21 @@ struct Shader {
 
 struct Model {
     //graphics
-    vector<Mesh*> meshes; //vector of pointers; actual mesh lives in shader tree
+    vector<Mesh*> meshes; //vector of pointers; actual mesh is dynamicaly allocated
     string directory;
     string objectPath;
+    glm::vec3 scale;
+    glm::vec3 pos;
+    //unsigned int instanceModelBuffer;
     //physics
     bool hasPhysics;
+    bool isDynamic;
     bool useSinglePrimitive;
     btRigidBody* body;
-    glm::vec3 scale;
+    btCollisionShape* collisionShape;
     //instancing
     bool isInstanced;
+    unsigned int instanceCount;
     vector<glm::mat4> modelMatrices;
     //TODO: figure out how to instance bullet objects
 };
@@ -134,9 +143,11 @@ struct Model {
 //=================================function prototypes==================================
 
 void loadModels(string jsonPath); //loads models from a json file
-Mesh processMesh(aiMesh *mesh, const aiScene *assimpModel, string directory);
+void processMesh(Mesh *mesh, aiMesh *impMesh, const aiScene *assimpModel, string directory);
 unsigned int findTextureID(const char* path);
 unsigned int TextureFromFile(const char *path, const string &directory);
 void drawObjects();
+void InitializePhysicsWorld();
+void RunStepSimulation();
 
 #endif // OBJECT_H

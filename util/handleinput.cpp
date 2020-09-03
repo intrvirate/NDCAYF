@@ -7,7 +7,8 @@
 #include <glm/glm.hpp>
 
 #include "util/loadMenu.hpp"
-#include "util/object/model.hpp"
+//#include "util/object/model.hpp"
+#include "util/object/object.h"
 #include "util/bulletDebug/collisiondebugdrawer.hpp"
 #include "BulletCollision/NarrowPhaseCollision/btRaycastCallback.h"
 
@@ -109,6 +110,8 @@ void mouse_callback_point(GLFWwindow* window, double xpos, double ypos)
 glm::vec2 getMousePos(){
     return pointMousePos;
 }
+
+void toggleMouseVisibility(GLFWwindow* window);
 
 void mouse_button_callback_Menu(GLFWwindow* window, int button, int action, int mods){
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS){
