@@ -44,7 +44,6 @@ unsigned int TextureFromFile(const char *path, const string &directory, bool gam
 class Model
 {
 
-
 public:
 
 
@@ -58,7 +57,6 @@ public:
     glm::vec3 tint = glm::vec3(0,0,0);
     bool selected = false;
 
-
     //setup collision stuff
     bool usePrimitive = true;
 
@@ -71,7 +69,6 @@ public:
     glm::vec3 scale = glm::vec3(1,1,1);
 
     string objectPath;
-    bool primitaveColisionShape;
 
     Model( string const &path, bool primitaveColisionShape = true, btCollisionShape* primitaveShape = NULL, btScalar mass = 0.0, btVector3 location = btVector3(0.,0.,0.), btVector3 btScale = btVector3(0.,0.,0.))
     {
@@ -290,12 +287,14 @@ private:
         directory = path.substr(0, path.find_last_of('/'));
 
         // process ASSIMP's root node recursively
-        processNode(scene->mRootNode, scene);
+        processNode(scene->mRootNode, scene, 0);
+
     }
 
     // processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
-    void processNode(aiNode *node, const aiScene *scene)
+    void processNode(aiNode *node, const aiScene *scene, int level)
     {
+
         // process each mesh located at the current node
         for(unsigned int i = 0; i < node->mNumMeshes; i++)
         {
@@ -307,7 +306,7 @@ private:
         // after we've processed all of the meshes (if any) we then recursively process each of the children nodes
         for(unsigned int i = 0; i < node->mNumChildren; i++)
         {
-            processNode(node->mChildren[i], scene);
+            processNode(node->mChildren[i], scene, level + 1);
         }
 
     }
@@ -361,10 +360,13 @@ private:
         // now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
         for(unsigned int i = 0; i < mesh->mNumFaces; i++)
         {
+
             aiFace face = mesh->mFaces[i];
             // retrieve all indices of the face and store them in the indices vector
-            for(unsigned int j = 0; j < face.mNumIndices; j++)
+            for(unsigned int j = 0; j < face.mNumIndices; j++){
                 indices.push_back(face.mIndices[j]);
+
+            }
         }
         // process materials
         aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];

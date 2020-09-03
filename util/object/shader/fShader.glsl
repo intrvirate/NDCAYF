@@ -8,7 +8,10 @@ in mat3 TBN;
 out vec4 FragColor;
 
 uniform sampler2D texture_diffuse1;
+uniform sampler2D texture_specular1; //unused atm
 uniform sampler2D texture_normal1;
+uniform sampler2D texture_height1;   //unsued atm
+
 uniform vec3 tint;
 uniform vec3 lightPos;
 uniform vec3 lightColor;
@@ -17,7 +20,7 @@ void main()
 {
 
     // ambient
-    float ambientStrength = 3;
+    float ambientStrength = 4;
     vec3 ambient = ambientStrength * lightColor;
 
     //vec3 norm = normalize(Normal);
@@ -25,7 +28,6 @@ void main()
     vec3 norm = texture(texture_normal1, TexCoords).rgb;
     norm = norm * 2.0 - 1.0;
     norm = normalize(TBN * norm);
-
 
 
 
@@ -43,10 +45,9 @@ void main()
     }
 
 
-    //FragColor = texture(texture_diffuse1, TexCoords);
-    FragColor.x += tint.x;
-    FragColor.y += tint.y;
-    FragColor.z += tint.z;
+    //FragColor.x += tint.x;
+    //FragColor.y += tint.y;
+    //FragColor.z += tint.z;
 
 
 

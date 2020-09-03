@@ -27,9 +27,11 @@
 #include "util/otherhandlers.hpp"
 #include "util/globalStateHandlers.hpp"
 
-#include "util/object/mesh.hpp"
-#include "util/object/shader.hpp"
-#include "util/object/model.hpp"
+//#include "util/object/mesh.hpp"
+//#include "util/object/shader.hpp"
+//#include "util/object/model.hpp"
+
+#include "util/object/object.h"
 
 #include "util/bulletDebug/collisiondebugdrawer.hpp"
 #include "BulletCollision/NarrowPhaseCollision/btRaycastCallback.h"
@@ -194,7 +196,7 @@ int main()
     bool networkLoaded = false;
     //=========== SETUP ==========================================================
 
-    //do this first because settings.json will contain things like default window size
+    //do this first because settings.json will contain things like default window size <-TODO
     setJsonDebugMode(false);
     buildMenu();
 
@@ -219,7 +221,7 @@ int main()
         return -1;
     }
     glfwMakeContextCurrent(window);
-    /* TODO: actualy make this work with optimus laptops (it doesn't; you get mag fps and pegged gpu)
+    /* TODO: actualy make this work with optimus laptops (it doesn't; you get max fps and pegged gpu)
         //vsync: 1=enabled, 0=disabled, -1=adaptive
         glfwSwapInterval(1);
     */
@@ -249,25 +251,8 @@ int main()
     glEnable(GL_CULL_FACE);
     glClearColor(0.0f, 0.0f, 0.4f, 0.0f); // default opengl background on startup: blue
 
-
-    //TODO: move this out of main; this is just for testing
-    Shader ourShader("util/object/shader/vShader.glsl", "util/object/shader/fShader.glsl");
-    Shader outlineShader("util/object/shader/VoutlineShader.glsl", "util/object/shader/FoutlineShader.glsl");
-
-    Model ourModel("obj/objects/terrain05.obj", false, NULL, 0.0, btVector3(0,-8,0),btVector3(4,4,4));
-
-    Model ourModel2("obj/objects/plannets/smoothmoon.obj", true, new btSphereShape(btScalar(1.)), 1.0 , btVector3(0,50,0),btVector3(5,5,5));
-
-    //Model ourModel3("obj/objects/building-fixed.obj", false, NULL, 0.0 , btVector3(12,12,-20),btVector3(1,1,1));
-    Model ourModel3("obj/objects/Tree02-v3-normals.obj", false, NULL, 0.0 , btVector3(12,12,-20),btVector3(1,1,1));
-
-    Model ourModel4("obj/objects/Tree03.obj", false, new btSphereShape(btScalar(1.)), 0.0 , btVector3(10,10,10), btVector3(1,1,1));
-
-    Model ourModel5("obj/objects/Tree03.obj", false, new btSphereShape(btScalar(1.)), 0.0 , btVector3(0,0,0), btVector3(1,5,1));
-
-    //Model ourModel5("obj/objects/character.obj", false, new btSphereShape(btScalar(1.)), 0.0 , btVector3(10,10,10), btVector3(1,1,1));
-
-    Model::InitializeModelPhysicsWorld();
+    loadModels("gamedata/world1.json");
+    InitializePhysicsWorld();
 
 //=========== IMGUI =========================================================
 
@@ -322,12 +307,14 @@ int main()
 
     printf("%f, %f, %f\n", cameraPos.x, cameraPos.y, cameraPos.z);
     */
+
 //=========== LOOP ===========================================================
 
-    Model *currentModel = &ourModel; //current pointed-at model
+    //Model *currentModel = &ourModel; //current pointed-at model
     Model *lastModel = NULL;    //last pointed-at model
     bool showProperties = true;
     bool singleScale = true; //ajust scale as single value, or as x, y, and z values
+
 
 
     while( glfwWindowShouldClose(window) == 0){
@@ -342,7 +329,7 @@ int main()
         case LOOP_MODE_MENU :    {
             renderLoop3D(window);
             renderLoop2D(window);
-
+            drawObjects();
             int display_w, display_h;
             glfwGetFramebufferSize(window, &display_w, &display_h);
             glViewport(0, 0, display_w, display_h);
@@ -501,25 +488,22 @@ int main()
             }
             break;
         case LOOP_MODE_EDIT :    {
+
+
             renderLoop3D(window);
             renderLoop2D(window);
-
             //Bullet Simulation:
-            Model::RunStepSimulation();
-
-            //draw debug stuff from bullet
+            RunStepSimulation();
+            drawObjects();
             debugDraw.SetMatrices(getViewMatrix(), getprojectionMatrix());
-
             if(physicsDebugEnabled){
                 dynamicsWorld->debugDrawWorld();
                 //debugDraw.draw();
             }
-
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
 
-        //=-----=-=-=-=-==--=-==-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-^-^-^-^-^-^-^-
 
             btVector3 from(cameraPos.x,cameraPos.y,cameraPos.z);
             btVector3 to(cameraPos.x+cameraFront.x*100,cameraPos.y+cameraFront.y*100,cameraPos.z+cameraFront.z*100);
@@ -533,6 +517,7 @@ int main()
             dynamicsWorld->rayTest(from, to, closestResults);
             if (closestResults.hasHit() && !isMouseVisable())
             {
+                /*
                 currentModel = ((Model *)closestResults.m_collisionObject->getCollisionShape()->getUserPointer());
                 //currentModel->tint = glm::vec3(0.2,0.2,0.2);
                 currentModel->selected = true;
@@ -542,19 +527,21 @@ int main()
                     lastModel->selected = false;
                 }
                 lastModel = currentModel;
-
+                */
                 btVector3 p = from.lerp(to, closestResults.m_closestHitFraction);
                 dynamicsWorld->getDebugDrawer()->drawSphere(p, 0.1, blue);
                 dynamicsWorld->getDebugDrawer()->drawLine(p, p + closestResults.m_hitNormalWorld, blue);
 
                 //ourModel3.setPosition(p);
             }else{
+                /*
                 if(currentModel != NULL){
                     //currentModel->tint = glm::vec3(0,0,0);
                     currentModel->selected = false;
                 }
+                */
             }
-
+/*
             if(showProperties){ //Properties edit window
                 ImGuiWindowFlags window_flags = 0;
                 window_flags |= ImGuiWindowFlags_NoScrollbar;
@@ -592,82 +579,14 @@ int main()
                 ImGui::End();
 
             }
-
-
+*/
             debugDraw.draw();
-
-        //end physics loop=====================================================================================
-
-        //============imgui===========
-
-            ImGui::Begin("Hello, world!");
-            ImGui::Text("This is some useful text.");
-            ImGui::Checkbox("Demo Window", &show_demo_window);
-            ImGui::Checkbox("Another Window", &show_another_window);
-            ImGui::Checkbox("Server Information", &show_server_window);
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-            ImGui::End();
-
-            if (show_another_window){
-                ImGui::Begin("Another Window", &show_another_window);
-                ImGui::Text("Hello from another window!");
-                if (ImGui::Button("Close Me"))
-                    show_another_window = false;
-                ImGui::End();
-            }
-
-            if (show_server_window)
-            {
-                ImGui::Begin("Server Information", &show_server_window);
-                ImGui::Text("Assorted Server Information");
-
-                // ================= trying to implement networking/client.c =======
-                struct server serverList[MAXSERVERS];
-
-
-                if (!networkLoaded)
-                {
-                    printf("yeehaw");
-                    getAllServers(serverList);
-                    networkLoaded = true;
-
-                    printServerList(serverList);
-
-                }
-
-
-                if (ImGui::Button("exit"))
-                {
-                    networkLoaded = false;
-                    show_server_window = false;
-                }
-                ImGui::End();
-            }
-
-
-
+>>>>>>> master
             ImGui::Render();
             int display_w, display_h;
             glfwGetFramebufferSize(window, &display_w, &display_h);
             glViewport(0, 0, display_w, display_h);
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        //end imgui
-
-            ourShader.use();
-
-            ourModel.Draw(ourShader, outlineShader);
-            ourModel2.Draw(ourShader, outlineShader);
-/*
-            outlineShader.use();
-            glCullFace(GL_FRONT);
-            ourModel3.Draw(outlineShader,outlineShader);
-            glCullFace(GL_BACK);
-            ourShader.use();
-*/
-
-            ourModel3.Draw(ourShader, outlineShader);
-
-            ourModel4.Draw(ourShader, outlineShader);
 
             //render imgui (render this last so it's on top of other stuff)
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -746,10 +665,22 @@ int main()
             }
             break;
         case LOOP_MODE_PLAY :    {
+            renderLoop3D(window);
+            renderLoop2D(window);
+            RunStepSimulation();
+            drawObjects();
+
+            debugDraw.SetMatrices(getViewMatrix(), getprojectionMatrix());
+            if(physicsDebugEnabled){
+                dynamicsWorld->debugDrawWorld();
+            }
+            debugDraw.draw();
 
         }
             break;
         case LOOP_MODE_LEGACY :  {
+            renderLoop3D(window);
+            renderLoop2D(window);
 
         }
             break;
@@ -761,7 +692,7 @@ int main()
     }
 
     //cleanup
-    Model::Cleanup();
+   // Model::Cleanup();
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
