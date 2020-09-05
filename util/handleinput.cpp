@@ -280,4 +280,3 @@ void calculateFrameTime(){ //call this exactly once per frame
 glm::vec3 getCameraFront(){
     return cameraFront;
 }
-

@@ -27,10 +27,6 @@
 #include "util/otherhandlers.hpp"
 #include "util/globalStateHandlers.hpp"
 
-//#include "util/object/mesh.hpp"
-//#include "util/object/shader.hpp"
-//#include "util/object/model.hpp"
-
 #include "util/object/object.h"
 
 #include "util/bulletDebug/collisiondebugdrawer.hpp"
@@ -56,6 +52,7 @@ using namespace std;
 using namespace glm;
 GLFWwindow* window;
 
+#include <stdint.h>
 
 int main()
 {
@@ -66,6 +63,12 @@ int main()
     //do this first because settings.json will contain things like default window size <-TODO
     setJsonDebugMode(false);
     buildMenu();
+
+    float number;
+
+    uint8_t number2;
+
+    (char)number;
 
     if( !glfwInit() )
     {
@@ -118,11 +121,11 @@ int main()
     glEnable(GL_CULL_FACE);
     glClearColor(0.0f, 0.0f, 0.4f, 0.0f); // default opengl background on startup: blue
 
-    loadModels("gamedata/world1.json");
+    //loadModels("gamedata/world1.json");
+    loadModels("gamedata/scratchpadWorld.json");
     InitializePhysicsWorld();
 
 //=========== IMGUI =========================================================
-
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -184,11 +187,13 @@ int main()
 
 //=========== LOOP ===========================================================
 
-    //Model *currentModel = &ourModel; //current pointed-at model
+    Model *currentModel = getModelPointerByName("Tree03");
+    disableCollision(currentModel);
+    makeStatic(currentModel);
+
     Model *lastModel = NULL;    //last pointed-at model
     bool showProperties = true;
     bool singleScale = true; //ajust scale as single value, or as x, y, and z values
-
 
 
     while( glfwWindowShouldClose(window) == 0){
@@ -285,7 +290,7 @@ int main()
             renderLoop2D(window);
             //Bullet Simulation:
             RunStepSimulation();
-            drawObjects();
+
             debugDraw.SetMatrices(getViewMatrix(), getprojectionMatrix());
             if(physicsDebugEnabled){
                 dynamicsWorld->debugDrawWorld();
@@ -304,6 +309,8 @@ int main()
             dynamicsWorld->getDebugDrawer()->drawSphere(btVector3(0,0,0), 0.5, blue); //at origin
             btCollisionWorld::ClosestRayResultCallback closestResults(from, to);
             closestResults.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
+            closestResults.m_collisionFilterGroup = COL_SELECTER;
+            closestResults.m_collisionFilterMask = COL_SELECT_RAY_COLLIDES_WITH;
 
             dynamicsWorld->rayTest(from, to, closestResults);
             if (closestResults.hasHit() && !isMouseVisable())
@@ -319,9 +326,12 @@ int main()
                 }
                 lastModel = currentModel;
                 */
+
                 btVector3 p = from.lerp(to, closestResults.m_closestHitFraction);
                 dynamicsWorld->getDebugDrawer()->drawSphere(p, 0.1, blue);
                 dynamicsWorld->getDebugDrawer()->drawLine(p, p + closestResults.m_hitNormalWorld, blue);
+
+                updateModelPosition(currentModel, p);
 
                 //ourModel3.setPosition(p);
             }else{
@@ -371,6 +381,7 @@ int main()
 
             }
 */
+            drawObjects();
             debugDraw.draw();
             ImGui::Render();
             int display_w, display_h;
