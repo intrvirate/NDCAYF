@@ -85,7 +85,8 @@ int main()
         NULL); //create window. TODO: setting first NULL to glfwGetPrimaryMonitor() results in full screen mode
 
     if( window == NULL ){
-        fprintf( stderr, "Failed to open GLFW window. Double check that the GPU is openGL 3.3 compatible\n" );
+        fprintf( stderr, "Failed to open GLFW window. Double check that the \
+            GPU is openGL 3.3 compatible\n" );
         glfwTerminate();
         return -1;
     }
