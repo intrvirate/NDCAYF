@@ -59,7 +59,9 @@ void updateMenu(){
                 activeColor  = glm::vec3(0.9, 0.9, 0.9);
                 passiveColor = glm::vec3(0.2, 0.9, 0.0);
             }
-            addTextString(name, menuLeftOffsetFromCenter, menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize, activeColor, passiveColor );
+            addTextString(name, menuLeftOffsetFromCenter,
+                menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize,
+                activeColor, passiveColor );
         }
     }else{
         inTextBox = true; //start reading text from keyboard
@@ -74,40 +76,65 @@ void updateMenu(){
             if(settingsjson[settingMenu]["type"] == "bool"){
                 name = settingsjson[settingMenu]["name"];
                     //first entry:  name
-                addTextString(name, menuLeftOffsetFromCenter, menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize, passiveColor, passiveColor ); //both passive color so it doesn't highlight when moused over
+
+                //both passive color so it doesn't highlight when moused over
+                addTextString(name, menuLeftOffsetFromCenter,
+                    menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize,
+                    passiveColor, passiveColor );
 
                 i++;//second entry: true
-                addTextString(settingsjson[settingMenu]["true"], menuLeftOffsetFromCenter, menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize, activeColor, passiveColor );
+                addTextString(settingsjson[settingMenu]["true"],
+                    menuLeftOffsetFromCenter, menuTopOffsetFromCenter
+                    - (menuSpacing*i) , menuTextSize, activeColor,
+                    passiveColor );
 
                 i++;//third entry:  true
-                addTextString(settingsjson[settingMenu]["false"], menuLeftOffsetFromCenter, menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize, activeColor, passiveColor );
+                addTextString(settingsjson[settingMenu]["false"],
+                    menuLeftOffsetFromCenter, menuTopOffsetFromCenter -
+                    (menuSpacing*i) , menuTextSize, activeColor, passiveColor );
 
                 i++;//last entry:   back
-                addTextString("back", menuLeftOffsetFromCenter, menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize, activeColor, passiveColor );
+                addTextString("back", menuLeftOffsetFromCenter,
+                    menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize,
+                    activeColor, passiveColor );
 
             }else if(settingsjson[settingMenu]["type"] == "int"){
 
             }else if(settingsjson[settingMenu]["type"] == "string"){
                 name = settingsjson[settingMenu]["name"];
                     //first entry:  name
-                addTextString(name, menuLeftOffsetFromCenter, menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize, passiveColor, passiveColor ); //both passive color so it doesn't highlight when moused over
+
+                //both passive color so it doesn't highlight when moused over
+                addTextString(name, menuLeftOffsetFromCenter,
+                    menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize,
+                    passiveColor, passiveColor );
 
                 i++;//second entry: text entry
-                addTextString(textEntryString, menuLeftOffsetFromCenter, menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize, passiveColor, passiveColor ); //both passive color so it doesn't highlight when moused over
+                //both passive color so it doesn't highlight when moused over
+                addTextString(textEntryString, menuLeftOffsetFromCenter,
+                    menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize,
+                    passiveColor, passiveColor );
 
                 i++;//last entry:   back
-                addTextString("back", menuLeftOffsetFromCenter, menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize, activeColor, passiveColor );
+                addTextString("back", menuLeftOffsetFromCenter,
+                    menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize,
+                    activeColor, passiveColor );
 
             }else if(settingsjson[settingMenu]["type"] == "select"){
                 name = settingsjson[settingMenu]["name"];
                     //first entry:  name
-                addTextString(name, menuLeftOffsetFromCenter, menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize, passiveColor, passiveColor ); //both passive color so it doesn't highlight when moused over
+                //both passive color so it doesn't highlight when moused over
+                addTextString(name, menuLeftOffsetFromCenter,
+                    menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize,
+                    passiveColor, passiveColor );
                 i++;//next entries: the choices
 
 
                 for(int j = 0; !settingsjson[settingMenu]["choices"][j].is_null(); j++){
                     name = settingsjson[settingMenu]["choices"][j]["name"];
-                    addTextString(name, menuLeftOffsetFromCenter, menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize, activeColor, passiveColor );
+                    addTextString(name, menuLeftOffsetFromCenter,
+                        menuTopOffsetFromCenter - (menuSpacing*i) ,
+                        menuTextSize, activeColor, passiveColor );
                     i++;
                 }
 
@@ -243,7 +270,11 @@ void handleMenuClick(){
                else if(settingsjson[settingMenu]["type"] == "select"){
                    for(uint i = 0; i < selectLinkArraySize; i++){
                        if (selectLinkArray[i].ID == settingMenu){
-                           if (index <= settingsjson[settingMenu]["numChoices"] && index > 0){ //if it clicked on a choice
+
+                           //if it clicked on a choice
+                           if (index <= settingsjson[settingMenu]["numChoices"]
+                                && index > 0){
+
                                 *(selectLinkArray[i].ptr) = index;
                                 fprintf(stderr, "\n%i\n", index);
                                 exitMenu();

@@ -18,7 +18,8 @@ void generateGroundGrid(int sc, int detail){
 
 //check detail field:
     if(detail < 2){
-        fprintf(stderr, "WARNING: Detail can not be set below 2. Setting to default value.");
+        fprintf(stderr, "WARNING: Detail can not be set below 2. Setting to \
+            default value.");
         detail = 2;
     }
 

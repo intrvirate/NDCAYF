@@ -64,18 +64,3 @@ selectLink selectLinkArray[selectLinkArraySize]{
     {.ID = "select loop", .ptr = &loopMode}
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
