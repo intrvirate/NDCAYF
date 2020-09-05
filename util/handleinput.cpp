@@ -113,7 +113,8 @@ glm::vec2 getMousePos(){
 
 void toggleMouseVisibility(GLFWwindow* window);
 
-void mouse_button_callback_Menu(GLFWwindow* window, int button, int action, int mods){
+void mouse_button_callback_Menu(GLFWwindow* window, int button, int action,
+    int mods){
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS){
         handleMenuClick();
     }
@@ -123,7 +124,8 @@ void mouse_button_callback_Menu(GLFWwindow* window, int button, int action, int 
     }
 }
 
-void mouse_button_callback_3D(GLFWwindow* window, int button, int action, int mods){
+void mouse_button_callback_3D(GLFWwindow* window, int button, int action,
+    int mods){
 
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS){
         fprintf(stderr, "hi");
@@ -144,7 +146,8 @@ void mouse_button_callback_3D(GLFWwindow* window, int button, int action, int mo
         {
             btVector3 p = from.lerp(to, allResults.m_hitFractions[i]);
             dynamicsWorld->getDebugDrawer()->drawSphere(p, 0.1, red);
-            dynamicsWorld->getDebugDrawer()->drawLine(p, p + allResults.m_hitNormalWorld[i], red);
+            dynamicsWorld->getDebugDrawer()->drawLine(p, p
+                + allResults.m_hitNormalWorld[i], red);
         }
     }
 
@@ -176,7 +179,8 @@ void exitMenu(){
     exitMenuVal = true;
 }
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+void key_callback(GLFWwindow* window, int key, int scancode, int action,
+    int mods)
 {
     if (key == GLFW_KEY_F1 && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);

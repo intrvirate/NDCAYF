@@ -84,9 +84,12 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     //change default window size in otherHandlers.cpp
-    window = glfwCreateWindow( CurrentWindowX, CurrentWindowY, "NDCAYF", NULL, NULL); //create window. TODO: setting first NULL to glfwGetPrimaryMonitor() results in full screen mode
+    window = glfwCreateWindow( CurrentWindowX, CurrentWindowY, "NDCAYF", NULL,
+        NULL); //create window. TODO: setting first NULL to glfwGetPrimaryMonitor() results in full screen mode
+
     if( window == NULL ){
-        fprintf( stderr, "Failed to open GLFW window. Double check that the GPU is openGL 3.3 compatible\n" );
+        fprintf( stderr, "Failed to open GLFW window. Double check that the \
+            GPU is openGL 3.3 compatible\n" );
         glfwTerminate();
         return -1;
     }
@@ -243,7 +246,8 @@ int main()
                     for (int q = 0; q < serverList[j].numRoutes; q++)
                     {
                         char txt[100];
-                        int len = sprintf(txt, "\tIP \"%s\"", (serverList[j].routes[q])) + 5;
+                        int len = sprintf(txt, "\tIP \"%s\"",
+                            (serverList[j].routes[q])) + 5;
 
                         if (serverList[j].hasLo && q == serverList[j].loIndex)
                         {
@@ -256,7 +260,8 @@ int main()
 
                         if (ImGui::Button(txt))
                         {
-                            printf("Server %s, IP %s\n", serverList[j].name, serverList[j].routes[q]);
+                            printf("Server %s, IP %s\n", serverList[j].name,
+                                serverList[j].routes[q]);
                         }
                     }
                 }
@@ -272,7 +277,9 @@ int main()
                 getAllServers(serverList);
             }
 
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
+                1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
             ImGui::End();
 
 
@@ -283,6 +290,7 @@ int main()
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
             }
             break;
+
         case LOOP_MODE_EDIT :    {
 
 
@@ -302,11 +310,13 @@ int main()
 
 
             btVector3 from(cameraPos.x,cameraPos.y,cameraPos.z);
-            btVector3 to(cameraPos.x+cameraFront.x*100,cameraPos.y+cameraFront.y*100,cameraPos.z+cameraFront.z*100);
+            btVector3 to(cameraPos.x+cameraFront.x*100,
+            cameraPos.y+cameraFront.y*100, cameraPos.z+cameraFront.z*100);
 
             btVector3 blue(0.1, 0.3, 0.9);
 
-            dynamicsWorld->getDebugDrawer()->drawSphere(btVector3(0,0,0), 0.5, blue); //at origin
+            dynamicsWorld->getDebugDrawer()->drawSphere(btVector3(0,0,0),
+                0.5, blue); //at origin
             btCollisionWorld::ClosestRayResultCallback closestResults(from, to);
             closestResults.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
             closestResults.m_collisionFilterGroup = COL_SELECTER;
@@ -327,9 +337,12 @@ int main()
                 lastModel = currentModel;
                 */
 
-                btVector3 p = from.lerp(to, closestResults.m_closestHitFraction);
+                btVector3 p = from.lerp(to,
+                    closestResults.m_closestHitFraction);
+
                 dynamicsWorld->getDebugDrawer()->drawSphere(p, 0.1, blue);
-                dynamicsWorld->getDebugDrawer()->drawLine(p, p + closestResults.m_hitNormalWorld, blue);
+                dynamicsWorld->getDebugDrawer()->drawLine(p, p
+                    + closestResults.m_hitNormalWorld, blue);
 
                 updateModelPosition(currentModel, p);
 
@@ -393,6 +406,7 @@ int main()
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
             }
+
             break;
         case LOOP_MODE_PLAY :    {
             renderLoop3D(window);
@@ -401,13 +415,16 @@ int main()
             drawObjects();
 
             debugDraw.SetMatrices(getViewMatrix(), getprojectionMatrix());
+
             if(physicsDebugEnabled){
                 dynamicsWorld->debugDrawWorld();
             }
+
             debugDraw.draw();
 
         }
             break;
+
         case LOOP_MODE_LEGACY :  {
             renderLoop3D(window);
             renderLoop2D(window);
