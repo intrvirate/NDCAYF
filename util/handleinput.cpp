@@ -182,23 +182,22 @@ void exitMenu(){
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action,
-    int mods)
-{
+        int mods) {
+
     if (key == GLFW_KEY_F1 && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
     else if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         toggleMouseVisibility(window);
 
-    if (key == GLFW_KEY_E && action == GLFW_PRESS)
+    else if (key == GLFW_KEY_E && action == GLFW_PRESS)
     {
         showProperties = !showProperties;
     }
-    if (key == GLFW_KEY_G && action == GLFW_PRESS)
+    else if (key == GLFW_KEY_G && action == GLFW_PRESS)
     {
         setCurrentModel();
     }
-
 
     if(!mouseVisable){
         // key bondings for camera mode
