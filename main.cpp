@@ -28,6 +28,7 @@
 #include "util/globalStateHandlers.hpp"
 
 #include "util/object/object.h"
+#include "util/editor/editor.hpp"
 
 #include "util/bulletDebug/collisiondebugdrawer.hpp"
 #include "BulletCollision/NarrowPhaseCollision/btRaycastCallback.h"
@@ -195,7 +196,6 @@ int main()
     makeStatic(currentModel);
 
     Model *lastModel = NULL;    //last pointed-at model
-    bool showProperties = true;
     bool singleScale = true; //ajust scale as single value, or as x, y, and z values
 
 
@@ -355,45 +355,10 @@ int main()
                 }
                 */
             }
-/*
-            if(showProperties){ //Properties edit window
-                ImGuiWindowFlags window_flags = 0;
-                window_flags |= ImGuiWindowFlags_NoScrollbar;
-                window_flags |= ImGuiWindowFlags_NoResize;
-                window_flags |= ImGuiWindowFlags_NoCollapse;
 
-                ImGui::Begin("Properties", NULL, window_flags);
-                ImGui::Text(currentModel->objectPath.c_str()); //name of object file
-                ImGui::Checkbox("single scale value", &singleScale);
-                //scaling change
+            //Properties edit window
+            drawEditor();
 
-                if(singleScale){
-
-                    ImGui::SliderFloat("scale", &(currentModel->scale[0]), 0.1f, 100.0f, "%1.0f");
-                    currentModel->scale[1] = currentModel->scale[0];
-                    currentModel->scale[2] = currentModel->scale[0];
-
-                    currentModel->syncScale();
-
-
-                }else{
-                    ImGui::InputFloat("scale X", &(currentModel->scale[0]), 0.01f, 1.0f, "%.3f");
-                    ImGui::InputFloat("scale Y", &(currentModel->scale[1]), 0.01f, 1.0f, "%.3f");
-                    ImGui::InputFloat("scale Z", &(currentModel->scale[2]), 0.01f, 1.0f, "%.3f");
-                    currentModel->syncScale();
-                }
-
-                //position change
-                btVector3 pos = currentModel->body->getWorldTransform().getOrigin();
-                ImGui::SliderFloat("pos X", &(pos[0]), -100.0f, 100.0f, "%10.0f");
-                ImGui::SliderFloat("pos Y", &(pos[2]), -100.0f, 100.0f, "%10.0f");
-                ImGui::SliderFloat("pos Z", &(pos[1]), -100.0f, 100.0f, "%10.0f");
-                currentModel->body->getWorldTransform().setOrigin(pos);
-
-                ImGui::End();
-
-            }
-*/
             drawObjects();
             debugDraw.draw();
             ImGui::Render();

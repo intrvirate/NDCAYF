@@ -49,6 +49,7 @@ glm::vec2 pointMousePos;
 string textEntryString = "";
 bool inTextBox = false;
 bool physicsDebugEnabled = false;
+bool showProperties = true;
 
 bool exitMenuVal = false;
 
@@ -187,6 +188,12 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action,
 
     else if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         toggleMouseVisibility(window);
+
+    if (key == GLFW_KEY_E && action == GLFW_PRESS)
+    {
+        showProperties = !showProperties;
+    }
+
 
     if(!mouseVisable){
         // key bondings for camera mode
