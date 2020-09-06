@@ -307,7 +307,6 @@ int main()
             ImGui::NewFrame();
 
 
-<<<<<<< HEAD
             btVector3 from(cameraPos.x,cameraPos.y,cameraPos.z);
             btVector3 to(cameraPos.x+cameraFront.x*100,
             cameraPos.y+cameraFront.y*100, cameraPos.z+cameraFront.z*100);
@@ -326,17 +325,6 @@ int main()
             dynamicsWorld->rayTest(from, to, closestResults);
             if (closestResults.hasHit() && !isMouseVisable())
             {
-                /*
-                currentModel = ((Model *)closestResults.m_collisionObject->getCollisionShape()->getUserPointer());
-                //currentModel->tint = glm::vec3(0.2,0.2,0.2);
-                currentModel->selected = true;
-
-                if(currentModel != lastModel && lastModel != NULL){
-                    //lastModel->tint = glm::vec3(0,0,0);
-                    lastModel->selected = false;
-                }
-                lastModel = currentModel;
-                */
 
                 btVector3 p = from.lerp(to,
                     closestResults.m_closestHitFraction);
@@ -345,35 +333,12 @@ int main()
                 dynamicsWorld->getDebugDrawer()->drawLine(p, p
                     + closestResults.m_hitNormalWorld, blue);
 
-                updateModelPosition(currentModel, p);
-
-
             }
 
-/*
-            if(showProperties){ //Properties edit window
-                ImGuiWindowFlags window_flags = 0;
-                window_flags |= ImGuiWindowFlags_NoScrollbar;
-                window_flags |= ImGuiWindowFlags_NoResize;
-                window_flags |= ImGuiWindowFlags_NoCollapse;
 
-                ImGui::Begin("Properties", NULL, window_flags);
-                ImGui::Text(currentModel->objectPath.c_str()); //name of object file
-                ImGui::Checkbox("single scale value", &singleScale);
-                //scaling change
-
-                if(singleScale){
-
-                    ImGui::SliderFloat("scale", &(currentModel->scale[0]), 0.1f, 100.0f, "%1.0f");
-                    currentModel->scale[1] = currentModel->scale[0];
-                    currentModel->scale[2] = currentModel->scale[0];
-
-                    currentModel->syncScale();
-
-=======
             //Properties edit window
             drawEditor();
->>>>>>> 0a87349407708be8f73333dc8be24e612c7e4c67
+
 
             drawObjects();
             debugDraw.draw();
