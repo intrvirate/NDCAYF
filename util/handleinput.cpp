@@ -180,13 +180,16 @@ void exitMenu(){
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action,
-    int mods)
-{
+        int mods) {
+
     if (key == GLFW_KEY_F1 && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
     else if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         toggleMouseVisibility(window);
+
+    else if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+
 
     if(!mouseVisable){
         // key bondings for camera mode

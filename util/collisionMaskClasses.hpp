@@ -1,5 +1,6 @@
 #ifndef COLLISIONMASCLASSES_H
 #define COLLISIONMASCLASSES_H
+
 /* collision filtering masks.
  * These controll what types of objects can collide
  * with others in the world. Keep in mind that "collision

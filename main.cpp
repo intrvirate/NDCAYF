@@ -317,6 +317,8 @@ int main()
 
             dynamicsWorld->getDebugDrawer()->drawSphere(btVector3(0,0,0),
                 0.5, blue); //at origin
+
+
             btCollisionWorld::ClosestRayResultCallback closestResults(from, to);
             closestResults.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
             closestResults.m_collisionFilterGroup = COL_SELECTER;
@@ -346,15 +348,9 @@ int main()
 
                 updateModelPosition(currentModel, p);
 
-                //ourModel3.setPosition(p);
-            }else{
-                /*
-                if(currentModel != NULL){
-                    //currentModel->tint = glm::vec3(0,0,0);
-                    currentModel->selected = false;
-                }
-                */
+
             }
+
 /*
             if(showProperties){ //Properties edit window
                 ImGuiWindowFlags window_flags = 0;
