@@ -9,6 +9,7 @@
 #include "util/loadMenu.hpp"
 //#include "util/object/model.hpp"
 #include "util/object/object.h"
+#include "util/editor/editor.hpp"
 #include "util/bulletDebug/collisiondebugdrawer.hpp"
 #include "BulletCollision/NarrowPhaseCollision/btRaycastCallback.h"
 
@@ -49,6 +50,7 @@ glm::vec2 pointMousePos;
 string textEntryString = "";
 bool inTextBox = false;
 bool physicsDebugEnabled = false;
+bool showProperties = true;
 
 bool exitMenuVal = false;
 
@@ -188,8 +190,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action,
     else if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         toggleMouseVisibility(window);
 
-    else if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-
+    else if (key == GLFW_KEY_E && action == GLFW_PRESS)
+    {
+        showProperties = !showProperties;
+    }
+    else if (key == GLFW_KEY_G && action == GLFW_PRESS)
+    {
+        setCurrentModel();
+    }
 
     if(!mouseVisable){
         // key bondings for camera mode

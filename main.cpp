@@ -28,6 +28,7 @@
 #include "util/globalStateHandlers.hpp"
 
 #include "util/object/object.h"
+#include "util/editor/editor.hpp"
 
 #include "util/bulletDebug/collisiondebugdrawer.hpp"
 #include "BulletCollision/NarrowPhaseCollision/btRaycastCallback.h"
@@ -190,12 +191,9 @@ int main()
 
 //=========== LOOP ===========================================================
 
-    Model *currentModel = getModelPointerByName("Tree03");
-    disableCollision(currentModel);
-    makeStatic(currentModel);
+
 
     Model *lastModel = NULL;    //last pointed-at model
-    bool showProperties = true;
     bool singleScale = true; //ajust scale as single value, or as x, y, and z values
 
 
@@ -309,6 +307,7 @@ int main()
             ImGui::NewFrame();
 
 
+<<<<<<< HEAD
             btVector3 from(cameraPos.x,cameraPos.y,cameraPos.z);
             btVector3 to(cameraPos.x+cameraFront.x*100,
             cameraPos.y+cameraFront.y*100, cameraPos.z+cameraFront.z*100);
@@ -371,25 +370,11 @@ int main()
 
                     currentModel->syncScale();
 
+=======
+            //Properties edit window
+            drawEditor();
+>>>>>>> 0a87349407708be8f73333dc8be24e612c7e4c67
 
-                }else{
-                    ImGui::InputFloat("scale X", &(currentModel->scale[0]), 0.01f, 1.0f, "%.3f");
-                    ImGui::InputFloat("scale Y", &(currentModel->scale[1]), 0.01f, 1.0f, "%.3f");
-                    ImGui::InputFloat("scale Z", &(currentModel->scale[2]), 0.01f, 1.0f, "%.3f");
-                    currentModel->syncScale();
-                }
-
-                //position change
-                btVector3 pos = currentModel->body->getWorldTransform().getOrigin();
-                ImGui::SliderFloat("pos X", &(pos[0]), -100.0f, 100.0f, "%10.0f");
-                ImGui::SliderFloat("pos Y", &(pos[2]), -100.0f, 100.0f, "%10.0f");
-                ImGui::SliderFloat("pos Z", &(pos[1]), -100.0f, 100.0f, "%10.0f");
-                currentModel->body->getWorldTransform().setOrigin(pos);
-
-                ImGui::End();
-
-            }
-*/
             drawObjects();
             debugDraw.draw();
             ImGui::Render();
