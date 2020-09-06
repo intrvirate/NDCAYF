@@ -17,6 +17,8 @@
 #include "util/handleinput.hpp"
 
 Model *currentModel = NULL;
+string modelName = "";
+bool modelPhysics = NULL;
 
 void setCurrentModel()
 {
@@ -37,15 +39,24 @@ void setCurrentModel()
         {
             currentModel = ((Model *)closestResults.m_collisionObject->\
                 getCollisionShape()->getUserPointer());
-        disableCollision(currentModel);
-        makeStatic(currentModel);
+            disableCollision(currentModel);
+            makeStatic(currentModel);
+
+            modelPhysics = currentModel->hasPhysics;
+
+            modelName = currentModel->objectPath;
+            size_t delimPos = modelName.find_last_of("/");
+            modelName = modelName.substr(delimPos + 1);
         }
 
     } else
     {
         enableCollision(currentModel);
         makeDynamic(currentModel);
+        modelPhysics = NULL;
+        modelName = "";
         currentModel = NULL;
+
 
     }
     // currentModel = getModelPointerByName("Tree03");
@@ -101,9 +112,17 @@ void drawEditor()
 
         if (currentModel != NULL)
         {
-        ImGui::Text("Selected");
-        ImGui::SameLine();
-        ImGui::Text(currentModel->objectPath.c_str());
+            ImGui::Text("Selected:");
+            ImGui::SameLine();
+            ImGui::Text(modelName.c_str());
+
+            if (modelPhysics)
+            {
+                ImGui::Text("Has Physics");
+            } else
+            {
+                ImGui::Text("No Physics");
+            }
         }
 
         ImGui::End();
