@@ -20,22 +20,33 @@ Model *currentModel = NULL;
 
 void setCurrentModel()
 {
-    btVector3 from(cameraPos.x,cameraPos.y,cameraPos.z);
-    btVector3 to(cameraPos.x+cameraFront.x*100,
-    cameraPos.y+cameraFront.y*100, cameraPos.z+cameraFront.z*100);
-
-    btCollisionWorld::ClosestRayResultCallback closestResults(from, to);
-    closestResults.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
-    closestResults.m_collisionFilterGroup = COL_SELECTER;
-    closestResults.m_collisionFilterMask = COL_SELECT_RAY_COLLIDES_WITH;
-
-    dynamicsWorld->rayTest(from, to, closestResults);
-
-    if (closestResults.hasHit() && !isMouseVisable())
+    if (currentModel == NULL)
     {
-        currentModel = ((Model *)closestResults.m_collisionObject->getCollisionShape()->getUserPointer());
-    disableCollision(currentModel);
-    makeStatic(currentModel);
+        btVector3 from(cameraPos.x,cameraPos.y,cameraPos.z);
+        btVector3 to(cameraPos.x+cameraFront.x*100,
+        cameraPos.y+cameraFront.y*100, cameraPos.z+cameraFront.z*100);
+
+        btCollisionWorld::ClosestRayResultCallback closestResults(from, to);
+        closestResults.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
+        closestResults.m_collisionFilterGroup = COL_SELECTER;
+        closestResults.m_collisionFilterMask = COL_SELECT_RAY_COLLIDES_WITH;
+
+        dynamicsWorld->rayTest(from, to, closestResults);
+
+        if (closestResults.hasHit() && !isMouseVisable())
+        {
+            currentModel = ((Model *)closestResults.m_collisionObject->\
+                getCollisionShape()->getUserPointer());
+        disableCollision(currentModel);
+        makeStatic(currentModel);
+        }
+
+    } else
+    {
+        enableCollision(currentModel);
+        makeDynamic(currentModel);
+        currentModel = NULL;
+
     }
     // currentModel = getModelPointerByName("Tree03");
 }
