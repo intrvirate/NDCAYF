@@ -11,9 +11,13 @@
 #include "util/imgui/imgui_impl_glfw.h"
 #include "util/imgui/imgui_impl_opengl3.h"
 
+#include <btBulletDynamicsCommon.h>
+#include "BulletCollision/NarrowPhaseCollision/btRaycastCallback.h"
+
 #include "util/json.hpp"
 
 #include "util/object/object.h"
 
 void drawEditor();
+extern void setCurrentModel();
 #endif

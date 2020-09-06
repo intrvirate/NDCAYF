@@ -9,6 +9,7 @@
 #include "util/loadMenu.hpp"
 //#include "util/object/model.hpp"
 #include "util/object/object.h"
+#include "util/editor/editor.hpp"
 #include "util/bulletDebug/collisiondebugdrawer.hpp"
 #include "BulletCollision/NarrowPhaseCollision/btRaycastCallback.h"
 
@@ -192,6 +193,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action,
     if (key == GLFW_KEY_E && action == GLFW_PRESS)
     {
         showProperties = !showProperties;
+    }
+    if (key == GLFW_KEY_G && action == GLFW_PRESS)
+    {
+        setCurrentModel();
     }
 
 

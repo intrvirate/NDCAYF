@@ -191,9 +191,7 @@ int main()
 
 //=========== LOOP ===========================================================
 
-    Model *currentModel = getModelPointerByName("Tree03");
-    disableCollision(currentModel);
-    makeStatic(currentModel);
+
 
     Model *lastModel = NULL;    //last pointed-at model
     bool singleScale = true; //ajust scale as single value, or as x, y, and z values
@@ -308,53 +306,6 @@ int main()
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
 
-
-            btVector3 from(cameraPos.x,cameraPos.y,cameraPos.z);
-            btVector3 to(cameraPos.x+cameraFront.x*100,
-            cameraPos.y+cameraFront.y*100, cameraPos.z+cameraFront.z*100);
-
-            btVector3 blue(0.1, 0.3, 0.9);
-
-            dynamicsWorld->getDebugDrawer()->drawSphere(btVector3(0,0,0),
-                0.5, blue); //at origin
-            btCollisionWorld::ClosestRayResultCallback closestResults(from, to);
-            closestResults.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
-            closestResults.m_collisionFilterGroup = COL_SELECTER;
-            closestResults.m_collisionFilterMask = COL_SELECT_RAY_COLLIDES_WITH;
-
-            dynamicsWorld->rayTest(from, to, closestResults);
-            if (closestResults.hasHit() && !isMouseVisable())
-            {
-                /*
-                currentModel = ((Model *)closestResults.m_collisionObject->getCollisionShape()->getUserPointer());
-                //currentModel->tint = glm::vec3(0.2,0.2,0.2);
-                currentModel->selected = true;
-
-                if(currentModel != lastModel && lastModel != NULL){
-                    //lastModel->tint = glm::vec3(0,0,0);
-                    lastModel->selected = false;
-                }
-                lastModel = currentModel;
-                */
-
-                btVector3 p = from.lerp(to,
-                    closestResults.m_closestHitFraction);
-
-                dynamicsWorld->getDebugDrawer()->drawSphere(p, 0.1, blue);
-                dynamicsWorld->getDebugDrawer()->drawLine(p, p
-                    + closestResults.m_hitNormalWorld, blue);
-
-                updateModelPosition(currentModel, p);
-
-                //ourModel3.setPosition(p);
-            }else{
-                /*
-                if(currentModel != NULL){
-                    //currentModel->tint = glm::vec3(0,0,0);
-                    currentModel->selected = false;
-                }
-                */
-            }
 
             //Properties edit window
             drawEditor();
