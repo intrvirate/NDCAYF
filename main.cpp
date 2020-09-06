@@ -28,6 +28,7 @@
 #include "util/globalStateHandlers.hpp"
 
 #include "util/object/object.h"
+#include "util/editor/editor.hpp"
 
 #include "util/bulletDebug/collisiondebugdrawer.hpp"
 #include "BulletCollision/NarrowPhaseCollision/btRaycastCallback.h"
@@ -190,12 +191,9 @@ int main()
 
 //=========== LOOP ===========================================================
 
-    Model *currentModel = getModelPointerByName("Tree03");
-    disableCollision(currentModel);
-    makeStatic(currentModel);
+
 
     Model *lastModel = NULL;    //last pointed-at model
-    bool showProperties = true;
     bool singleScale = true; //ajust scale as single value, or as x, y, and z values
 
 
@@ -309,91 +307,9 @@ int main()
             ImGui::NewFrame();
 
 
-            btVector3 from(cameraPos.x,cameraPos.y,cameraPos.z);
-            btVector3 to(cameraPos.x+cameraFront.x*100,
-            cameraPos.y+cameraFront.y*100, cameraPos.z+cameraFront.z*100);
+            //Properties edit window
+            drawEditor();
 
-            btVector3 blue(0.1, 0.3, 0.9);
-
-            dynamicsWorld->getDebugDrawer()->drawSphere(btVector3(0,0,0),
-                0.5, blue); //at origin
-            btCollisionWorld::ClosestRayResultCallback closestResults(from, to);
-            closestResults.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
-            closestResults.m_collisionFilterGroup = COL_SELECTER;
-            closestResults.m_collisionFilterMask = COL_SELECT_RAY_COLLIDES_WITH;
-
-            dynamicsWorld->rayTest(from, to, closestResults);
-            if (closestResults.hasHit() && !isMouseVisable())
-            {
-                /*
-                currentModel = ((Model *)closestResults.m_collisionObject->getCollisionShape()->getUserPointer());
-                //currentModel->tint = glm::vec3(0.2,0.2,0.2);
-                currentModel->selected = true;
-
-                if(currentModel != lastModel && lastModel != NULL){
-                    //lastModel->tint = glm::vec3(0,0,0);
-                    lastModel->selected = false;
-                }
-                lastModel = currentModel;
-                */
-
-                btVector3 p = from.lerp(to,
-                    closestResults.m_closestHitFraction);
-
-                dynamicsWorld->getDebugDrawer()->drawSphere(p, 0.1, blue);
-                dynamicsWorld->getDebugDrawer()->drawLine(p, p
-                    + closestResults.m_hitNormalWorld, blue);
-
-                updateModelPosition(currentModel, p);
-
-                //ourModel3.setPosition(p);
-            }else{
-                /*
-                if(currentModel != NULL){
-                    //currentModel->tint = glm::vec3(0,0,0);
-                    currentModel->selected = false;
-                }
-                */
-            }
-/*
-            if(showProperties){ //Properties edit window
-                ImGuiWindowFlags window_flags = 0;
-                window_flags |= ImGuiWindowFlags_NoScrollbar;
-                window_flags |= ImGuiWindowFlags_NoResize;
-                window_flags |= ImGuiWindowFlags_NoCollapse;
-
-                ImGui::Begin("Properties", NULL, window_flags);
-                ImGui::Text(currentModel->objectPath.c_str()); //name of object file
-                ImGui::Checkbox("single scale value", &singleScale);
-                //scaling change
-
-                if(singleScale){
-
-                    ImGui::SliderFloat("scale", &(currentModel->scale[0]), 0.1f, 100.0f, "%1.0f");
-                    currentModel->scale[1] = currentModel->scale[0];
-                    currentModel->scale[2] = currentModel->scale[0];
-
-                    currentModel->syncScale();
-
-
-                }else{
-                    ImGui::InputFloat("scale X", &(currentModel->scale[0]), 0.01f, 1.0f, "%.3f");
-                    ImGui::InputFloat("scale Y", &(currentModel->scale[1]), 0.01f, 1.0f, "%.3f");
-                    ImGui::InputFloat("scale Z", &(currentModel->scale[2]), 0.01f, 1.0f, "%.3f");
-                    currentModel->syncScale();
-                }
-
-                //position change
-                btVector3 pos = currentModel->body->getWorldTransform().getOrigin();
-                ImGui::SliderFloat("pos X", &(pos[0]), -100.0f, 100.0f, "%10.0f");
-                ImGui::SliderFloat("pos Y", &(pos[2]), -100.0f, 100.0f, "%10.0f");
-                ImGui::SliderFloat("pos Z", &(pos[1]), -100.0f, 100.0f, "%10.0f");
-                currentModel->body->getWorldTransform().setOrigin(pos);
-
-                ImGui::End();
-
-            }
-*/
             drawObjects();
             debugDraw.draw();
             ImGui::Render();
