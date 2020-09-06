@@ -101,14 +101,22 @@ void drawEditor()
 
         ImGuiWindowFlags window_flags = 0;
         window_flags |= ImGuiWindowFlags_NoScrollbar;
+        window_flags |= ImGuiWindowFlags_NoResize;
+        ImVec2 windowSize;
 
-        ImVec2 windowSize = ImVec2(200.0f, 50.0f);
+        if (currentModel != NULL)
+        {
+            windowSize = ImVec2(ImGui::GetFontSize() * 20.0f, 70);
+        } else
+        {
+            windowSize = ImVec2(ImGui::GetFontSize() * 20.0f, 0);
+        }
         ImGui::SetNextWindowSize(windowSize);
         ImVec2 windowPos = ImVec2(25.0f, 25.0f);
         ImGui::SetNextWindowPos(windowPos);
 
         ImGui::Begin("Properties", NULL, window_flags);
-        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 20.0f);
 
         if (currentModel != NULL)
         {
