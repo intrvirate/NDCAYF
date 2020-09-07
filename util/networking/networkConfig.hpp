@@ -9,8 +9,8 @@
  *
  */
 #define PORT  12345
-#define SUPERSECRETKEY_SERVER "ndcayfserver"
-#define SUPERSECRETKEY_CLIENT "ndcayfclient"
+#define SUPERSECRETKEY_SERVER "ndcayfser"
+#define SUPERSECRETKEY_CLIENT "ndcayfcli"
 #define PONG 1
 #define PING 2
 #define STATE 3
@@ -50,16 +50,18 @@ struct server {
     int loIndex;
 };
 
-struct move {
-    char moves[10];
+struct move
+{
+    glm::vec3 pos;
     glm::vec3 dir;
+    char extraActions[5];
 };
 
 struct entities
 {
     glm::vec3 cameraPos;
     glm::vec3 cameraDirection;
-    struct move keys[100];
+    struct move keys[60];
     int numMoves;
     int moveID;
 };

@@ -17,6 +17,13 @@
 
 int actualSock;
 struct sockaddr_in serverAddr;
+socklen_t serverAddrLen = sizeof(serverAddr);
+
+struct generalPack buf;
+size_t bufSize = sizeof(struct generalPack);
+
+struct sockaddr_in in_addr;
+socklen_t inAddrLen = sizeof(in_addr);
 
 char hostname[128];
 int DELAY_SECS2 = 0;
@@ -24,7 +31,7 @@ int DELAY_USECS2 = 100;
 
 int keyID = 0;
 int clientID;
-struct datapoint *unvalidated = new struct datapoint[10000];
+//struct datapoint *unvalidated = new struct datapoint[10000];
 int unvalidSize = 0;
 bool connected = false;
 bool test_nw_cl = false;
@@ -45,6 +52,11 @@ bool getConnection()
 struct sockaddr_in getServerAddr()
 {
     return serverAddr;
+}
+
+void setServerAddr(struct sockaddr_in newServerAddr)
+{
+    serverAddr = newServerAddr;
 }
 
 int getID()
@@ -97,236 +109,126 @@ int makeSocket()
         return -1;
     }
 
+
+    //int broadcastEnable = 1;
+    //int ret = setsockopt(actualSock, SOL_SOCKET, SO_BROADCAST, &broadcastEnable, sizeof(broadcastEnable));
+
     return 0;
 }
 
-unsigned long long getMilliSeconds()
+
+bool connectTo(char ip[])
 {
-    struct timeval tv;
+    bool success = false;
 
-    gettimeofday(&tv, NULL);
-
-    return ((unsigned long long)(tv.tv_sec) * 1000 + (unsigned long long)(tv.tv_usec) / 1000);
-}
-
-
-void composeMsg(char msg[], int protocol, char extra[])
-{
-    unsigned long long milliSeconds = getMilliSeconds();
-
-    sprintf(msg, "%s$%s$%d$%llu$%d$%s", SUPERSECRETKEY_CLIENT, hostname, protocol, milliSeconds, clientID, extra);
-}
-
-int makePacket(char msg[], struct MsgPacket *out)
-{
-    int state = 0;
-    char key[128];
-    char extra[256];
-
-    strcpy(key, strtok(msg, "$"));
-
-    if (strcmp(key, SUPERSECRETKEY_SERVER) == 0)
-    {
-        strcpy(out->name, strtok(NULL, "$"));
-        out->ptl = std::stoi(strtok(NULL, "$"));
-        out->time = std::stoull(strtok(NULL, "$"));
-        strcpy(out->data, strtok(NULL, "$"));
-        strcpy(extra, out->data);
-        clientID = std::stoi(strtok(extra, "&"));
-    }
-    else
-    {
-        printf("Key check failed\n");
-        state = -1;
-    }
-    return state;
-}
-
-int connectToServer(char ip[], struct MsgPacket *msg)
-{
-    gethostname(hostname, 128);
-    int success = 1;
-
-    struct sockaddr_in in_addr;
-    socklen_t addrlen = sizeof(in_addr);
-    char buf[BUFSIZE*2];
-    int recvlen = -1;
-
-    socklen_t addrlen_in = sizeof(serverAddr);
-
+    // set the server address to the ip
     memset(&serverAddr, 0, sizeof(serverAddr));
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(PORT);
     serverAddr.sin_addr.s_addr = inet_addr(ip);
 
-    char connectMsg[BUFSIZE];
+    // set the hostname
+    gethostname(hostname, 128);
 
-    composeMsg(connectMsg, CONNECT);
+    //make the connect pack, and receve pack
+    struct generalPack connectPack = makeBasicPack(CONNECT);
+    struct generalPack *msgPack = new struct generalPack;
 
+    //makes the socket, doesn't work it you don't have a socket, as you can imagine
     if (makeSocket() < 0)
     {
         printf("Failed to get socket");
         success = -1;
     }
 
-
-    if (sendto(actualSock, connectMsg, strlen(connectMsg), 0, (struct sockaddr *)&serverAddr, addrlen_in) < 0)
+    // send the connect pack
+    if (send(connectPack) < 0)
     {
-        printf("Failed to send\n");
-        success = -1;
+        printf("Send failed\n");
     }
 
-    // actually get the response
+    // try to recieve a connect pack back
+    bool trying = true;
+    bool found = false;
     int tries = 0;
-    while (recvlen < 0)
+    while (trying)
     {
-        recvlen = recvfrom(actualSock, buf, BUFSIZE, 0, (struct sockaddr *)&in_addr, &addrlen);
-        tries++;
-        if (tries > 1000)
+        if (checkServer(msgPack) < 0)
         {
-            success = -1;
-            printf("Failed to connect server\n");
-        }
-    }
-
-    if (!(success < 0))
-    {
-        printf("Recieved: %s\n", buf);
-
-        if (makePacket(buf, msg) < 0)
-        {
-            printf("Couldn't turn into packet\n");
-            success = -1;
-        }
-    }
-
-    return success;
-}
-
-int sendMoveData(struct datapoint point)
-{
-    char data[2048];
-    char msg[BUFSIZE];
-    int success = 1;
-
-    sprintf(data, "%s&%s&%d", point.direction, point.move, point.id);
-    socklen_t addrlen_in = sizeof(serverAddr);
-
-
-    composeMsg(msg, MOVE, data);
-    //printf("Sending: %s\n", msg);
-
-
-    if (sendto(actualSock, msg, strlen(msg), 0, (struct sockaddr *)&serverAddr, addrlen_in) < 0)
-    {
-        printf("Failed to send\n");
-        success = -1;
-    }
-
-    return success;
-}
-
-int checkServer(char buf[])
-{
-    struct sockaddr_in in_addr;
-    socklen_t addrlen = sizeof(in_addr);
-    char in[BUFSIZE*2];
-    int recvlen = -1;
-
-    recvlen = recvfrom(actualSock, in, (BUFSIZE*2), 0, (struct sockaddr *)&in_addr, &addrlen);
-
-    if (in_addr.sin_addr.s_addr == serverAddr.sin_addr.s_addr)
-    {
-        strcpy(buf, in);
-        printf("buffer [%s]\n", buf);
-
-    }
-
-    return recvlen;
-}
-
-int pingPong(int pingOrPong)
-{
-    char data[2048];
-    char msg[BUFSIZE];
-    int success = 1;
-    socklen_t addrlen_in = sizeof(serverAddr);
-
-
-    composeMsg(msg, pingOrPong);
-    //printf("Sending: %s\n", msg);
-
-
-    if (sendto(actualSock, msg, strlen(msg), 0, (struct sockaddr *)&serverAddr, addrlen_in) < 0)
-    {
-        printf("Failed to send\n");
-        success = -1;
-    }
-
-    return success;
-}
-
-
-int processMsg(char msg[], struct MsgPacket *packet)
-{
-    char clientKey[128];
-    char name[128];
-    char protocol[128];
-    char data[BUFSIZE];
-    int ptl;
-    char time[256];
-    strcpy(clientKey, strtok(msg, "$"));
-
-
-    if (strcmp(clientKey, SUPERSECRETKEY_SERVER) == 0)
-    {
-        strcpy(name, strtok(NULL, "$"));
-
-        // get protocol and make it a number
-        strcpy(protocol, strtok(NULL, "$"));
-        ptl = std::stoi(protocol);
-
-        strcpy(time, strtok(NULL, "$"));
-
-        // safe guard
-        if (ptl == PING)
-        {
-            strcpy(data, " ");;
+            tries++;
+            printf("Received failed\n");
         }
         else
         {
-            strcpy(data, strtok(NULL, "$"));
+            found = true;
+            trying = false;
         }
 
-
-        strcpy(packet->name, name);
-        strcpy(packet->data, data);
-        packet->ptl = ptl;
-        packet->time = atoll(time);
-
-        if (ptl == PING)
+        if (tries > 10)
         {
-            printf("Send response\n");
-            pingPong(PONG);
-            return PONG;
-        }
-        else if (ptl ==  CONNECT)
-        {
-            printf("\"Connecting\" to server\n");
-            return CONNECT;
-        }
-        else if (ptl == DUMP)
-        {
-            //printf("Got a server dump\n");
-            return DUMP;
+            trying = false;
         }
     }
-    else
+
+    // if found and is a connect packet then we are good
+    if (found && msgPack->protocol == CONNECT)
     {
-        printf("Not a NDCAYF client\n");
-        return -1;
+        success = true;
+        printf("%s, %s, %d, %ld, %ld", msgPack->key, msgPack->name, msgPack->protocol, msgPack->time.tv_sec, msgPack->time.tv_usec, msgPack->data);
+        // get the int out of the extra bytes
+        clientID = (int)*(msgPack->data);
+        printf(", %d\n", clientID);
     }
+
+    return success;
 }
+
+struct generalPack makeBasicPack(int ptl)
+{
+    struct generalPack pack;
+    strcpy(pack.key, SUPERSECRETKEY_CLIENT);
+    strcpy(pack.name, hostname);
+    pack.protocol = ptl;
+    pack.numObjects = 1;
+
+    return pack;
+}
+
+
+int send(struct generalPack toSend)
+{
+    int success = 1;
+
+    //send timestamp, incase you forgot
+    gettimeofday(&toSend.time, NULL);
+
+    if (sendto(actualSock, (const void*)&toSend, bufSize, 0, (struct sockaddr *)&serverAddr, serverAddrLen) < 0)
+    {
+        perror("Failed to send\n");
+        success = -1;
+    }
+
+    return success;
+}
+
+int checkServer(struct generalPack *msg)
+{
+    int recvlen = -1;
+    int success = -1;
+
+    recvlen = recvfrom(actualSock, &buf, bufSize, 0, (struct sockaddr *)&in_addr, &inAddrLen);
+
+    if (in_addr.sin_addr.s_addr == serverAddr.sin_addr.s_addr)
+    {
+        success = 0;
+        *msg = buf;
+        //printf("Received %d bytes\n", recvlen);
+        //printf("%s, %s, %d, %ld, %ld\n", msg->key, msg->name, msg->protocol, msg->time.tv_sec, msg->time.tv_usec);
+    }
+
+    return success;
+}
+
 
 void getParts(std::string parts[], std::string raw, int amount, std::string deli)
 {
@@ -346,6 +248,7 @@ void getParts(std::string parts[], std::string raw, int amount, std::string deli
 
 void applyDumpData(struct entities *them, char data[], int *count)
 {
+    /*
     ///////remove/////////////
     //clientID = 0;
     ////////////////////////
@@ -433,10 +336,12 @@ void applyDumpData(struct entities *them, char data[], int *count)
             }
         }
     }
+    */
 }
 
 void reconcileClient(struct entities *me)
 {
+    /*
     //printf("im at %d servers at %d size %d\n", unvalidated[unvalidSize - 1].id, me->moveID, unvalidSize);
 
     int end;
@@ -517,6 +422,7 @@ void reconcileClient(struct entities *me)
         unvalidSize = 0;
 
     }
+    */
 
 
 
@@ -546,7 +452,7 @@ void applyKeys(char keys[], glm::vec3 dir, glm::vec3 *pos)
 }
 
 
-void netLog(std::string key, glm::vec3 front)
+void netLog(glm::vec3 pos, glm::vec3 front, char key[])
 {
     // separates each key by , useless
     /*
@@ -561,22 +467,76 @@ void netLog(std::string key, glm::vec3 front)
     //key.append(")");
     */
 
-    strcpy(unvalidated[unvalidSize].move, key.c_str());
+    //strcpy(unvalidated[unvalidSize].move, key.c_str());
 
-    char dir[30];
-    sprintf(dir, "%.3f,%.3f,%.3f", front.x, front.y, front.z);
+    //strcpy(unvalidated[unvalidSize].direction, dir);
 
-    strcpy(unvalidated[unvalidSize].direction, dir);
-
-    unvalidated[unvalidSize].id = keyID++;
+    //unvalidated[unvalidSize].id = keyID++;
 
     //printf("Key: [%s], dir: [%s], [%d]\n", unvalidated[unvalidSize].move, unvalidated[unvalidSize].direction, unvalidated[unvalidSize].id);
+    struct generalPack movePoint = makeBasicPack(MOVE);
+    struct move moveData;
 
+    moveData.pos = pos;
+    moveData.dir = front;
+    strcpy(moveData.extraActions, key);
+    int moveID = 10;
+
+    //char * ptr = *((char)moveData + (char)a);
+
+
+    /* debug
+    printf("[");
+    for (int i = 0; i < sizeof(moveID); i++)
+    {
+        printf("%02x", ((char *)&moveID)[i]);
+    }
+    printf("]\n");
+
+
+    printf("[");
+    for (int i = 0; i < sizeof(moveData); i++)
+    {
+        printf("%02x", ((char*)&moveData)[i]);
+    }
+    printf("]\n");
+    */
+
+    // copy to the packet buffer
+    memcpy(&movePoint.data, &moveData, sizeof(moveData));
+    memcpy(&movePoint.data[sizeof(moveData)], &moveID, sizeof(moveID));
+
+    /* debug
+    printf("[");
+    for (int i = 0; i < 1040; i++)
+    {
+        printf("%02x", ((char*)&movePoint)[i]);
+    }
+    printf("]\n");
+
+    char * ptr = (char*)&movePoint;
+    struct generalPack pack = *(struct generalPack*)ptr;
+
+    struct move moveafter;
+    memcpy(&moveafter, &pack.data, sizeof(struct move));
+
+    int aa;
+    memcpy(&aa, &pack.data[sizeof(struct move)], sizeof(int));
+
+    printf("%s\n", moveafter.extraActions);
+    printf("%d\n", aa);
+
+    printf("%d\n", sizeof(movePoint));
+    // debug*/
+
+    send(movePoint);
+    /*
     if (sendMoveData(unvalidated[unvalidSize]) < 0)
     {
         printf("Something went wrong with key send\n");
     }
     unvalidSize++;
+    */
 }
 
 void setPositions(struct entities all[], char extra[])
@@ -609,6 +569,4 @@ void setPositions(struct entities all[], char extra[])
 
         ptr = strtok(NULL, "&,");
     }
-
-
 }

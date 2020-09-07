@@ -45,6 +45,7 @@
 #include <stdbool.h>
 #include <sys/types.h>
 #include <ifaddrs.h>
+#include <sys/time.h>
 
 #include "util/networking/networkConfig.hpp"
 #include "util/networking/getLan.hpp"
@@ -56,7 +57,7 @@ using namespace std;
 using namespace glm;
 GLFWwindow* window;
 
-bool test_nw = false;
+bool test_nw = true;
 
 int main()
 {
@@ -64,65 +65,6 @@ int main()
     if (test_nw)
     {
         struct entities alls[10];
-        char tmsg9[] = "ndcayfserver$raspberrypi$7$1597345215470$(0&3.813,15.867,-6.326&-0.921,-0.379,-0.089&2507"
-        "(1&11.579,-1.562,-24.051&-0.956,0.238,0.173"
-        "&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&"
-        "-0.956,0.238,0.173&&";
-
-        char tmsg10[] = "ndcayfserver$luke-G7-7588$7$1597347005656$(0&-23.139,5.744,-31.460&0.568,-0.083,0.819&1449(1&-2.178,-21.443,-1.542&-0.620,-0.481,-0.620&-0.620,-0.481,-0.620&d&-0.620,-0.481,-0.620&d&-0.620,-0.481,-0.620&d&-0.620,-0.481,-0.620&d&-0.620,-0.481,-0.620&sd&-0.620,-0.481,-0.620&sd&-0.620,-0.481,-0.620&sd&-0.620,-0.481,-0.620&sd&-0.620,-0.481,-0.620&sd&-0.620,-0.481,-0.620&sd&-0.620,-0.481,-0.620&sd&-0.620,-0.481,-0.620&sd&-0.620,-0.481,-0.620&s&-0.620,-0.481,-0.620&s&-0.620,-0.481,-0.620&s&-0.620,-0.481,-0.620&s&-0.620,-0.481,-0.620&s&-0.620,-0.481,-0.620&s&-0.620,-0.481,-0.620&s&-0.620,-0.481,-0.620&s&-0.620,-0.481,-0.620&sa&-0.620,-0.481,-0.620&a&-0.620,-0.481,-0.620&a&-0.620,-0.481,-0.620&a&-0.620,-0.481,-0.620&a&-0.620,-0.481,-0.620&a&-0.620,-0.481,-0.620&a&-0.620,-0.481,-0.620&a&-0.620,-0.481,-0.620&a&-0.620,-0.481,-0.620&a&-0.620,-0.481,-0.620&a&-0.620,-0.481,-0.620&a&-0.620,-0.481,-0.620&a&-0.620,-0.481,-0.620&a&-0.620,-0.481,-0.620&a&-0.620,-0.481,-0.620&a&-0.620,-0.481,-0.620&a&-0.620,-0.481,-0.620&a&-0.620,-0.481,-0.620&a&-0.620,-0.481,-0.620&wa&-0.620,-0.481,-0.620&wa&-0.620,-0.481,-0.620&wa&-0.620,-0.481,-0.620&wa&-0.620,-0.481,-0.620&wa&-0.620,-0.481,-0.620&wa&-0.620,-0.481,-0.620&wa&-0.620,-0.481,-0.620&wa&-0.620,-0.481,-0.620&w&-0.620,-0.481,-0.620&w&-0.620,-0.481,-0.620&w&-0.620,-0.481,-0.620&w&-0.620,-0.481,-0.620&&-0.620,-0.481,-0.620&&-0.620,-0.481,-0.620&&-0.620,-0.481,-0.620&&-0.620,-0.481,-0.620&&-0.620,-0.481,-0.620&&-0.620,-0.481,-0.620&&-0.620,-0.481,-0.620&&-0.620,-0.481,-0.620&&�";
 
         /*
         glm::vec3 newPoss = glm::vec3(-1.694,9.585,-14.178);
@@ -136,10 +78,111 @@ int main()
                         */
 
 
+        int x = sizeof(struct generalPack);
+        int y = 10;
+        int z = 10;
+        int a = sizeof(unsigned short int);
+        int b = sizeof(struct timeval);
+        int c = 1000;
 
-        
+        struct timeval tv;
 
-        printf("asdf\n");
+        gettimeofday(&tv, NULL);
+
+        /*
+        printf("%d ", y);
+        printf("%d ", z);
+        printf("%d ", a);
+        printf("%d ", b);
+        printf("%d\n", c);
+        printf("Theoritical %d\n", y+z+a+b+c);
+        printf("Actual      %d\n", x);
+
+        printf("%ld, %ld\n", tv.tv_sec, tv.tv_usec);
+        */
+
+
+        // to send
+        struct generalPack pack;
+
+        // to recieve
+        struct generalPack *msgPack = new struct generalPack;
+
+        // add to pack
+        strcpy(pack.key, "key");
+        strcpy(pack.name, "key");
+        pack.protocol = PING;
+        pack.time = tv;
+        //strcpy(pack.data, "1234567891");
+
+        struct sockaddr_in serverAddra;
+        struct server serverLista[MAXSERVERS];
+
+        printf("Loading network\n");
+        getAllServers(serverLista);
+
+        printServerList(serverLista);
+
+
+        // set the server
+        struct sockaddr_in serverAddr;
+
+        memset(&serverAddr, 0, sizeof(serverAddr));
+        serverAddr.sin_family = AF_INET;
+        serverAddr.sin_port = htons(PORT);
+        serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+
+        //setServerAddr(serverAddr);
+        char ip[] = "10.55.20.48";
+        if (!connectTo(ip))
+        {
+            printf("Failed to connect\n");
+        }
+
+        /*
+        printf("made a socket\n");
+        if (makeSocket() < 0)
+        {
+            printf("failed to make\n");
+        }
+        */
+
+
+        long sum = 0;
+        int numberOfPings = 1000;
+        for (int i = 0; i < numberOfPings; i++)
+        {
+            gettimeofday(&pack.time, NULL);
+            send(pack);
+            //printf("\t%s, %s, %d, %ld, %ld\n", pack.key, pack.name, pack.protocol, pack.time.tv_sec, pack.time.tv_usec);
+
+
+            if (checkServer(msgPack) < 0)
+            {
+                printf("failed to receve\n");
+            }
+            gettimeofday(&(msgPack->time), NULL);
+
+            //printf("\t%s, %s, %d, %ld, %ld\n", msgPack->key, msgPack->name, msgPack->protocol, msgPack->time.tv_sec, msgPack->time.tv_usec);
+
+            long diff = msgPack->time.tv_usec - pack.time.tv_usec;
+            sum += diff;
+            //printf("lag in microseconds %ld\n", diff);
+        }
+        printf("Average %ld, total %ld\n", sum / numberOfPings, sum);
+
+        glm::vec3 Pos = glm::vec3(1.0f,1.0f,1.0f);
+        printf("%.2f %.2f %.2f\n", Pos.x, Pos.y, Pos.z);
+
+        glm::vec3 cameraFront(0,0,0);
+        char keys[5] = "hi .";
+        netLog(Pos, cameraFront, keys);
+
+
+
+
+        return 0;
+        /*
         struct MsgPacket pack;
         int numAlls = 0;
         processMsg(tmsg10, &pack);
@@ -358,7 +401,6 @@ int main()
             ImGui::Text("");
 
 
-            struct MsgPacket msg;
 
             for (int j = 0; j < MAXSERVERS; j = j + 1)
             {
@@ -383,7 +425,7 @@ int main()
                         if (ImGui::Button(txt))
                         {
                             printf("Server %s, IP %s\n", serverList[j].name, serverList[j].routes[q]);
-                            if (connectToServer(serverList[j].routes[q], &msg) < 0)
+                            if (connectTo(serverList[j].routes[q]) < 0)
                             {
                                 printf("Failed to connect to: %s at %s\n", serverList[j].name, serverList[j].routes[q]);
                             }
@@ -422,7 +464,7 @@ int main()
             {
                 serverAddr = getServerAddr();
                 printf("Connection successful to: %s\n", inet_ntoa(serverAddr.sin_addr));
-                printf("Data %s  %d   %llu  %s\n", msg.name, msg.ptl, msg.time, msg.data);
+                //printf("Data %s  %d   %llu  %s\n", msg.name, msg.ptl, msg.time, msg.data);
                 printf("ID %d\n", getID());
                 printf("===================Waiting for server=================\n");
                 setLoopMode(LOOP_MODE_EDIT);
@@ -430,10 +472,11 @@ int main()
                 //setPositions(all, msg.data);
                 // wait for the server to send the info
                 bool waiting = true;
+                /*
                 while (waiting)
                 {
                     char buf[BUFSIZE*2];
-                    struct MsgPacket msg;
+                    //struct MsgPacket msg;
                     strcpy(buf, "");
                     int type;
                     // get msg
@@ -459,7 +502,7 @@ int main()
                                 if (i != getID())
                                 {
                                     btVector3 infront(all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
-                                    ourModel5.setPosition(infront);
+                                    //ourModel5.setPosition(infront);
                                     //printf("Num of moves %d\n", all[i].numMoves);
                                 }
                                 else
@@ -473,14 +516,10 @@ int main()
                     }
 
                 }
+                */
 
                 cameraPos = all[getID()].cameraPos;
                 cameraFront = all[getID()].cameraDirection;
-
-                //printf("%f, %f, %f\n", cameraPos.x, cameraPos.y, cameraPos.z);
-
-                btVector3 infront(cameraPos.x, cameraPos.y, cameraPos.z);
-                //ourModel5.setPosition(infront);
             }
 
 
@@ -581,7 +620,6 @@ int main()
             }
 */
             debugDraw.draw();
->>>>>>> master
             ImGui::Render();
             int display_w, display_h;
             glfwGetFramebufferSize(window, &display_w, &display_h);
@@ -596,10 +634,11 @@ int main()
             if (connected)
             {
                 char buf[BUFSIZE*2];
-                struct MsgPacket msg;
+                //struct MsgPacket msg;
                 strcpy(buf, "");
                 int type;
                 // get msg
+                /*
                 if (checkServer(buf) > 0)
                 {
                     type = processMsg(buf, &msg);
@@ -608,18 +647,14 @@ int main()
                     {
                         applyDumpData(all, msg.data, &numEntities);
 
-                        /*
                         printf("me [%.3f,%.3f,%.3f], server [%.3f,%.3f,%.3f]\n",
                             cameraPos.x, cameraPos.y, cameraPos.z,
                             all[getID()].cameraPos.x, all[getID()].cameraPos.y, all[getID()].cameraPos.z);
-                        */
 
                         reconcileClient(&all[getID()]);
 
-                        /*
                         printf("reconcile [%.3f,%.3f,%.3f]\n",
                             all[getID()].cameraPos.x, all[getID()].cameraPos.y, all[getID()].cameraPos.z);
-                        */
 
                         interlopeCount = 0;
 
@@ -628,7 +663,7 @@ int main()
                             if (i != getID())
                             {
                                 btVector3 infront(all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
-                                ourModel5.setPosition(infront);
+                                //ourModel5.setPosition(infront);
                                 //printf("Num of moves %d\n", all[i].numMoves);
                             }
                             else
@@ -639,6 +674,7 @@ int main()
 
                     }
                 }
+                */
                     //interlope
 
                 for (int i = 0; i < numEntities; i++)
@@ -650,10 +686,10 @@ int main()
                         if (interlopeCount < all[i].numMoves)
                         {
                             //printf("\tbefore [%.3f,%.3f,%.3f]\n", all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
-                            applyKeys(all[i].keys[interlopeCount].moves, all[i].keys[interlopeCount].dir, &(all[i].cameraPos));
+                            //applyKeys(all[i].keys[interlopeCount].moves, all[i].keys[interlopeCount].dir, &(all[i].cameraPos));
                             //printf("\tafter [%.3f,%.3f,%.3f]\n", all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
                             btVector3 infront(all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
-                            ourModel5.setPosition(infront);
+                            //ourModel5.setPosition(infront);
                         }
                     }
                 }
@@ -661,7 +697,6 @@ int main()
                 interlopeCount++;
             }
                 //draw the players
-                                ourModel5.Draw(ourShader, outlineShader);
             }
             break;
         case LOOP_MODE_PLAY :    {

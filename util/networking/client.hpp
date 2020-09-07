@@ -6,14 +6,6 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-struct MsgPacket
-{
-    char name[128];
-    int ptl;
-    unsigned long long time;
-    char data[BUFSIZE];
-};
-
 // stores the key press and the direciton before key press
 // and the id
 struct datapoint
@@ -23,35 +15,42 @@ struct datapoint
     int id;
 };
 
-/*
-struct server {
-    struct sockaddr_in routes[5];
-    int numRoutes;
-    char name[128];
-    bool hasLo;
-    int loIndex;
-};
-*/
 
-void composeMsg(char msg[], int protocol, char extra[] = "none");
-int connectToServer(char ip[], struct MsgPacket *msg);
-int makePacket(char msg[], struct MsgPacket *out);
+
+struct generalPack
+{
+    char key[10];
+    char name[10];
+    unsigned short int protocol;
+    unsigned short int numObjects;
+    struct timeval time;
+    char data[1000];
+};
+
+
 int makeSocket();
-unsigned long long getMilliSeconds();
-void setPositions(struct entities all[], char extra[]);
-void netLog(std::string key, glm::vec3 front);
+void netLog(glm::vec3 pos, glm::vec3 front, char key[]);
+
+int getKeyID();
+int getID();
 void setConnection(bool value);
 bool getConnection();
-int sendMoveData(struct datapoint point);
 struct sockaddr_in getServerAddr();
-int getID();
-int checkServer(char buf[]);
-int processMsg(char msg[], struct MsgPacket *packet);
-void applyDumpData(struct entities *them, char data[], int *count);
-int debugPrint(const char *format, ...);
 void setTestNw(bool value);
+int debugPrint(const char *format, ...);
+
+
+void setPositions(struct entities all[], char extra[]);
+void applyDumpData(struct entities *them, char data[], int *count);
 void reconcileClient(struct entities *me);
+
 void applyKeys(char keys[], glm::vec3 dir, glm::vec3 *pos);
-int getKeyID();
+
+
+int send(struct generalPack toSend);
+int checkServer(struct generalPack *msg);
+void setServerAddr(struct sockaddr_in newServerAddr);
+struct generalPack makeBasicPack(int ptl);
+bool connectTo(char ip[]);
 
 #endif
