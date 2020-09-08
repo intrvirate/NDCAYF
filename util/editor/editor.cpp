@@ -17,6 +17,8 @@
 #include "util/handleinput.hpp"
 
 Model *currentModel = NULL;
+string modelName = "";
+bool modelPhysics = NULL;
 
 void setCurrentModel()
 {
@@ -37,15 +39,24 @@ void setCurrentModel()
         {
             currentModel = ((Model *)closestResults.m_collisionObject->\
                 getCollisionShape()->getUserPointer());
-        disableCollision(currentModel);
-        makeStatic(currentModel);
+            disableCollision(currentModel);
+            makeStatic(currentModel);
+
+            modelPhysics = currentModel->hasPhysics;
+
+            modelName = currentModel->objectPath;
+            size_t delimPos = modelName.find_last_of("/");
+            modelName = modelName.substr(delimPos + 1);
         }
 
     } else
     {
         enableCollision(currentModel);
         makeDynamic(currentModel);
+        modelPhysics = NULL;
+        modelName = "";
         currentModel = NULL;
+
 
     }
     // currentModel = getModelPointerByName("Tree03");
@@ -90,20 +101,36 @@ void drawEditor()
 
         ImGuiWindowFlags window_flags = 0;
         window_flags |= ImGuiWindowFlags_NoScrollbar;
+        window_flags |= ImGuiWindowFlags_NoResize;
+        ImVec2 windowSize;
 
-        ImVec2 windowSize = ImVec2(200.0f, 50.0f);
+        if (currentModel != NULL)
+        {
+            windowSize = ImVec2(ImGui::GetFontSize() * 20.0f, 70);
+        } else
+        {
+            windowSize = ImVec2(ImGui::GetFontSize() * 20.0f, 0);
+        }
         ImGui::SetNextWindowSize(windowSize);
         ImVec2 windowPos = ImVec2(25.0f, 25.0f);
         ImGui::SetNextWindowPos(windowPos);
 
         ImGui::Begin("Properties", NULL, window_flags);
-        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 20.0f);
 
         if (currentModel != NULL)
         {
-        ImGui::Text("Selected");
-        ImGui::SameLine();
-        ImGui::Text(currentModel->objectPath.c_str());
+            ImGui::Text("Selected:");
+            ImGui::SameLine();
+            ImGui::Text(modelName.c_str());
+
+            if (modelPhysics)
+            {
+                ImGui::Text("Has Physics");
+            } else
+            {
+                ImGui::Text("No Physics");
+            }
         }
 
         ImGui::End();
