@@ -59,11 +59,9 @@ struct move
 
 struct entities
 {
-    glm::vec3 cameraPos;
-    glm::vec3 cameraDirection;
-    struct move keys[60];
-    int numMoves;
-    int moveID;
+    struct move moves[60];
+    unsigned short numMoves;
+    unsigned int moveID;
 };
 
 extern bool connected;

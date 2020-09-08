@@ -22,8 +22,8 @@ socklen_t serverAddrLen = sizeof(serverAddr);
 struct generalPack buf;
 size_t bufSize = sizeof(struct generalPack);
 
-struct sockaddr_in in_addr;
-socklen_t inAddrLen = sizeof(in_addr);
+struct sockaddr_in rec_addr;
+socklen_t inAddrLen = sizeof(rec_addr);
 
 char hostname[128];
 int DELAY_SECS2 = 0;
@@ -216,9 +216,9 @@ int checkServer(struct generalPack *msg)
     int recvlen = -1;
     int success = -1;
 
-    recvlen = recvfrom(actualSock, &buf, bufSize, 0, (struct sockaddr *)&in_addr, &inAddrLen);
+    recvlen = recvfrom(actualSock, &buf, bufSize, 0, (struct sockaddr *)&rec_addr, &inAddrLen);
 
-    if (in_addr.sin_addr.s_addr == serverAddr.sin_addr.s_addr)
+    if (rec_addr.sin_addr.s_addr == serverAddr.sin_addr.s_addr)
     {
         success = 0;
         *msg = buf;
@@ -245,16 +245,6 @@ void getParts(std::string parts[], std::string raw, int amount, std::string deli
     parts[cur] = raw;
 }
 
-
-struct generalPack makeBasicPack(int ptl)
-{
-    struct generalPack pack;
-    strcpy(pack.key, SUPERSECRETKEY_CLIENT);
-    strcpy(pack.name, hostname);
-    pack.protocol = ptl;
-
-    return pack;
-}
 
 void applyDumpData(struct entities *them, char data[], int *count)
 {
@@ -547,36 +537,4 @@ void netLog(glm::vec3 pos, glm::vec3 front, char key[])
     }
     unvalidSize++;
     */
-}
-
-void setPositions(struct entities all[], char extra[])
-{
-    char *ptr;
-    int curId;
-    bool running = true;
-
-    //the actuall id
-    ptr = strtok(extra, "&,");
-
-    //the first element
-    ptr = strtok(NULL, "&,");
-    while (ptr != NULL)
-    {
-        curId = std::stoi(ptr);
-        printf("id %s\n", ptr);
-
-        ptr = strtok(NULL, "&,");
-        printf("x %s\n", ptr);
-        all[curId].cameraPos.x = std::stof(ptr);
-
-        ptr = strtok(NULL, "&,");
-        printf("y %s\n", ptr);
-        all[curId].cameraPos.y = std::stof(ptr);
-
-        ptr = strtok(NULL, "&,");
-        printf("z %s\n", ptr);
-        all[curId].cameraPos.z = std::stof(ptr);
-
-        ptr = strtok(NULL, "&,");
-    }
 }

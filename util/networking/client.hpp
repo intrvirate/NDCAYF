@@ -40,7 +40,7 @@ void setTestNw(bool value);
 int debugPrint(const char *format, ...);
 
 
-void setPositions(struct entities all[], char extra[]);
+// rm
 void applyDumpData(struct entities *them, char data[], int *count);
 void reconcileClient(struct entities *me);
 

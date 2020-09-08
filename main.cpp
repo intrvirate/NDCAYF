@@ -55,7 +55,7 @@ using namespace std;
 using namespace glm;
 GLFWwindow* window;
 
-bool test_nw = true;
+bool test_nw = false;
 
 int main()
 {
@@ -233,8 +233,6 @@ int main()
         return -1;
     }
 
-    // netowrk
-    bool networkLoaded = false;
     //=========== SETUP ==========================================================
 
     //do this first because settings.json will contain things like default window size <-TODO
@@ -337,6 +335,7 @@ int main()
 
 //================networking stuff====================================
     //bool connected = false;
+    bool networkLoaded = false;
     setConnection(false);
     struct sockaddr_in serverAddr;
     struct server serverList[MAXSERVERS];
@@ -351,11 +350,10 @@ int main()
     printServerList(serverList);
 
     //===entites==
-    struct entities all[10];
+    struct entities players[4];
     int numEntities = 0;
 
     int interlopeCount = 0;
-
 
     /*
 
@@ -488,14 +486,45 @@ int main()
                 while (waiting)
                 {
                     // get msg
-                    if (checkServer(dumpPack) < 0)
+                    if (checkServer(dumpPack) >= 0)
                     {
+                        //printf("%d\n", dumpPack->protocol);
 
                         if (dumpPack->protocol == DUMP)
                         {
                             waiting = false;
                             //TODO create/change objects based off of the server data
-                            //applyDumpData(all, msg.data, &numEntities);
+                            int buf = 0;
+                            for (int i = 0; i < dumpPack->numObjects; i++)
+                            {
+                                if (i == getID())
+                                {
+                                    // get the move data
+                                    struct move temp;
+                                    memcpy(&temp, &dumpPack->data[buf], sizeof(struct move));
+                                    buf += sizeof(struct move);
+
+                                    // player data is set
+                                    cameraPos = temp.pos;
+                                    cameraFront = temp.dir;
+
+                                    // and the last moveID
+                                    memcpy(&players[i].moveID, &dumpPack->data[buf], sizeof(unsigned int));
+                                    buf += sizeof(unsigned int);
+
+                                }
+                                else
+                                {
+                                    //get the inital int
+                                    memcpy(&players[i].numMoves, &dumpPack->data[buf], sizeof(unsigned short));
+                                    buf += sizeof(unsigned short);
+
+                                    // get the moves
+                                    memcpy(&players[i].moves, &dumpPack->data[buf], sizeof(struct move) * players[i].numMoves);
+                                    buf += (sizeof(struct move) * players[i].numMoves);
+                                }
+                            }
+
 
                             //printf("me [%.3f,%.3f,%.3f], server [%.3f,%.3f,%.3f]\n", cameraPos.x, cameraPos.y, cameraPos.z, all[getID()].cameraPos.x, all[getID()].cameraPos.y, all[getID()].cameraPos.z);
 
@@ -508,7 +537,7 @@ int main()
 
                             // TODO this is useless?
                             interlopeCount = 0;
-                            for (int i = 0; i < numEntities; i++)
+                            for (int i = 0; i < 0; i++)
                             {
                                 if (i != getID())
                                 {
@@ -518,8 +547,7 @@ int main()
                                 }
                                 else
                                 {
-                                    cameraPos = all[i].cameraPos;
-                                    cameraFront = all[i].cameraDirection;
+                                    //player
                                 }
                             }
 
@@ -610,12 +638,46 @@ int main()
             {
                 if (checkServer(dumpPack) > 0)
                 {
-                    type = processMsg(buf, &msg);
+                    //type = processMsg(buf, &msg);
 
-                    if (type == DUMP)
+                    if (dumpPack->protocol == DUMP)
                     {
                         //TODO create/change objects based off of the server data
+
+                        int buf = 0;
+                        numEntities = dumpPack->numObjects;
+                        for (int i = 0; i < dumpPack->numObjects; i++)
+                        {
+                            if (i == getID())
+                            {
+                                // get the move data
+                                struct move temp;
+                                memcpy(&temp, &dumpPack->data[buf], sizeof(struct move));
+                                buf += sizeof(struct move);
+
+                                cameraPos = temp.pos;
+                                cameraFront = temp.dir;
+
+                                // and the last moveID
+                                memcpy(&players[i].moveID, &dumpPack->data[buf], sizeof(unsigned int));
+                                buf += sizeof(unsigned int);
+
+                            }
+                            else
+                            {
+                                //get the inital int
+                                memcpy(&players[i].numMoves, &dumpPack->data[buf], sizeof(unsigned short));
+                                buf += sizeof(unsigned short);
+
+                                // get the moves
+                                memcpy(&players[i].moves, &dumpPack->data[buf], sizeof(struct move) * players[i].numMoves);
+                                buf += (sizeof(struct move) * players[i].numMoves);
+                            }
+                        }
+
                         //applyDumpData(all, msg.data, &numEntities);
+
+                        //apply to the vector
 
                         //printf("me [%.3f,%.3f,%.3f], server [%.3f,%.3f,%.3f]\n",
                             //cameraPos.x, cameraPos.y, cameraPos.z,
@@ -631,7 +693,7 @@ int main()
 
                         // reset with interlopepoint we are to use
                         interlopeCount = 0;
-                        // TODO useless, because this is setting data that should be done with the applyDumpData
+                        // TODO useless, because this is setting data that should be done with the interlope stuff
                         for (int i = 0; i < numEntities; i++)
                         {
                             if (i != getID())
@@ -639,10 +701,13 @@ int main()
                                 //btVector3 infront(all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
                                 //ourModel5.setPosition(infront);
                                 //printf("Num of moves %d\n", all[i].numMoves);
+                                //Model *temp = getModelPointerByName(names[i]);
+                                //updateModelPosition(temp, player[i].moves[0]);
                             }
                             else
                             {
-                                //cameraPos = all[i].cameraPos;
+                                // set the player pos
+                                //cameraPos = player[i].moves[0].pos;
                             }
                         }
 
@@ -650,14 +715,29 @@ int main()
                 }
 
                     //interlope
+                string pink = "PINK";
+                string blue = "BLUE";
+                string green = "GREN";
+                string orange = "ORNG";
+                string names[4] = {blue, pink, green, orange};
+
+                        /*
+                        for (int i = 0; i < dumpPack->numObjects; i++)
+                        {
+                            Model *temp = getModelPointerByName(names[i]);
+                            updateModelPosition(temp, p);
+                        }
+                        */
 
                 for (int i = 0; i < numEntities; i++)
                 {
                     if (i != getID())
                     {
                         // applies the next move
-                        if (interlopeCount < all[i].numMoves)
+                        if (interlopeCount < players[i].numMoves)
                         {
+                            Model *temp = getModelPointerByName(names[i]);
+                            updateModelPosition(temp, players[i].moves[interlopeCount].pos);
                             //printf("\tbefore [%.3f,%.3f,%.3f]\n", all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
                             //applyKeys(all[i].keys[interlopeCount].moves, all[i].keys[interlopeCount].dir, &(all[i].cameraPos));
                             //printf("\tafter [%.3f,%.3f,%.3f]\n", all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
