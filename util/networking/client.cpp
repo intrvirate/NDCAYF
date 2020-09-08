@@ -246,6 +246,16 @@ void getParts(std::string parts[], std::string raw, int amount, std::string deli
 }
 
 
+struct generalPack makeBasicPack(int ptl)
+{
+    struct generalPack pack;
+    strcpy(pack.key, SUPERSECRETKEY_CLIENT);
+    strcpy(pack.name, hostname);
+    pack.protocol = ptl;
+
+    return pack;
+}
+
 void applyDumpData(struct entities *them, char data[], int *count)
 {
     /*
@@ -480,7 +490,7 @@ void netLog(glm::vec3 pos, glm::vec3 front, char key[])
     moveData.pos = pos;
     moveData.dir = front;
     strcpy(moveData.extraActions, key);
-    int moveID = 10;
+    unsigned int moveID = 10;
 
     //char * ptr = *((char)moveData + (char)a);
 

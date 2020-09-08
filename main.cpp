@@ -341,6 +341,10 @@ int main()
     struct sockaddr_in serverAddr;
     struct server serverList[MAXSERVERS];
 
+    struct generalPack *dumpPack = new struct generalPack;
+    struct generalPack pingPack = makeBasicPack(PING);
+    struct generalPack pongPack = makeBasicPack(PONG);
+
     printf("Loading network\n");
     getAllServers(serverList);
 
@@ -481,36 +485,34 @@ int main()
                 //setPositions(all, msg.data);
                 // wait for the server to send the info
                 bool waiting = true;
-                /*
                 while (waiting)
                 {
-                    char buf[BUFSIZE*2];
-                    //struct MsgPacket msg;
-                    strcpy(buf, "");
-                    int type;
                     // get msg
-                    if (checkServer(buf) > 0)
+                    if (checkServer(dumpPack) < 0)
                     {
-                        type = processMsg(buf, &msg);
 
-                        if (type == DUMP)
+                        if (dumpPack->protocol == DUMP)
                         {
                             waiting = false;
-                            applyDumpData(all, msg.data, &numEntities);
+                            //TODO create/change objects based off of the server data
+                            //applyDumpData(all, msg.data, &numEntities);
 
                             //printf("me [%.3f,%.3f,%.3f], server [%.3f,%.3f,%.3f]\n", cameraPos.x, cameraPos.y, cameraPos.z, all[getID()].cameraPos.x, all[getID()].cameraPos.y, all[getID()].cameraPos.z);
 
-                            reconcileClient(&all[getID()]);
+                            // TODO force client to be inline with the server
+                            // if they were the same at that point and there are points that the server hasn't seen then pretend those are valid
+                            // if they are different then move the player based off of the difference between the servers point and the clients equevalent point
+                            //reconcileClient(&all[getID()]);
 
                             //printf("reconcile [%.3f,%.3f,%.3f]\n", all[getID()].cameraPos.x, all[getID()].cameraPos.y, all[getID()].cameraPos.z);
 
+                            // TODO this is useless?
                             interlopeCount = 0;
-
                             for (int i = 0; i < numEntities; i++)
                             {
                                 if (i != getID())
                                 {
-                                    btVector3 infront(all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
+                                    //btVector3 infront(all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
                                     //ourModel5.setPosition(infront);
                                     //printf("Num of moves %d\n", all[i].numMoves);
                                 }
@@ -522,13 +524,17 @@ int main()
                             }
 
                         }
+                        else
+                        {
+                            send(pongPack);
+                        }
                     }
 
                 }
-                */
 
-                cameraPos = all[getID()].cameraPos;
-                cameraFront = all[getID()].cameraDirection;
+                // TODO also usless
+                //cameraPos = all[getID()].cameraPos;
+                //cameraFront = all[getID()].cameraDirection;
             }
 
 
@@ -602,62 +608,60 @@ int main()
 
             if (connected)
             {
-                char buf[BUFSIZE*2];
-                //struct MsgPacket msg;
-                strcpy(buf, "");
-                int type;
-                // get msg
-                /*
-                if (checkServer(buf) > 0)
+                if (checkServer(dumpPack) > 0)
                 {
                     type = processMsg(buf, &msg);
 
                     if (type == DUMP)
                     {
-                        applyDumpData(all, msg.data, &numEntities);
+                        //TODO create/change objects based off of the server data
+                        //applyDumpData(all, msg.data, &numEntities);
 
-                        printf("me [%.3f,%.3f,%.3f], server [%.3f,%.3f,%.3f]\n",
-                            cameraPos.x, cameraPos.y, cameraPos.z,
-                            all[getID()].cameraPos.x, all[getID()].cameraPos.y, all[getID()].cameraPos.z);
+                        //printf("me [%.3f,%.3f,%.3f], server [%.3f,%.3f,%.3f]\n",
+                            //cameraPos.x, cameraPos.y, cameraPos.z,
+                            //all[getID()].cameraPos.x, all[getID()].cameraPos.y, all[getID()].cameraPos.z);
 
-                        reconcileClient(&all[getID()]);
+                        // TODO force client to be inline with the server
+                        // if they were the same at that point and there are points that the server hasn't seen then pretend those are valid
+                        // if they are different then move the player based off of the difference between the servers point and the clients equevalent point
+                        //reconcileClient(&all[getID()]);
 
-                        printf("reconcile [%.3f,%.3f,%.3f]\n",
-                            all[getID()].cameraPos.x, all[getID()].cameraPos.y, all[getID()].cameraPos.z);
+                        //printf("reconcile [%.3f,%.3f,%.3f]\n",
+                            //all[getID()].cameraPos.x, all[getID()].cameraPos.y, all[getID()].cameraPos.z);
 
+                        // reset with interlopepoint we are to use
                         interlopeCount = 0;
-
+                        // TODO useless, because this is setting data that should be done with the applyDumpData
                         for (int i = 0; i < numEntities; i++)
                         {
                             if (i != getID())
                             {
-                                btVector3 infront(all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
+                                //btVector3 infront(all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
                                 //ourModel5.setPosition(infront);
                                 //printf("Num of moves %d\n", all[i].numMoves);
                             }
                             else
                             {
-                                cameraPos = all[i].cameraPos;
+                                //cameraPos = all[i].cameraPos;
                             }
                         }
 
                     }
                 }
-                */
+
                     //interlope
 
                 for (int i = 0; i < numEntities; i++)
                 {
                     if (i != getID())
                     {
-                        //printf("Num of moves %d\n", all[i].numMoves);
                         // applies the next move
                         if (interlopeCount < all[i].numMoves)
                         {
                             //printf("\tbefore [%.3f,%.3f,%.3f]\n", all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
                             //applyKeys(all[i].keys[interlopeCount].moves, all[i].keys[interlopeCount].dir, &(all[i].cameraPos));
                             //printf("\tafter [%.3f,%.3f,%.3f]\n", all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
-                            btVector3 infront(all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
+                            //btVector3 infront(all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
                             //ourModel5.setPosition(infront);
                         }
                     }

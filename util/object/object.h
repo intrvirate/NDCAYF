@@ -20,7 +20,7 @@ extern BulletDebugDrawer_OpenGL debugDraw;
 using namespace std;
 
 struct Model;   //needed because of circular reference
-                //and yes, I don't care that this is bad practice. Performace > Style
+                //and yes, I don't care that this is bad practice. Performace < Style
 
 /*
  * Top level texture tree. This simply stores all loaded textures, preventing the same
@@ -143,6 +143,8 @@ struct Model {
     unsigned int instanceCount;
     vector<glm::mat4> modelMatrices;
     //TODO: figure out how to instance bullet objects
+    //networking
+
 };
 
 //=================================function prototypes==================================

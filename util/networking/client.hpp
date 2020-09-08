@@ -47,6 +47,7 @@ void reconcileClient(struct entities *me);
 void applyKeys(char keys[], glm::vec3 dir, glm::vec3 *pos);
 
 
+struct generalPack makeBasicPack(int ptl);
 int send(struct generalPack toSend);
 int checkServer(struct generalPack *msg);
 void setServerAddr(struct sockaddr_in newServerAddr);
