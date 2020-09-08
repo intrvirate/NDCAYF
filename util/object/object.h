@@ -12,6 +12,7 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include "util/bulletDebug/collisiondebugdrawer.hpp"
+#include "collisionMaskClasses.hpp"
 
 extern btDiscreteDynamicsWorld* dynamicsWorld;
 extern BulletDebugDrawer_OpenGL debugDraw;
@@ -131,8 +132,12 @@ struct Model {
     bool hasPhysics;
     bool isDynamic;
     bool useSinglePrimitive;
+    int16_t origionalCollisionGroup;
+    int16_t origionalCollisionMask;
     btRigidBody* body;
     btCollisionShape* collisionShape;
+    float mass;
+    float inerta;
     //instancing
     bool isInstanced;
     unsigned int instanceCount;
@@ -143,11 +148,23 @@ struct Model {
 //=================================function prototypes==================================
 
 void loadModels(string jsonPath); //loads models from a json file
+collisionMasks getCollisionGroupByString(string str);
+collisionGroups getCollisionMaskByString(string str);
 void processMesh(Mesh *mesh, aiMesh *impMesh, const aiScene *assimpModel, string directory);
 unsigned int findTextureID(const char* path);
 unsigned int TextureFromFile(const char *path, const string &directory);
 void drawObjects();
 void InitializePhysicsWorld();
 void RunStepSimulation();
+
+//utility functions: use to access and manipulate model state
+void disableCollision(Model* model);
+void enableCollision(Model* model);
+Model* getModelPointerByName(string name);
+void updateModelPosition(Model* model, glm::vec3 pos);
+void updateModelPosition(Model* model, btVector3 pos);
+void makeStatic(Model* model);
+void makeDynamic(Model* model);
+
 
 #endif // OBJECT_H

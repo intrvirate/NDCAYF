@@ -27,11 +27,8 @@
 #include "util/otherhandlers.hpp"
 #include "util/globalStateHandlers.hpp"
 
-//#include "util/object/mesh.hpp"
-//#include "util/object/shader.hpp"
-//#include "util/object/model.hpp"
-
 #include "util/object/object.h"
+#include "util/editor/editor.hpp"
 
 #include "util/bulletDebug/collisiondebugdrawer.hpp"
 #include "BulletCollision/NarrowPhaseCollision/btRaycastCallback.h"
@@ -46,6 +43,7 @@
 #include <sys/types.h>
 #include <ifaddrs.h>
 #include <sys/time.h>
+#include <stdint.h>
 
 #include "util/networking/networkConfig.hpp"
 #include "util/networking/getLan.hpp"
@@ -243,6 +241,12 @@ int main()
     setJsonDebugMode(false);
     buildMenu();
 
+    float number;
+
+    uint8_t number2;
+
+    (char)number;
+
     if( !glfwInit() )
     {
         fprintf( stderr, "Failed to initialize GLFW\n" );
@@ -257,9 +261,12 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     //change default window size in otherHandlers.cpp
-    window = glfwCreateWindow( CurrentWindowX, CurrentWindowY, "NDCAYF", NULL, NULL); //create window. TODO: setting first NULL to glfwGetPrimaryMonitor() results in full screen mode
+    window = glfwCreateWindow( CurrentWindowX, CurrentWindowY, "NDCAYF", NULL,
+        NULL); //create window. TODO: setting first NULL to glfwGetPrimaryMonitor() results in full screen mode
+
     if( window == NULL ){
-        fprintf( stderr, "Failed to open GLFW window. Double check that the GPU is openGL 3.3 compatible\n" );
+        fprintf( stderr, "Failed to open GLFW window. Double check that the \
+            GPU is openGL 3.3 compatible\n" );
         glfwTerminate();
         return -1;
     }
@@ -294,11 +301,11 @@ int main()
     glEnable(GL_CULL_FACE);
     glClearColor(0.0f, 0.0f, 0.4f, 0.0f); // default opengl background on startup: blue
 
-    loadModels("gamedata/world1.json");
+    //loadModels("gamedata/world1.json");
+    loadModels("gamedata/scratchpadWorld.json");
     InitializePhysicsWorld();
 
 //=========== IMGUI =========================================================
-
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -353,11 +360,10 @@ int main()
 
 //=========== LOOP ===========================================================
 
-    //Model *currentModel = &ourModel; //current pointed-at model
-    Model *lastModel = NULL;    //last pointed-at model
-    bool showProperties = true;
-    bool singleScale = true; //ajust scale as single value, or as x, y, and z values
 
+
+    Model *lastModel = NULL;    //last pointed-at model
+    bool singleScale = true; //ajust scale as single value, or as x, y, and z values
 
 
     while( glfwWindowShouldClose(window) == 0){
@@ -411,7 +417,8 @@ int main()
                     for (int q = 0; q < serverList[j].numRoutes; q++)
                     {
                         char txt[100];
-                        int len = sprintf(txt, "\tIP \"%s\"", (serverList[j].routes[q])) + 5;
+                        int len = sprintf(txt, "\tIP \"%s\"",
+                            (serverList[j].routes[q])) + 5;
 
                         if (serverList[j].hasLo && q == serverList[j].loIndex)
                         {
@@ -450,7 +457,9 @@ int main()
                 getAllServers(serverList);
             }
 
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
+                1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
             ImGui::End();
 
 
@@ -526,6 +535,7 @@ int main()
 
             }
             break;
+
         case LOOP_MODE_EDIT :    {
 
 
@@ -533,7 +543,7 @@ int main()
             renderLoop2D(window);
             //Bullet Simulation:
             RunStepSimulation();
-            drawObjects();
+
             debugDraw.SetMatrices(getViewMatrix(), getprojectionMatrix());
             if(physicsDebugEnabled){
                 dynamicsWorld->debugDrawWorld();
@@ -545,80 +555,39 @@ int main()
 
 
             btVector3 from(cameraPos.x,cameraPos.y,cameraPos.z);
-            btVector3 to(cameraPos.x+cameraFront.x*100,cameraPos.y+cameraFront.y*100,cameraPos.z+cameraFront.z*100);
+            btVector3 to(cameraPos.x+cameraFront.x*100,
+            cameraPos.y+cameraFront.y*100, cameraPos.z+cameraFront.z*100);
 
             btVector3 blue(0.1, 0.3, 0.9);
 
-            dynamicsWorld->getDebugDrawer()->drawSphere(btVector3(0,0,0), 0.5, blue); //at origin
+            dynamicsWorld->getDebugDrawer()->drawSphere(btVector3(0,0,0),
+                0.5, blue); //at origin
+
+
             btCollisionWorld::ClosestRayResultCallback closestResults(from, to);
             closestResults.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
+            closestResults.m_collisionFilterGroup = COL_SELECTER;
+            closestResults.m_collisionFilterMask = COL_SELECT_RAY_COLLIDES_WITH;
 
             dynamicsWorld->rayTest(from, to, closestResults);
             if (closestResults.hasHit() && !isMouseVisable())
             {
-                /*
-                currentModel = ((Model *)closestResults.m_collisionObject->getCollisionShape()->getUserPointer());
-                //currentModel->tint = glm::vec3(0.2,0.2,0.2);
-                currentModel->selected = true;
 
-                if(currentModel != lastModel && lastModel != NULL){
-                    //lastModel->tint = glm::vec3(0,0,0);
-                    lastModel->selected = false;
-                }
-                lastModel = currentModel;
-                */
-                btVector3 p = from.lerp(to, closestResults.m_closestHitFraction);
+                btVector3 p = from.lerp(to,
+                    closestResults.m_closestHitFraction);
+
                 dynamicsWorld->getDebugDrawer()->drawSphere(p, 0.1, blue);
-                dynamicsWorld->getDebugDrawer()->drawLine(p, p + closestResults.m_hitNormalWorld, blue);
-
-                //ourModel3.setPosition(p);
-            }else{
-                /*
-                if(currentModel != NULL){
-                    //currentModel->tint = glm::vec3(0,0,0);
-                    currentModel->selected = false;
-                }
-                */
-            }
-/*
-            if(showProperties){ //Properties edit window
-                ImGuiWindowFlags window_flags = 0;
-                window_flags |= ImGuiWindowFlags_NoScrollbar;
-                window_flags |= ImGuiWindowFlags_NoResize;
-                window_flags |= ImGuiWindowFlags_NoCollapse;
-
-                ImGui::Begin("Properties", NULL, window_flags);
-                ImGui::Text(currentModel->objectPath.c_str()); //name of object file
-                ImGui::Checkbox("single scale value", &singleScale);
-                //scaling change
-
-                if(singleScale){
-
-                    ImGui::SliderFloat("scale", &(currentModel->scale[0]), 0.1f, 100.0f, "%1.0f");
-                    currentModel->scale[1] = currentModel->scale[0];
-                    currentModel->scale[2] = currentModel->scale[0];
-
-                    currentModel->syncScale();
-
-
-                }else{
-                    ImGui::InputFloat("scale X", &(currentModel->scale[0]), 0.01f, 1.0f, "%.3f");
-                    ImGui::InputFloat("scale Y", &(currentModel->scale[1]), 0.01f, 1.0f, "%.3f");
-                    ImGui::InputFloat("scale Z", &(currentModel->scale[2]), 0.01f, 1.0f, "%.3f");
-                    currentModel->syncScale();
-                }
-
-                //position change
-                btVector3 pos = currentModel->body->getWorldTransform().getOrigin();
-                ImGui::SliderFloat("pos X", &(pos[0]), -100.0f, 100.0f, "%10.0f");
-                ImGui::SliderFloat("pos Y", &(pos[2]), -100.0f, 100.0f, "%10.0f");
-                ImGui::SliderFloat("pos Z", &(pos[1]), -100.0f, 100.0f, "%10.0f");
-                currentModel->body->getWorldTransform().setOrigin(pos);
-
-                ImGui::End();
+                dynamicsWorld->getDebugDrawer()->drawLine(p, p
+                    + closestResults.m_hitNormalWorld, blue);
 
             }
-*/
+
+
+            //Properties edit window
+            drawEditor();
+
+
+            drawObjects();
             debugDraw.draw();
             ImGui::Render();
             int display_w, display_h;
@@ -698,6 +667,7 @@ int main()
             }
                 //draw the players
             }
+
             break;
         case LOOP_MODE_PLAY :    {
             renderLoop3D(window);
@@ -706,13 +676,16 @@ int main()
             drawObjects();
 
             debugDraw.SetMatrices(getViewMatrix(), getprojectionMatrix());
+
             if(physicsDebugEnabled){
                 dynamicsWorld->debugDrawWorld();
             }
+
             debugDraw.draw();
 
         }
             break;
+
         case LOOP_MODE_LEGACY :  {
             renderLoop3D(window);
             renderLoop2D(window);

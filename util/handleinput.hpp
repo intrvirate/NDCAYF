@@ -5,6 +5,7 @@
 extern std::string textEntryString;
 extern bool inTextBox;
 extern bool physicsDebugEnabled;
+extern bool showProperties;
 
 extern glm::vec3 cameraFront;
 extern glm::vec3 cameraPos;

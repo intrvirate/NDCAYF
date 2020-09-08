@@ -51,6 +51,11 @@ add_executable(NDCAYF
                 util/bulletDebug/collisiondebugdrawer.hpp
                 util/object/object.cpp
                 util/object/object.h
+                util/collisionMaskClasses.hpp
+                util/editor/editor.cpp
+                util/editor/editor.hpp
+
+
 #IMGUI files. There is certainly a better way to do this than listing them *all* here, but it works.
                 util/imgui/imgui.h
                 util/imgui/imgui.cpp

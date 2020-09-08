@@ -18,6 +18,7 @@
 
 #include <btBulletDynamicsCommon.h>
 #include "util/bulletDebug/collisiondebugdrawer.hpp"
+#include "collisionMaskClasses.hpp"
 
 
 using namespace std;
@@ -222,11 +223,12 @@ void loadModels(string jsonPath){
                         currentMesh->showObjectSelection = false;
                     }
 
-                    glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), top_model[i]->scale);
-                    glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), top_model[i]->pos);
-                    currentMesh->model = translationMatrix * scaleMatrix;
+                    glm::mat4 Matrix = glm::scale(glm::mat4(1.0f), top_model[i]->scale);
+                    Matrix = glm::translate(Matrix, top_model[i]->pos);
 
-                    top_model[i]->meshes.push_back(top_shader[j].meshes.back()); //push pointer to vector of pointers
+                    currentMesh->model = Matrix;
+
+                    top_model[i]->meshes.push_back(currentMesh); //push pointer to vector of pointers
 
                     fprintf(stderr, "added mesh. pos = %f,%f,%f\n", top_model[i]->pos.x, top_model[i]->pos.y, top_model[i]->pos.z);
                     break; //don't add to multiple shaders, so don't need to keep scanning remaining
@@ -244,6 +246,7 @@ void loadModels(string jsonPath){
             transform.setIdentity();
             transform.setOrigin(btVector3(top_model[i]->pos.x, top_model[i]->pos.y, top_model[i]->pos.z));
             float mass = modelJson["models"][i]["mass"]; //NOTE: to make an object static, mass and inerta must be set to 0
+            top_model[i]->mass = mass;
             if(mass != 0)
                  top_model[i]->isDynamic = true;
 
@@ -301,6 +304,7 @@ void loadModels(string jsonPath){
 
             float inerta = modelJson["models"][i]["inerta"];
             btVector3 localInertia(inerta, inerta, inerta);
+            top_model[i]->inerta = inerta;
 
             top_model[i]->collisionShape->calculateLocalInertia(mass, localInertia);
 
@@ -317,11 +321,63 @@ void loadModels(string jsonPath){
             top_model[i]->body->setCcdMotionThreshold(.5);
             top_model[i]->body->setCcdSweptSphereRadius(0);
 
-            dynamicsWorld->addRigidBody(top_model[i]->body);
-
+            //collision masks:
+            string collisionType = modelJson["models"][i]["collisionType"];
+            top_model[i]->origionalCollisionGroup = getCollisionGroupByString(collisionType);
+            top_model[i]->origionalCollisionMask = getCollisionMaskByString(collisionType);
+            // syntax: addRigidBody( body, group, mask);
+            dynamicsWorld->addRigidBody(top_model[i]->body, top_model[i]->origionalCollisionGroup, top_model[i]->origionalCollisionMask);
         }
     }
 }
+
+//groups
+collisionMasks getCollisionGroupByString(string str){
+
+    if (str == "nothing"){
+        return COL_NOTHING;
+    }else if (str == "terrain"){
+        return COL_TERRAIN;
+    }else if (str == "selectable"){
+        return COL_SELECTER;
+    }else if (str == "damageable"){
+        return COL_DAMAGEABLE;
+    }else if (str == "powerup"){
+        return COL_POWERUP;
+    }else if (str == "player"){
+        return COL_PLAYER;
+    }else if (str == "throwable"){
+        return COL_THROWABLE;
+    }else if (str == "item"){
+        return COL_ITEM;
+    }else if (str == "proximity"){
+        return COL_PROXIMITY;
+    }
+    return COL_NOTHING; //todo: error handle the invalid case
+}
+
+//masks
+collisionGroups getCollisionMaskByString(string str){
+
+    if (str == "terrain"){
+        return COL_TERRAIN_COLLIDES_WITH;
+    }else if (str == "selectable"){
+        return COL_SELECT_RAY_COLLIDES_WITH;
+    }else if (str == "powerup"){
+        return COL_POWERUP_COLLIDES_WITH;
+    }else if (str == "player"){
+        return COL_PLAYER_COLLIDES_WITH;
+    }else if (str == "throwable"){
+        return COL_THROWABLE_COLLIDES_WITH;
+    }else if (str == "item"){
+        return COL_ITEM_COLLIDES_WITH;
+    }else if (str == "proximity"){
+        return COL_PROXIMITY_COLLIDES_WITH;
+    }
+    return COL_NOTHING_COLLIDES_WITH; //todo: error handle the invalid case
+
+}
+
 
 void processMesh(Mesh *mesh,aiMesh *impMesh, const aiScene *assimpModel, string directory){
 
@@ -554,14 +610,14 @@ void drawObjects(){
 
 
             //per mesh uniforms:
-            if(top_shader[i].meshes[meshIndex]->parentModel->isDynamic){
+            if(top_shader[i].meshes[meshIndex]->parentModel->hasPhysics){
                 glm::mat4 modelPhys = glm::mat4(1.0f);
                 top_shader[i].meshes[meshIndex]->parentModel->body->getWorldTransform().getOpenGLMatrix(glm::value_ptr(modelPhys));
+                modelPhys = glm::scale(modelPhys, top_shader[i].meshes[meshIndex]->parentModel->scale);
                 glUniformMatrix4fv(top_shader[i].modelLocation, 1, GL_FALSE, glm::value_ptr(modelPhys));
             }else{
                 glUniformMatrix4fv(top_shader[i].modelLocation, 1, GL_FALSE, glm::value_ptr(top_shader[i].meshes[meshIndex]->model));
             }
-
 
 
             int location;
@@ -619,7 +675,93 @@ void InitializePhysicsWorld(){
     debugDraw.loadDebugShaders();
     dynamicsWorld->setDebugDrawer(&debugDraw);
 }
+
 void RunStepSimulation(){
 
     dynamicsWorld->stepSimulation(getFrameTime(), 10);
 }
+
+
+//see https://pybullet.org/Bullet/phpBB3/viewtopic.php?t=11690 for context
+void disableCollision(Model* model){
+    //model->body->setCollisionFlags(model->body->getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
+    btBroadphaseProxy* proxy = model->body->getBroadphaseProxy();
+    proxy->m_collisionFilterGroup = COL_NOTHING;
+    proxy->m_collisionFilterMask = COL_NOTHING_COLLIDES_WITH;
+}
+void enableCollision(Model* model){
+    //model->body->setCollisionFlags(model->body->getCollisionFlags() & ~btCollisionObject::CF_NO_CONTACT_RESPONSE);
+
+    btBroadphaseProxy* proxy = model->body->getBroadphaseProxy();
+    proxy->m_collisionFilterGroup = model->origionalCollisionGroup;
+    proxy->m_collisionFilterMask = model->origionalCollisionMask;
+}
+
+void makeStatic(Model* model){
+    //dynamicsWorld->removeRigidBody(model->body); //first remove body to make changes
+
+    model->body->setMassProps(0,btVector3(0,0,0));
+    model->body->setLinearVelocity(btVector3(0.0,0.0,0.0));
+    model->body->updateInertiaTensor();
+
+    model->body->setCollisionFlags(model->body->getCollisionFlags() | btCollisionObject::CF_STATIC_OBJECT);
+
+    //dynamicsWorld->addRigidBody(model->body); //add it back
+
+}
+
+void makeDynamic(Model* model){
+
+    //dynamicsWorld->removeRigidBody(model->body);
+
+    model->body->setMassProps(model->mass,btVector3(model->inerta,model->inerta,model->inerta));
+    model->body->updateInertiaTensor();
+
+    model->body->setCollisionFlags(model->body->getCollisionFlags() | btCollisionObject::CF_STATIC_OBJECT);
+
+    //dynamicsWorld->addRigidBody(model->body);
+}
+
+//note: this is not a very fast function; use it sparingly.
+Model* getModelPointerByName(string name){
+    for (uint i = 0; i < top_model.size(); i++){
+        if (top_model[i]->objectPath.find(name) != string::npos){
+            return top_model[i];
+        }
+    }
+    return NULL;
+}
+
+void updateModelPosition(Model* model, glm::vec3 pos){
+    btTransform tr = model->body->getWorldTransform();
+    tr.setOrigin(btVector3(pos.x,pos.y,pos.z));
+    model->body->setWorldTransform(tr);
+    //update all sub meshes
+    for (uint i = 0; i < model->meshes.size(); i++){
+        glm::mat4 modelMat = glm::mat4(1.0f);
+        modelMat = glm::translate(modelMat, pos);
+        modelMat = glm::scale(modelMat, model->scale);
+        model->meshes[i]->model = modelMat;
+    }
+}
+
+void updateModelPosition(Model* model, btVector3 pos){
+    btTransform tr = model->body->getWorldTransform();
+    tr.setOrigin(pos);
+    model->body->setWorldTransform(tr);
+    //update all sub meshes
+    glm::vec3 glmPos = glm::vec3(pos.x(), pos.y(), pos.z());
+    for (uint i = 0; i < model->meshes.size(); i++){
+        glm::mat4 modelMat = glm::mat4(1.0f);
+        modelMat = glm::translate(modelMat, glmPos);
+        modelMat = glm::scale(modelMat, model->scale);
+        model->meshes[i]->model = modelMat;
+    }
+}
+
+
+
+
+
+
+
