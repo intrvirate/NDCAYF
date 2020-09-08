@@ -623,6 +623,7 @@ int main()
                 if (checkServer(dumpPack) > 0)
                 {
 
+                    // receve dump and do stuff
                     if (dumpPack->protocol == DUMP)
                     {
                         //TODO create/change objects based off of the server data
@@ -659,80 +660,47 @@ int main()
                             }
                         }
 
-                        //apply to the vector
-
-                        //printf("me [%.3f,%.3f,%.3f], server [%.3f,%.3f,%.3f]\n",
-                            //cameraPos.x, cameraPos.y, cameraPos.z,
-                            //all[getID()].cameraPos.x, all[getID()].cameraPos.y, all[getID()].cameraPos.z);
-
                         // TODO force client to be inline with the server
                         // if they were the same at that point and there are points that the server hasn't seen then pretend those are valid
                         // if they are different then move the player based off of the difference between the servers point and the clients equevalent point
                         //reconcileClient(&all[getID()]);
 
-                        //printf("reconcile [%.3f,%.3f,%.3f]\n",
-                            //all[getID()].cameraPos.x, all[getID()].cameraPos.y, all[getID()].cameraPos.z);
 
                         // reset with interlopepoint we are to use
                         interlopeCount = 0;
-                        // TODO useless, because this is setting data that should be done with the interlope stuff
-                        for (int i = 0; i < numEntities; i++)
-                        {
-                            if (i != getID())
-                            {
-                                //btVector3 infront(all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
-                                //ourModel5.setPosition(infront);
-                                //printf("Num of moves %d\n", all[i].numMoves);
-                                //Model *temp = getModelPointerByName(names[i]);
-                                //updateModelPosition(temp, player[i].moves[0]);
-                            }
-                            else
-                            {
-                                // set the player pos
-                                //cameraPos = player[i].moves[0].pos;
-                            }
                         }
-
                     }
-                }
 
                     //interlope
-                string pink = "PINK";
-                string blue = "BLUE";
-                string green = "GREN";
-                string orange = "ORNG";
-                string names[4] = {blue, pink, green, orange};
+                    string pink = "PINK";
+                    string blue = "BLUE";
+                    string green = "GREN";
+                    string orange = "ORNG";
+                    string names[4] = {blue, pink, green, orange};
 
-                        /*
-                        for (int i = 0; i < dumpPack->numObjects; i++)
-                        {
-                            Model *temp = getModelPointerByName(names[i]);
-                            updateModelPosition(temp, p);
-                        }
-                        */
 
-                printf("%d\n", numEntities);
-                for (int i = 0; i < numEntities; i++)
-                {
-                    if (i != getID())
+                    printf("%d\n", numEntities);
+                    for (int i = 0; i < numEntities; i++)
                     {
-                        // applies the next move
-                        if (interlopeCount < players[i].numMoves)
+                        if (i != getID())
                         {
-                            Model *temp = getModelPointerByName(names[i]);
-                            printf("updating %s's pos\n", names[i].c_str());
-                            updateModelPosition(temp, players[i].moves[interlopeCount].pos);
-                            //printf("\tbefore [%.3f,%.3f,%.3f]\n", all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
-                            //applyKeys(all[i].keys[interlopeCount].moves, all[i].keys[interlopeCount].dir, &(all[i].cameraPos));
-                            //printf("\tafter [%.3f,%.3f,%.3f]\n", all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
-                            //btVector3 infront(all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
-                            //ourModel5.setPosition(infront);
+                            // applies the next move
+                            if (interlopeCount < players[i].numMoves)
+                            {
+                                Model *temp = getModelPointerByName(names[i]);
+                                printf("updating %s's pos\n", names[i].c_str());
+                                updateModelPosition(temp, players[i].moves[interlopeCount].pos);
+                                //printf("\tbefore [%.3f,%.3f,%.3f]\n", all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
+                                //applyKeys(all[i].keys[interlopeCount].moves, all[i].keys[interlopeCount].dir, &(all[i].cameraPos));
+                                //printf("\tafter [%.3f,%.3f,%.3f]\n", all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
+                                //btVector3 infront(all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
+                                //ourModel5.setPosition(infront);
+                            }
                         }
                     }
+                    // next time we will do the next one
+                    interlopeCount++;
                 }
-                // next time we will do the next one
-                interlopeCount++;
-            }
                 //draw the players
             }
 
