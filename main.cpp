@@ -620,17 +620,19 @@ int main()
 
             if (connected)
             {
-                if (checkServer(dumpPack) > 0)
+                if (checkServer(dumpPack) >= 0)
                 {
 
                     // receve dump and do stuff
                     if (dumpPack->protocol == DUMP)
                     {
+                        interlopeCount = 0;
                         //TODO create/change objects based off of the server data
 
                         int buf = 0;
                         numEntities = dumpPack->numObjects;
-                        printf("%d\n", dumpPack->numObjects);
+                        printf("dump %lu %lu %d %d\n", dumpPack->numObjects, dumpPack->time.tv_sec, dumpPack->time.tv_usec, dumpPack->protocol);
+                        dumpPack->protocol = (unsigned short)1000;
                         for (int i = 0; i < dumpPack->numObjects; i++)
                         {
                             if (i == getID())
@@ -664,10 +666,6 @@ int main()
                         // if they were the same at that point and there are points that the server hasn't seen then pretend those are valid
                         // if they are different then move the player based off of the difference between the servers point and the clients equevalent point
                         //reconcileClient(&all[getID()]);
-
-
-                        // reset with interlopepoint we are to use
-                        interlopeCount = 0;
                         }
                     }
 
@@ -680,15 +678,17 @@ int main()
 
 
                     printf("%d\n", numEntities);
+                    int name = 0;
                     for (int i = 0; i < numEntities; i++)
                     {
                         if (i != getID())
                         {
                             // applies the next move
+                            printf("%d < %d\n", interlopeCount, players[i].numMoves);
                             if (interlopeCount < players[i].numMoves)
                             {
-                                Model *temp = getModelPointerByName(names[i]);
-                                printf("updating %s's pos\n", names[i].c_str());
+                                Model *temp = getModelPointerByName(names[name]);
+                                printf("updating %s's pos\n", names[name].c_str());
                                 updateModelPosition(temp, players[i].moves[interlopeCount].pos);
                                 //printf("\tbefore [%.3f,%.3f,%.3f]\n", all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
                                 //applyKeys(all[i].keys[interlopeCount].moves, all[i].keys[interlopeCount].dir, &(all[i].cameraPos));
@@ -697,6 +697,7 @@ int main()
                                 //ourModel5.setPosition(infront);
                             }
                         }
+                        name++;
                     }
                     // next time we will do the next one
                     interlopeCount++;

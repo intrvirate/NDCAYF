@@ -218,7 +218,7 @@ int checkServer(struct generalPack *msg)
 
     recvlen = recvfrom(actualSock, &buf, bufSize, 0, (struct sockaddr *)&rec_addr, &inAddrLen);
 
-    if (rec_addr.sin_addr.s_addr == serverAddr.sin_addr.s_addr)
+    if (rec_addr.sin_addr.s_addr == serverAddr.sin_addr.s_addr && recvlen > 0)
     {
         success = 0;
         *msg = buf;
