@@ -351,7 +351,7 @@ int main()
 
     //===entites==
     struct entities players[4];
-    int numEntities = 0;
+    unsigned short numEntities = 0;
 
     int interlopeCount = 0;
 
@@ -495,6 +495,8 @@ int main()
                             waiting = false;
                             //TODO create/change objects based off of the server data
                             int buf = 0;
+                            printf("%d\n", dumpPack->numObjects);
+                            numEntities = dumpPack->numObjects;
                             for (int i = 0; i < dumpPack->numObjects; i++)
                             {
                                 if (i == getID())
@@ -534,22 +536,7 @@ int main()
                             //reconcileClient(&all[getID()]);
 
                             //printf("reconcile [%.3f,%.3f,%.3f]\n", all[getID()].cameraPos.x, all[getID()].cameraPos.y, all[getID()].cameraPos.z);
-
-                            // TODO this is useless?
                             interlopeCount = 0;
-                            for (int i = 0; i < 0; i++)
-                            {
-                                if (i != getID())
-                                {
-                                    //btVector3 infront(all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
-                                    //ourModel5.setPosition(infront);
-                                    //printf("Num of moves %d\n", all[i].numMoves);
-                                }
-                                else
-                                {
-                                    //player
-                                }
-                            }
 
                         }
                         else
@@ -559,10 +546,7 @@ int main()
                     }
 
                 }
-
-                // TODO also usless
-                //cameraPos = all[getID()].cameraPos;
-                //cameraFront = all[getID()].cameraDirection;
+                printf("Got initial data\n");
             }
 
 
@@ -638,7 +622,6 @@ int main()
             {
                 if (checkServer(dumpPack) > 0)
                 {
-                    //type = processMsg(buf, &msg);
 
                     if (dumpPack->protocol == DUMP)
                     {
@@ -646,6 +629,7 @@ int main()
 
                         int buf = 0;
                         numEntities = dumpPack->numObjects;
+                        printf("%d\n", dumpPack->numObjects);
                         for (int i = 0; i < dumpPack->numObjects; i++)
                         {
                             if (i == getID())
@@ -674,8 +658,6 @@ int main()
                                 buf += (sizeof(struct move) * players[i].numMoves);
                             }
                         }
-
-                        //applyDumpData(all, msg.data, &numEntities);
 
                         //apply to the vector
 
@@ -729,6 +711,7 @@ int main()
                         }
                         */
 
+                printf("%d\n", numEntities);
                 for (int i = 0; i < numEntities; i++)
                 {
                     if (i != getID())
@@ -737,6 +720,7 @@ int main()
                         if (interlopeCount < players[i].numMoves)
                         {
                             Model *temp = getModelPointerByName(names[i]);
+                            printf("updating %s's pos\n", names[i].c_str());
                             updateModelPosition(temp, players[i].moves[interlopeCount].pos);
                             //printf("\tbefore [%.3f,%.3f,%.3f]\n", all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
                             //applyKeys(all[i].keys[interlopeCount].moves, all[i].keys[interlopeCount].dir, &(all[i].cameraPos));

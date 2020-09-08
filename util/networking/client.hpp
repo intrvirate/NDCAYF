@@ -21,8 +21,8 @@ struct generalPack
 {
     char key[10];
     char name[10];
-    unsigned short int protocol;
-    unsigned short int numObjects;
+    unsigned short protocol;
+    unsigned short numObjects;
     struct timeval time;
     char data[1000];
 };
