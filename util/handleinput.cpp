@@ -308,7 +308,7 @@ glm::vec3 calcCameraMovement(GLFWwindow* window){
 
         if (getConnection())
         {
-            //printf(":[%.3f,%.3f,%.3f], 3 %s  new [%.3f,%.3f,%.3f] %d, %.4f\n", cameraFront.x, cameraFront.y, cameraFront.z, temp, cameraPos.x, cameraPos.y, cameraPos.z, getKeyID(), cameraSpeed);
+            printf("[%.3f,%.3f,%.3f]\n", cameraPos.x, cameraPos.y, cameraPos.z);
             netLog(cameraPos, cameraFront, key);
         }
     }
