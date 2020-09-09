@@ -499,12 +499,13 @@ int main()
                             waiting = false;
                             //TODO create/change objects based off of the server data
                             int buf = 0;
-                            printf("%d\n", dumpPack->numObjects);
+                            printf("=====%s, %s, %d, %ld, %ld\n", msgPack->key, msgPack->name, msgPack->protocol, msgPack->time.tv_sec, msgPack->time.tv_usec);
                             numEntities = dumpPack->numObjects;
                             for (int i = 0; i < dumpPack->numObjects; i++)
                             {
                                 if (i == getID())
                                 {
+                                    printf("us\n");
                                     // get the move data
                                     struct move temp;
                                     memcpy(&temp, &dumpPack->data[buf], sizeof(struct move));
@@ -521,6 +522,7 @@ int main()
                                 }
                                 else
                                 {
+                                    printf("them\n");
                                     //get the inital int
                                     memcpy(&players[i].numMoves, &dumpPack->data[buf], sizeof(unsigned short));
                                     buf += sizeof(unsigned short);
@@ -637,11 +639,13 @@ int main()
                         int buf = 0;
                         numEntities = dumpPack->numObjects;
                         //printf("dump %lu %lu %d %d\n", dumpPack->numObjects, dumpPack->time.tv_sec, dumpPack->time.tv_usec, dumpPack->protocol);
+                        printf("=====%s, %s, %d, %ld, %ld\n", msgPack->key, msgPack->name, msgPack->protocol, msgPack->time.tv_sec, msgPack->time.tv_usec);
                         dumpPack->protocol = (unsigned short)1000;
                         for (int i = 0; i < dumpPack->numObjects; i++)
                         {
                             if (i == getID())
                             {
+                                printf("us\n");
                                 // get the move data
                                 struct move temp;
                                 memcpy(&temp, &dumpPack->data[buf], sizeof(struct move));
@@ -657,6 +661,7 @@ int main()
                             }
                             else
                             {
+                                printf("them\n");
                                 //get the inital int
                                 memcpy(&players[i].numMoves, &dumpPack->data[buf], sizeof(unsigned short));
                                 buf += sizeof(unsigned short);
