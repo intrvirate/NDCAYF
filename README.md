@@ -45,6 +45,7 @@ Lightweight first person shooter focused on multiplayer LAN-based gameplay, and 
 * Mario Kart Game mode, vehicle-based FFA.
 
 ## Links and Resources
+https://trello.com/b/23Q76eGP/ndcayf
 
 ### GitHub Repository
 [NDCAYF](https://github.com/intrvirate/NDCAYF)
