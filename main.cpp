@@ -517,8 +517,11 @@ int main()
                                     buf += sizeof(struct move);
 
                                     // player data is set
+
+                                    printf("[%.3f,%.3f,%.3f] before ", cameraPos.x, cameraPos.y, cameraPos.z);
                                     cameraPos = temp.pos;
-                                    cameraFront = temp.dir;
+                                    printf("[%.3f,%.3f,%.3f]\n", cameraPos.x, cameraPos.y, cameraPos.z);
+                                    //cameraFront = temp.dir;
 
                                     // and the last moveID
                                     memcpy(&players[i].moveID, &dumpPack->data[buf], sizeof(unsigned int));
