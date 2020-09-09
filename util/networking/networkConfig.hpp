@@ -1,5 +1,6 @@
 #ifndef NETWORK_H
 #define NETWORK_H
+#include <glm/glm.hpp>
 
 /*
  * store all network constants here,
@@ -8,8 +9,8 @@
  *
  */
 #define PORT  12345
-#define SUPERSECRETKEY_SERVER "ndcayfserver"
-#define SUPERSECRETKEY_CLIENT "ndcayfclient"
+#define SUPERSECRETKEY_SERVER "ndcayfser"
+#define SUPERSECRETKEY_CLIENT "ndcayfcli"
 #define PONG 1
 #define PING 2
 #define STATE 3
@@ -20,10 +21,20 @@
 
 #define IPLEN 30
 
+#define SERVERDUMPSPERSEC 6
+#define KEYUPDATE 60
+
 #define MAXSERVERS 5
+#define MAXPLAYERS 20
 
 // not sure if this value is important enough
 #define BUFSIZE 2048
+
+// a universal key map that all clients will understand 
+#define UNI_FD "w"
+#define UNI_BK "s"
+#define UNI_RT "d"
+#define UNI_LT "a"
 
 
 struct ifa {
@@ -39,11 +50,20 @@ struct server {
     int loIndex;
 };
 
+struct move
+{
+    glm::vec3 pos;
+    glm::vec3 dir;
+    char extraActions[5];
+};
+
 struct entities
 {
-    int x;
-    int y;
-    int z;
+    struct move moves[60];
+    unsigned short numMoves;
+    unsigned int moveID;
 };
+
+extern bool connected;
 
 #endif

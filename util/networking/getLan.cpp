@@ -40,6 +40,16 @@ int DELAY_SECS = 1;
 int DELAY_USECS = 0;
 
 
+struct pingPack
+{
+    char key[10];
+    char name[10];
+    unsigned short int protocol;
+    struct timeval time;
+    char data[1000];
+};
+
+
 
 void getInterfaces(struct ifa interfaces[], int *numFaces)
 {
@@ -94,21 +104,21 @@ void broadcastAllInterfaces(int sock, struct ifa interfaces[], int elements, cha
 
     struct timeval tv;
 
-    gettimeofday(&tv, NULL);
 
-    unsigned long long millisecondsSinceEpoch =
-        (unsigned long long)(tv.tv_sec) * 1000 +
-        (unsigned long long)(tv.tv_usec) / 1000;
+    struct pingPack ping;
+    gettimeofday(&ping.time, NULL);
+    strcpy(ping.key, SUPERSECRETKEY_CLIENT);
+    strcpy(ping.name, name);
+    ping.protocol = PING;
 
-    sprintf(msg, "%s$%s$%d$%llu", SUPERSECRETKEY_CLIENT, name, PING, millisecondsSinceEpoch);
-
-    socklen_t addrlen = sizeof(broadcast_addr);        /* length of addresses */
+    socklen_t addrlen = sizeof(broadcast_addr);
 
     // address stuff
     memset(&broadcast_addr, 0, sizeof(broadcast_addr));
     broadcast_addr.sin_family = AF_INET;
     broadcast_addr.sin_port = htons(PORT);
     //broadcast_addr.sin_addr.s_addr = htonl(INADDR_BROADCAST);
+
     for (int i = 0; i < elements; i++)
     {
         broadcast_addr.sin_addr.s_addr = inet_addr(interfaces[i].ip);
@@ -116,7 +126,7 @@ void broadcastAllInterfaces(int sock, struct ifa interfaces[], int elements, cha
         printf("Broadcast to %-15s %s\n", interfaces[i].name, interfaces[i].ip);
 
         // send broadcast
-        if (sendto(sock, msg, strlen(msg), 0, (struct sockaddr *)&broadcast_addr, addrlen) < 0)
+        if (sendto(sock, (const void*)&ping, sizeof(pingPack), 0, (struct sockaddr *)&broadcast_addr, addrlen) < 0)
         {
             printf("Failed\n");
         }
@@ -129,26 +139,102 @@ void getResponses(int sock, struct server servers[])
     int numServers = 0;
     bool waiting = true;
 
-    char buf[BUFSIZE];
+
     int recvlen;
     struct sockaddr_in in_addr;
     socklen_t addrlen = sizeof(in_addr);
 
-    char name[128];
-    char serverKey[128];
-    char protocol[128];
+    struct pingPack buf;
+
 
     // go through the queue of recieved messages if there are any
     printf("Going through sock queue...\n");
     while (waiting)
     {
-        recvlen = recvfrom(sock, buf, BUFSIZE, 0, (struct sockaddr *)&in_addr, &addrlen);
+        recvlen = recvfrom(sock, &buf, sizeof(pingPack), 0, (struct sockaddr *)&in_addr, &addrlen);
 
 
         // check if we got anything, if not then probably a timeout
         if (recvlen > 0)
         {
-            buf[recvlen] = 0;
+            //printf("%s, %s, %d, %ld, %ld\n", buf.key, buf.name, buf.protocol, buf.time.tv_sec, buf.time.tv_usec);
+            char *ip = inet_ntoa(in_addr.sin_addr);
+
+            // validate that this is a server
+            if(strcmp(buf.key, SUPERSECRETKEY_SERVER) == 0)
+            {
+                printf("IP of %s \"%-10s\"", buf.name, ip);
+
+                if (numServers != MAXSERVERS)
+                {
+                    // add ip to a new server, or to an
+                    // old server with same name
+                    bool newServer = true;
+                    int index = numServers;
+                    for (int j = 0; j < numServers; j++)
+                    {
+                        if (strcmp(servers[j].name, buf.name) == 0)
+                        {
+                            newServer = false;
+                            index = j;
+                        }
+
+                    }
+
+                    // add server info
+                    strcpy(servers[index].routes[servers[index].numRoutes], ip);
+                    servers[index].numRoutes++;
+
+
+                    if (strcmp(ip, lo) == 0)
+                    {
+                        servers[index].hasLo = true;
+                        servers[index].loIndex = index;
+                        printf("\tLO");
+                    }
+
+                    if (newServer)
+                    {
+                        strcpy(servers[index].name, buf.name);
+                        numServers++;
+                    }
+                }
+
+                printf("\n");
+
+                //printf("Key: %s, Name: %s\n", serverKey, name);
+            }
+            else
+            {
+                printf("Rando found %s\n", ip);
+            }
+        }
+        else
+        {
+            printf("Finished\n\n");
+            waiting = false;
+        }
+    }
+
+}
+
+
+
+void getAllServersa(struct server servers[])
+{
+    printf("asdfasdfasdf\n");
+    /*
+    printf("Getting servers...\n");
+    char hostname[128];
+
+    struct ifa interfaces[10];
+    int numFaces = 0;
+
+    int bcast_sock;
+
+    // make the struct start with 0, and servername is empty str
+    for (int i = 0; i < MAXSERVERS; i++)
+    {
 
             strcpy(serverKey, strtok(buf, "$"));
             char *ip = inet_ntoa(in_addr.sin_addr);
@@ -211,6 +297,7 @@ void getResponses(int sock, struct server servers[])
             waiting = false;
         }
     }
+*/
 
 }
 
