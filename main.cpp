@@ -392,6 +392,10 @@ int main()
             {
                 toggleMouseVisibility(window);
             }
+            if (connected)
+            {
+                connected = false;
+            }
             renderLoop3D(window);
             renderLoop2D(window);
 
@@ -631,7 +635,7 @@ int main()
 
                         int buf = 0;
                         numEntities = dumpPack->numObjects;
-                        printf("dump %lu %lu %d %d\n", dumpPack->numObjects, dumpPack->time.tv_sec, dumpPack->time.tv_usec, dumpPack->protocol);
+                        //printf("dump %lu %lu %d %d\n", dumpPack->numObjects, dumpPack->time.tv_sec, dumpPack->time.tv_usec, dumpPack->protocol);
                         dumpPack->protocol = (unsigned short)1000;
                         for (int i = 0; i < dumpPack->numObjects; i++)
                         {
@@ -677,18 +681,16 @@ int main()
                     string names[4] = {blue, pink, green, orange};
 
 
-                    printf("%d\n", numEntities);
                     int name = 0;
                     for (int i = 0; i < numEntities; i++)
                     {
                         if (i != getID())
                         {
                             // applies the next move
-                            printf("%d < %d\n", interlopeCount, players[i].numMoves);
                             if (interlopeCount < players[i].numMoves)
                             {
                                 Model *temp = getModelPointerByName(names[name]);
-                                printf("updating %s's pos\n", names[name].c_str());
+                                //printf("updating %s's pos\n", names[name].c_str());
                                 updateModelPosition(temp, players[i].moves[interlopeCount].pos);
                                 //printf("\tbefore [%.3f,%.3f,%.3f]\n", all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
                                 //applyKeys(all[i].keys[interlopeCount].moves, all[i].keys[interlopeCount].dir, &(all[i].cameraPos));
