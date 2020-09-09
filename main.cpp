@@ -380,6 +380,7 @@ int main()
         }
 
         // Swap buffers (write to screen)
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     }

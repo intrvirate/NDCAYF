@@ -301,7 +301,6 @@ void loadModels(string jsonPath){
 
             top_model[i]->collisionShape->setUserPointer(top_model[i]);
             top_model[i]->collisionShape->setLocalScaling( btVector3(top_model[i]->scale.x, top_model[i]->scale.y, top_model[i]->scale.z));
-
             float inerta = modelJson["models"][i]["inerta"];
             btVector3 localInertia(inerta, inerta, inerta);
             top_model[i]->inerta = inerta;
@@ -685,6 +684,7 @@ void RunStepSimulation(){
 //see https://pybullet.org/Bullet/phpBB3/viewtopic.php?t=11690 for context
 void disableCollision(Model* model){
     //model->body->setCollisionFlags(model->body->getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
+
     btBroadphaseProxy* proxy = model->body->getBroadphaseProxy();
     proxy->m_collisionFilterGroup = COL_NOTHING;
     proxy->m_collisionFilterMask = COL_NOTHING_COLLIDES_WITH;
@@ -698,7 +698,6 @@ void enableCollision(Model* model){
 }
 
 void makeStatic(Model* model){
-    //dynamicsWorld->removeRigidBody(model->body); //first remove body to make changes
 
     model->body->setMassProps(0,btVector3(0,0,0));
     model->body->setLinearVelocity(btVector3(0.0,0.0,0.0));
@@ -706,20 +705,18 @@ void makeStatic(Model* model){
 
     model->body->setCollisionFlags(model->body->getCollisionFlags() | btCollisionObject::CF_STATIC_OBJECT);
 
-    //dynamicsWorld->addRigidBody(model->body); //add it back
 
 }
 
 void makeDynamic(Model* model){
 
-    //dynamicsWorld->removeRigidBody(model->body);
 
     model->body->setMassProps(model->mass,btVector3(model->inerta,model->inerta,model->inerta));
+    model->body->activate();
     model->body->updateInertiaTensor();
 
-    model->body->setCollisionFlags(model->body->getCollisionFlags() | btCollisionObject::CF_STATIC_OBJECT);
+    model->body->setCollisionFlags(model->body->getCollisionFlags() & ~btCollisionObject::CF_STATIC_OBJECT);
 
-    //dynamicsWorld->addRigidBody(model->body);
 }
 
 //note: this is not a very fast function; use it sparingly.
@@ -733,9 +730,11 @@ Model* getModelPointerByName(string name){
 }
 
 void updateModelPosition(Model* model, glm::vec3 pos){
-    btTransform tr = model->body->getWorldTransform();
-    tr.setOrigin(btVector3(pos.x,pos.y,pos.z));
-    model->body->setWorldTransform(tr);
+
+        btTransform tr = model->body->getWorldTransform();
+        tr.setOrigin(btVector3(pos.x,pos.y,pos.z));
+        model->body->setWorldTransform(tr);
+
     //update all sub meshes
     for (uint i = 0; i < model->meshes.size(); i++){
         glm::mat4 modelMat = glm::mat4(1.0f);
@@ -746,9 +745,11 @@ void updateModelPosition(Model* model, glm::vec3 pos){
 }
 
 void updateModelPosition(Model* model, btVector3 pos){
-    btTransform tr = model->body->getWorldTransform();
-    tr.setOrigin(pos);
-    model->body->setWorldTransform(tr);
+
+        btTransform tr = model->body->getWorldTransform();
+        tr.setOrigin(pos);
+        model->body->setWorldTransform(tr);
+
     //update all sub meshes
     glm::vec3 glmPos = glm::vec3(pos.x(), pos.y(), pos.z());
     for (uint i = 0; i < model->meshes.size(); i++){
