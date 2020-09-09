@@ -639,7 +639,7 @@ int main()
                         int buf = 0;
                         numEntities = dumpPack->numObjects;
                         //printf("dump %lu %lu %d %d\n", dumpPack->numObjects, dumpPack->time.tv_sec, dumpPack->time.tv_usec, dumpPack->protocol);
-                        printf("=====%s, %s, %d, %ld, %ld\n", msgPack->key, msgPack->name, msgPack->protocol, msgPack->time.tv_sec, msgPack->time.tv_usec);
+                        printf("=====%s, %s, %d, %ld, %ld\n", dumpPack->key, dumpPack->name, dumpPack->protocol, dumpPack->time.tv_sec, dumpPack->time.tv_usec);
                         dumpPack->protocol = (unsigned short)1000;
                         for (int i = 0; i < dumpPack->numObjects; i++)
                         {
