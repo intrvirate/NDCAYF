@@ -671,14 +671,16 @@ int main()
                             }
                             else
                             {
-                                printf("them\n");
+                                printf("them11\n");
                                 //get the inital int
                                 memcpy(&players[i].numMoves, &dumpPack->data[buf], sizeof(unsigned short));
                                 buf += sizeof(unsigned short);
+                                printf("them12\n");
 
                                 // get the moves
                                 memcpy(&players[i].moves, &dumpPack->data[buf], sizeof(struct move) * players[i].numMoves);
                                 buf += (sizeof(struct move) * players[i].numMoves);
+                                printf("them13\n");
                             }
                         }
 
@@ -705,14 +707,10 @@ int main()
                             // applies the next move
                             if (interlopeCount < players[i].numMoves)
                             {
-                                Model *temp = getModelPointerByName(names[name]);
                                 //printf("updating %s's pos\n", names[name].c_str());
+                                Model *temp = getModelPointerByName(names[name]);
                                 updateModelPosition(temp, players[i].moves[interlopeCount].pos);
-                                //printf("\tbefore [%.3f,%.3f,%.3f]\n", all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
-                                //applyKeys(all[i].keys[interlopeCount].moves, all[i].keys[interlopeCount].dir, &(all[i].cameraPos));
-                                //printf("\tafter [%.3f,%.3f,%.3f]\n", all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
-                                //btVector3 infront(all[i].cameraPos.x, all[i].cameraPos.y, all[i].cameraPos.z);
-                                //ourModel5.setPosition(infront);
+
                             }
                         }
                         name++;
