@@ -499,7 +499,7 @@ int main()
                             waiting = false;
                             //TODO create/change objects based off of the server data
                             int buf = 0;
-                            printf("=====%s, %s, %d, %ld, %ld\n", msgPack->key, msgPack->name, msgPack->protocol, msgPack->time.tv_sec, msgPack->time.tv_usec);
+                            printf("=====%s, %s, %d, %ld, %ld\n", dumpPack->key, dumpPack->name, dumpPack->protocol, dumpPack->time.tv_sec, dumpPack->time.tv_usec);
                             numEntities = dumpPack->numObjects;
                             for (int i = 0; i < dumpPack->numObjects; i++)
                             {
