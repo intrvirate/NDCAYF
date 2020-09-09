@@ -438,7 +438,7 @@ int main()
                         if (ImGui::Button(txt))
                         {
                             printf("Server %s, IP %s\n", serverList[j].name, serverList[j].routes[q]);
-                            if (connectTo(serverList[j].routes[q]) < 0)
+                            if (!connectTo(serverList[j].routes[q]))
                             {
                                 printf("Failed to connect to: %s at %s\n", serverList[j].name, serverList[j].routes[q]);
                             }
@@ -487,12 +487,17 @@ int main()
                 //setPositions(all, msg.data);
                 // wait for the server to send the info
                 bool waiting = true;
+                int loops = 0;
+                dumpPack->protocol = 1000;
                 while (waiting)
                 {
                     // get msg
+                    printf("Waiting\n");
+                    printf("asdf%d\n", dumpPack->protocol);
+                    loops++;
                     if (checkServer(dumpPack) >= 0)
                     {
-                        //printf("%d\n", dumpPack->protocol);
+                        printf("got one %d\n", dumpPack->protocol);
 
                         if (dumpPack->protocol == DUMP)
                         {
@@ -522,14 +527,16 @@ int main()
                                 }
                                 else
                                 {
-                                    printf("them\n");
+                                    printf("them1\n");
                                     //get the inital int
                                     memcpy(&players[i].numMoves, &dumpPack->data[buf], sizeof(unsigned short));
                                     buf += sizeof(unsigned short);
+                                    printf("them2\n");
 
                                     // get the moves
                                     memcpy(&players[i].moves, &dumpPack->data[buf], sizeof(struct move) * players[i].numMoves);
                                     buf += (sizeof(struct move) * players[i].numMoves);
+                                    printf("them3\n");
                                 }
                             }
 
@@ -645,13 +652,13 @@ int main()
                         {
                             if (i == getID())
                             {
-                                printf("us\n");
                                 // get the move data
                                 struct move temp;
                                 memcpy(&temp, &dumpPack->data[buf], sizeof(struct move));
                                 buf += sizeof(struct move);
 
                                 cameraPos = temp.pos;
+                                printf("us %.2f, %.2f, %.2f\n", temp.pos.x, temp.pos.y, temp.pos.z);
                                 //cameraFront = temp.dir;
 
                                 // and the last moveID

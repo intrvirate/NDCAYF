@@ -16,10 +16,10 @@
     ],
     "models": [
         {
-            "path": "obj/objects/Sidewinder.obj",
+            "path": "obj/objects/terrain03.obj",
             "shaders": ["generic","generic","generic"],
             "hasPhysics": true,
-            "collisionType": "terrain",
+            "collisionType": "player",
             "mass": 0.0,
             "inerta": 0.0,
             "friction" : 0.7,
@@ -28,7 +28,7 @@
             "scale": 100.0,
             "isInstanced": false,
             "meshCountHint": 2,
-            "pos": [0.0,0.0,0.0]
+            "pos": [0.0,-20.0,0.0]
 
         },
         {
