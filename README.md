@@ -16,7 +16,7 @@ Lightweight first person shooter focused on multiplayer LAN-based gameplay, and 
 
 ## Dependencies
 * cmake
-* glfw3 (glfw-x11 on archlinux)
+* glfw3 (glfw-x11 on ar(ch|tix)linux)
 * glew
 * assimp
 * bullet
