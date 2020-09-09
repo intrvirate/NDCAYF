@@ -551,6 +551,7 @@ int main()
 
                 }
                 printf("Got initial data\n");
+                printf("Starting at %.2f, %.2f, %.2f\n", cameraPos.x, cameraPos.y, cameraPos.z);
             }
 
 
@@ -647,7 +648,7 @@ int main()
                                 buf += sizeof(struct move);
 
                                 cameraPos = temp.pos;
-                                cameraFront = temp.dir;
+                                //cameraFront = temp.dir;
 
                                 // and the last moveID
                                 memcpy(&players[i].moveID, &dumpPack->data[buf], sizeof(unsigned int));
