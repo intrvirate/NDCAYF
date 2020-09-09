@@ -254,7 +254,8 @@ glm::vec3 calcCameraMovement(GLFWwindow* window){
         // store keys
         char key[] = "asdf";
         char temp[100];
-        sprintf(temp, "old[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
+
+            printf("before move[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
 
 
         glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraFront));
@@ -308,7 +309,7 @@ glm::vec3 calcCameraMovement(GLFWwindow* window){
 
         if (getConnection())
         {
-            printf("[%.3f,%.3f,%.3f]\n", cameraPos.x, cameraPos.y, cameraPos.z);
+            printf("  after[%.3f,%.3f,%.3f]\n", cameraPos.x, cameraPos.y, cameraPos.z);
             netLog(cameraPos, cameraFront, key);
         }
     }
