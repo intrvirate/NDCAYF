@@ -19,16 +19,16 @@
             "path": "obj/objects/Sidewinder.obj",
             "shaders": ["generic","generic","generic"],
             "hasPhysics": true,
-            "collisionType": "terrain",
+            "collisionType": "player",
             "mass": 0.0,
             "inerta": 0.0,
             "friction" : 0.7,
             "Rotatingfriction" : 0.7,
             "useSinglePrimitive": false,
-            "scale": 1.0,
+            "scale": 3.0,
             "isInstanced": false,
             "meshCountHint": 2,
-            "pos": [0.0,0.0,0.0]
+            "pos": [0.0,-20.0,0.0]
 
         },
         {

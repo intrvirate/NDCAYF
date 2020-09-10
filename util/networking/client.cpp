@@ -156,7 +156,7 @@ bool connectTo(char ip[])
         if (checkServer(msgPack) < 0)
         {
             tries++;
-            printf("Received failed\n");
+            perror("Received failed\n");
         }
         else
         {
@@ -170,14 +170,21 @@ bool connectTo(char ip[])
         }
     }
 
+    printf("protocol %d == %d\n", msgPack->protocol, CONNECT);
+    printf("found %s\n", found ? "true" : "false");
     // if found and is a connect packet then we are good
-    if (found && msgPack->protocol == CONNECT)
+    if (found && (msgPack->protocol == CONNECT))
     {
         success = true;
         printf("%s, %s, %d, %ld, %ld", msgPack->key, msgPack->name, msgPack->protocol, msgPack->time.tv_sec, msgPack->time.tv_usec, msgPack->data);
         // get the int out of the extra bytes
         clientID = (int)*(msgPack->data);
         printf(", %d\n", clientID);
+    }
+    else
+    {
+        printf("Failed\n");
+        success = false;
     }
 
     return success;
@@ -217,6 +224,10 @@ int checkServer(struct generalPack *msg)
     int success = -1;
 
     recvlen = recvfrom(actualSock, &buf, bufSize, 0, (struct sockaddr *)&rec_addr, &inAddrLen);
+    if (recvlen > 0)
+    {
+        printf("got a msg\n");
+    }
 
     if (rec_addr.sin_addr.s_addr == serverAddr.sin_addr.s_addr && recvlen > 0)
     {

@@ -177,6 +177,11 @@ bool isMouseVisable(){
     return mouseVisable;
 }
 
+void editorScrollCallback(GLFWwindow* window, double xScroll, double yScroll)
+{
+    //fprintf("scrolling");
+}
+
 void exitMenu(){
     exitMenuVal = true;
 }
@@ -196,7 +201,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action,
     }
     else if (key == GLFW_KEY_G && action == GLFW_PRESS)
     {
-        setCurrentModel();
+        setPickedModel();
     }
 
     if(!mouseVisable){
@@ -254,7 +259,8 @@ glm::vec3 calcCameraMovement(GLFWwindow* window){
         // store keys
         char key[] = "asdf";
         char temp[100];
-        sprintf(temp, "old[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
+
+            //printf("before move[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
 
 
         glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraFront));
@@ -263,35 +269,41 @@ glm::vec3 calcCameraMovement(GLFWwindow* window){
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         {
             cameraPos += cameraSpeed * cameraFront;
+            //printf(" w ");
             //keys.append(UNI_FD);
         }
 
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         {
             cameraPos -= cameraSpeed * cameraFront;
+            //printf(" s ");
             //keys.append(UNI_BK);
         }
 
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         {
             cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+            //printf(" a ");
             //keys.append(UNI_LT);
         }
 
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         {
             cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+            //printf(" d ");
             //keys.append(UNI_RT);
         }
 
         if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
         {
             cameraPos += cameraSpeed * cameraUp;
+            //printf(" sp ");
         }
 
         if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
         {
             cameraPos -= cameraSpeed * cameraUp;
+            //printf(" ls ");
         }
 
         // TODO: Fix the issue where it freaks out and clears the screen
@@ -308,7 +320,7 @@ glm::vec3 calcCameraMovement(GLFWwindow* window){
 
         if (getConnection())
         {
-            //printf(":[%.3f,%.3f,%.3f], 3 %s  new [%.3f,%.3f,%.3f] %d, %.4f\n", cameraFront.x, cameraFront.y, cameraFront.z, temp, cameraPos.x, cameraPos.y, cameraPos.z, getKeyID(), cameraSpeed);
+            //printf("  after[%.3f,%.3f,%.3f]\n", cameraPos.x, cameraPos.y, cameraPos.z);
             netLog(cameraPos, cameraFront, key);
         }
     }

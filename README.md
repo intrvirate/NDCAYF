@@ -16,7 +16,7 @@ Lightweight first person shooter focused on multiplayer LAN-based gameplay, and 
 
 ## Dependencies
 * cmake
-* glfw3 (glfw-x11 on archlinux)
+* glfw3 (glfw-x11 on ar(ch|tix)linux)
 * glew
 * assimp
 * bullet
@@ -41,8 +41,11 @@ Lightweight first person shooter focused on multiplayer LAN-based gameplay, and 
 
 ## Feature Ideas:
 * CTF game mode in which both teams can move both flags.
+* Quake game mode, modeled after jaun tap, start with one bullet and get one per kill.
+* Mario Kart Game mode, vehicle-based FFA.
 
 ## Links and Resources
+https://trello.com/b/23Q76eGP/ndcayf
 
 ### GitHub Repository
 [NDCAYF](https://github.com/intrvirate/NDCAYF)

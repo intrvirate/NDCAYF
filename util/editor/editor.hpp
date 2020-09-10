@@ -18,6 +18,7 @@
 
 #include "util/object/object.h"
 
+void draw3dCursor();
 void drawEditor();
-extern void setCurrentModel();
+extern void setPickedModel();
 #endif

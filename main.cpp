@@ -19,6 +19,7 @@
 
 #include "util/render/render3D.hpp"
 #include "util/render/render2D.hpp"
+#include "util/render/skybox.hpp"
 
 #include "util/loadMenu.hpp"
 
@@ -325,6 +326,7 @@ int main()
     load3DShaders();
     load3DBuffers();
     load3DMatrices();
+    initializeSkybox();
 
     load2DShaders();
     load2DBuffers();
@@ -360,7 +362,9 @@ int main()
     printf("%f, %f, %f\n", cameraPos.x, cameraPos.y, cameraPos.z);
     */
 
+
 //=========== LOOP ===========================================================
+
 
 
 
@@ -384,6 +388,8 @@ int main()
             int display_w, display_h;
             glfwGetFramebufferSize(window, &display_w, &display_h);
             glViewport(0, 0, display_w, display_h);
+
+            renderSkybox();
 
             }
             break;
@@ -438,7 +444,7 @@ int main()
                         if (ImGui::Button(txt))
                         {
                             printf("Server %s, IP %s\n", serverList[j].name, serverList[j].routes[q]);
-                            if (connectTo(serverList[j].routes[q]) < 0)
+                            if (!connectTo(serverList[j].routes[q]))
                             {
                                 printf("Failed to connect to: %s at %s\n", serverList[j].name, serverList[j].routes[q]);
                             }
@@ -487,32 +493,41 @@ int main()
                 //setPositions(all, msg.data);
                 // wait for the server to send the info
                 bool waiting = true;
+                int loops = 0;
+                dumpPack->protocol = 1000;
                 while (waiting)
                 {
                     // get msg
+                    printf("Waiting\n");
+                    printf("asdf%d\n", dumpPack->protocol);
+                    loops++;
                     if (checkServer(dumpPack) >= 0)
                     {
-                        //printf("%d\n", dumpPack->protocol);
+                        printf("got one %d\n", dumpPack->protocol);
 
                         if (dumpPack->protocol == DUMP)
                         {
                             waiting = false;
                             //TODO create/change objects based off of the server data
                             int buf = 0;
-                            printf("%d\n", dumpPack->numObjects);
+                            printf("=====%d, %s, %s, %d, %ld, %ld\n", dumpPack->numObjects, dumpPack->key, dumpPack->name, dumpPack->protocol, dumpPack->time.tv_sec, dumpPack->time.tv_usec);
                             numEntities = dumpPack->numObjects;
                             for (int i = 0; i < dumpPack->numObjects; i++)
                             {
                                 if (i == getID())
                                 {
+                                    printf("us\n");
                                     // get the move data
                                     struct move temp;
                                     memcpy(&temp, &dumpPack->data[buf], sizeof(struct move));
                                     buf += sizeof(struct move);
 
                                     // player data is set
+
+                                    printf("[%.3f,%.3f,%.3f] before ", cameraPos.x, cameraPos.y, cameraPos.z);
                                     cameraPos = temp.pos;
-                                    cameraFront = temp.dir;
+                                    printf("[%.3f,%.3f,%.3f]\n", cameraPos.x, cameraPos.y, cameraPos.z);
+                                    //cameraFront = temp.dir;
 
                                     // and the last moveID
                                     memcpy(&players[i].moveID, &dumpPack->data[buf], sizeof(unsigned int));
@@ -521,13 +536,16 @@ int main()
                                 }
                                 else
                                 {
+                                    printf("them1\n");
                                     //get the inital int
                                     memcpy(&players[i].numMoves, &dumpPack->data[buf], sizeof(unsigned short));
                                     buf += sizeof(unsigned short);
+                                    printf("them2\n");
 
                                     // get the moves
                                     memcpy(&players[i].moves, &dumpPack->data[buf], sizeof(struct move) * players[i].numMoves);
                                     buf += (sizeof(struct move) * players[i].numMoves);
+                                    printf("them3\n");
                                 }
                             }
 
@@ -558,9 +576,7 @@ int main()
 
             }
             break;
-
         case LOOP_MODE_EDIT :    {
-
 
             renderLoop3D(window);
             renderLoop2D(window);
@@ -576,42 +592,13 @@ int main()
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
 
-
-            btVector3 from(cameraPos.x,cameraPos.y,cameraPos.z);
-            btVector3 to(cameraPos.x+cameraFront.x*100,
-            cameraPos.y+cameraFront.y*100, cameraPos.z+cameraFront.z*100);
-
-            btVector3 blue(0.1, 0.3, 0.9);
-
-            dynamicsWorld->getDebugDrawer()->drawSphere(btVector3(0,0,0),
-                0.5, blue); //at origin
-
-
-            btCollisionWorld::ClosestRayResultCallback closestResults(from, to);
-            closestResults.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
-            closestResults.m_collisionFilterGroup = COL_SELECTER;
-            closestResults.m_collisionFilterMask = COL_SELECT_RAY_COLLIDES_WITH;
-
-            dynamicsWorld->rayTest(from, to, closestResults);
-            if (closestResults.hasHit() && !isMouseVisable())
-            {
-
-                btVector3 p = from.lerp(to,
-                    closestResults.m_closestHitFraction);
-
-                dynamicsWorld->getDebugDrawer()->drawSphere(p, 0.1, blue);
-                dynamicsWorld->getDebugDrawer()->drawLine(p, p
-                    + closestResults.m_hitNormalWorld, blue);
-
-            }
-
-
             //Properties edit window
             drawEditor();
 
 
             drawObjects();
             debugDraw.draw();
+            renderSkybox();
             ImGui::Render();
             int display_w, display_h;
             glfwGetFramebufferSize(window, &display_w, &display_h);
@@ -620,6 +607,22 @@ int main()
 
             //render imgui (render this last so it's on top of other stuff)
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+
+            }
+            break;
+        case LOOP_MODE_PLAY :    {
+            renderLoop3D(window);
+            renderLoop2D(window);
+            RunStepSimulation();
+            drawObjects();
+
+            debugDraw.SetMatrices(getViewMatrix(), getprojectionMatrix());
+
+            if(physicsDebugEnabled){
+                dynamicsWorld->debugDrawWorld();
+            }
+
 
             //=== do the network
 
@@ -637,6 +640,7 @@ int main()
                         int buf = 0;
                         numEntities = dumpPack->numObjects;
                         //printf("dump %lu %lu %d %d\n", dumpPack->numObjects, dumpPack->time.tv_sec, dumpPack->time.tv_usec, dumpPack->protocol);
+                        printf("=====%s, %s, %d, %ld, %ld\n", dumpPack->key, dumpPack->name, dumpPack->protocol, dumpPack->time.tv_sec, dumpPack->time.tv_usec);
                         dumpPack->protocol = (unsigned short)1000;
                         for (int i = 0; i < dumpPack->numObjects; i++)
                         {
@@ -648,6 +652,7 @@ int main()
                                 buf += sizeof(struct move);
 
                                 cameraPos = temp.pos;
+                                printf("us %.2f, %.2f, %.2f\n", temp.pos.x, temp.pos.y, temp.pos.z);
                                 //cameraFront = temp.dir;
 
                                 // and the last moveID
@@ -657,6 +662,7 @@ int main()
                             }
                             else
                             {
+                                printf("them\n");
                                 //get the inital int
                                 memcpy(&players[i].numMoves, &dumpPack->data[buf], sizeof(unsigned short));
                                 buf += sizeof(unsigned short);
@@ -706,22 +712,9 @@ int main()
                     interlopeCount++;
                 }
                 //draw the players
-            }
-
-            break;
-        case LOOP_MODE_PLAY :    {
-            renderLoop3D(window);
-            renderLoop2D(window);
-            RunStepSimulation();
-            drawObjects();
-
-            debugDraw.SetMatrices(getViewMatrix(), getprojectionMatrix());
-
-            if(physicsDebugEnabled){
-                dynamicsWorld->debugDrawWorld();
-            }
 
             debugDraw.draw();
+            renderSkybox();
 
         }
             break;
@@ -750,3 +743,4 @@ int main()
 
     return 0;
 }
+
