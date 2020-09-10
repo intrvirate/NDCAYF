@@ -20,7 +20,9 @@ Model *pickedModel = NULL;
 Model *cursoredModel = NULL;
 btVector3 p;
 string modelName = "";
-bool modelPhysics = NULL;
+string cursoredModelName = "";
+bool modelPhysics;
+bool cursoredModelPhysics;
 
 void draw3dCursor()
 {
@@ -43,6 +45,10 @@ void draw3dCursor()
         cursoredModel = ((Model *)closestResults.m_collisionObject->\
             getCollisionShape()->getUserPointer());
 
+        cursoredModelName = cursoredModel->objectPath;
+        size_t delimPos = cursoredModelName.find_last_of("/");
+        cursoredModelName = cursoredModelName.substr(delimPos + 1);
+
         p = from.lerp(to,
             closestResults.m_closestHitFraction);
 
@@ -60,6 +66,7 @@ void setPickedModel()
 {
     if (cursoredModel != NULL)
     {
+
         if (pickedModel == NULL)
         {
             pickedModel = cursoredModel;
@@ -123,7 +130,7 @@ void drawEditor()
 
         if (pickedModel != NULL)
         {
-            ImGui::Text("Selected:");
+            ImGui::Text("Picked:");
             ImGui::SameLine();
             ImGui::Text(modelName.c_str());
 
@@ -134,9 +141,22 @@ void drawEditor()
             {
                 ImGui::Text("No Physics");
             }
-        }
+        } else if (cursoredModel != NULL)
+        {
+            ImGui::Text("Cursored:");
+            ImGui::SameLine();
+            ImGui::Text(cursoredModelName.c_str());
 
+            if (cursoredModelPhysics)
+            {
+                ImGui::Text("Has Physics");
+            } else
+            {
+                ImGui::Text("No Physics");
+            }
+        }
         ImGui::End();
+
     }
 
 }
