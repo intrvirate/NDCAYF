@@ -23,6 +23,7 @@ float getFrameTime();
 glm::vec2 getMousePos();
 void calculateFrameTime();
 bool isMouseVisable();
+void editorScrollCallback(GLFWwindow* window, double xScroll, double yScroll);
 void exitMenu();
 void initializeMouse(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);

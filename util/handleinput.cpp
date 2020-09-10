@@ -177,6 +177,11 @@ bool isMouseVisable(){
     return mouseVisable;
 }
 
+void editorScrollCallback(GLFWwindow* window, double xScroll, double yScroll)
+{
+    //fprintf("scrolling");
+}
+
 void exitMenu(){
     exitMenuVal = true;
 }

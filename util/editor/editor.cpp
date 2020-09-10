@@ -20,6 +20,35 @@ Model *currentModel = NULL;
 string modelName = "";
 bool modelPhysics = NULL;
 
+void draw3dCursor()
+{
+    btVector3 from(cameraPos.x,cameraPos.y,cameraPos.z);
+    btVector3 to(cameraPos.x+cameraFront.x*100,
+    cameraPos.y+cameraFront.y*100, cameraPos.z+cameraFront.z*100);
+
+    btVector3 blue(0.1, 0.3, 0.9);
+
+    //at origin
+    dynamicsWorld->getDebugDrawer()->drawSphere(btVector3(0,0,0), 0.5, blue);
+    btCollisionWorld::ClosestRayResultCallback closestResults(from, to);
+    closestResults.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
+    closestResults.m_collisionFilterGroup = COL_SELECTER;
+    closestResults.m_collisionFilterMask = COL_SELECT_RAY_COLLIDES_WITH;
+
+    dynamicsWorld->rayTest(from, to, closestResults);
+    if (closestResults.hasHit() && !isMouseVisable())
+    {
+
+        btVector3 p = from.lerp(to,
+            closestResults.m_closestHitFraction);
+
+        dynamicsWorld->getDebugDrawer()->drawSphere(p, 0.1, blue);
+        dynamicsWorld->getDebugDrawer()->drawLine(p, p
+            + closestResults.m_hitNormalWorld, blue);
+
+    }
+}
+
 void setCurrentModel()
 {
     if (currentModel == NULL)
