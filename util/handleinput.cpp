@@ -267,7 +267,10 @@ glm::vec3 calcCameraMovement(GLFWwindow* window){
         {
             cameraPos += cameraSpeed * cameraFront;
             if (getConnection())
+            {
                 printf(" w ");
+                printf("[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
+            }
             //keys.append(UNI_FD);
         }
 
@@ -275,7 +278,10 @@ glm::vec3 calcCameraMovement(GLFWwindow* window){
         {
             cameraPos -= cameraSpeed * cameraFront;
             if (getConnection())
+            {
                 printf(" s ");
+                printf("[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
+            }
             //keys.append(UNI_BK);
         }
 
@@ -283,7 +289,10 @@ glm::vec3 calcCameraMovement(GLFWwindow* window){
         {
             cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
             if (getConnection())
-                printf(" a ");
+            {
+                printf(" a ");//is bad
+                printf("[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
+            }
             //keys.append(UNI_LT);
         }
 
@@ -291,7 +300,10 @@ glm::vec3 calcCameraMovement(GLFWwindow* window){
         {
             cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
             if (getConnection())
-                printf(" d ");
+            {
+                printf(" d ");//bad
+                printf("[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
+            }
             //keys.append(UNI_RT);
         }
 
@@ -299,14 +311,20 @@ glm::vec3 calcCameraMovement(GLFWwindow* window){
         {
             cameraPos += cameraSpeed * cameraUp;
             if (getConnection())
+            {
                 printf(" sp ");
+                printf("[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
+            }
         }
 
         if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
         {
             cameraPos -= cameraSpeed * cameraUp;
             if (getConnection())
-                printf(" ls ");
+            {
+                printf(" ls ");//asdf
+                printf("[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
+            }
         }
 
         // TODO: Fix the issue where it freaks out and clears the screen

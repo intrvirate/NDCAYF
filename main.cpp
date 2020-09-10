@@ -518,7 +518,8 @@ int main()
 
                                     // player data is set
 
-                                    printf("[%.3f,%.3f,%.3f] before ", cameraPos.x, cameraPos.y, cameraPos.z);
+                                    printf("%.2f,%.2f,%.2f\n", temp.pos.x, temp.pos.y, temp.pos.z);
+                                    printf("[%.3f,%.3f,%.3f] :", cameraPos.x, cameraPos.y, cameraPos.z);
                                     cameraPos = temp.pos;
                                     printf("[%.3f,%.3f,%.3f]\n", cameraPos.x, cameraPos.y, cameraPos.z);
                                     //cameraFront = temp.dir;
@@ -678,6 +679,7 @@ int main()
                                 printf("them12\n");
 
                                 // get the moves
+                                // had abug here
                                 memcpy(&players[i].moves, &dumpPack->data[buf], sizeof(struct move) * players[i].numMoves);
                                 buf += (sizeof(struct move) * players[i].numMoves);
                                 printf("them13\n");
