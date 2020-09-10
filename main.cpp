@@ -19,6 +19,7 @@
 
 #include "util/render/render3D.hpp"
 #include "util/render/render2D.hpp"
+#include "util/render/skybox.hpp"
 
 #include "util/loadMenu.hpp"
 
@@ -325,6 +326,7 @@ int main()
     load3DShaders();
     load3DBuffers();
     load3DMatrices();
+    initializeSkybox();
 
     load2DShaders();
     load2DBuffers();
@@ -360,7 +362,10 @@ int main()
     printf("%f, %f, %f\n", cameraPos.x, cameraPos.y, cameraPos.z);
     */
 
+
 //=========== LOOP ===========================================================
+
+
 
 
     Model *lastModel = NULL;    //last pointed-at model
@@ -383,6 +388,8 @@ int main()
             int display_w, display_h;
             glfwGetFramebufferSize(window, &display_w, &display_h);
             glViewport(0, 0, display_w, display_h);
+
+            renderSkybox();
 
             }
             break;
@@ -571,7 +578,6 @@ int main()
             break;
         case LOOP_MODE_EDIT :    {
 
-
             renderLoop3D(window);
             renderLoop2D(window);
             //Bullet Simulation:
@@ -622,6 +628,7 @@ int main()
 
             drawObjects();
             debugDraw.draw();
+            renderSkybox();
             ImGui::Render();
             int display_w, display_h;
             glfwGetFramebufferSize(window, &display_w, &display_h);
@@ -630,6 +637,22 @@ int main()
 
             //render imgui (render this last so it's on top of other stuff)
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+
+            }
+            break;
+        case LOOP_MODE_PLAY :    {
+            renderLoop3D(window);
+            renderLoop2D(window);
+            RunStepSimulation();
+            drawObjects();
+
+            debugDraw.SetMatrices(getViewMatrix(), getprojectionMatrix());
+
+            if(physicsDebugEnabled){
+                dynamicsWorld->debugDrawWorld();
+            }
+
 
             //=== do the network
 
@@ -719,21 +742,9 @@ int main()
                     interlopeCount++;
                 }
                 //draw the players
-            }
-            break;
-        case LOOP_MODE_PLAY :    {
-            renderLoop3D(window);
-            renderLoop2D(window);
-            RunStepSimulation();
-            drawObjects();
-
-            debugDraw.SetMatrices(getViewMatrix(), getprojectionMatrix());
-
-            if(physicsDebugEnabled){
-                dynamicsWorld->debugDrawWorld();
-            }
 
             debugDraw.draw();
+            renderSkybox();
 
         }
             break;
@@ -762,3 +773,4 @@ int main()
 
     return 0;
 }
+

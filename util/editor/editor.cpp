@@ -25,8 +25,8 @@ void setCurrentModel()
     if (currentModel == NULL)
     {
         btVector3 from(cameraPos.x,cameraPos.y,cameraPos.z);
-        btVector3 to(cameraPos.x+cameraFront.x*100,
-        cameraPos.y+cameraFront.y*100, cameraPos.z+cameraFront.z*100);
+        btVector3 to(cameraPos.x+cameraFront.x*1000,
+        cameraPos.y+cameraFront.y*1000, cameraPos.z+cameraFront.z*1000);
 
         btCollisionWorld::ClosestRayResultCallback closestResults(from, to);
         closestResults.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
@@ -65,8 +65,8 @@ void setCurrentModel()
 void drawEditor()
 {
     btVector3 from(cameraPos.x,cameraPos.y,cameraPos.z);
-    btVector3 to(cameraPos.x+cameraFront.x*100,
-    cameraPos.y+cameraFront.y*100, cameraPos.z+cameraFront.z*100);
+    btVector3 to(cameraPos.x+cameraFront.x*1000,
+    cameraPos.y+cameraFront.y*1000, cameraPos.z+cameraFront.z*1000);
 
     btVector3 blue(0.1, 0.3, 0.9);
 
