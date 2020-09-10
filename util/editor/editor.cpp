@@ -16,7 +16,9 @@
 #include "util/object/object.h"
 #include "util/handleinput.hpp"
 
-Model *currentModel = NULL;
+Model *pickedModel = NULL;
+Model *cursoredModel = NULL;
+btVector3 p;
 string modelName = "";
 bool modelPhysics = NULL;
 
@@ -38,102 +40,74 @@ void draw3dCursor()
     dynamicsWorld->rayTest(from, to, closestResults);
     if (closestResults.hasHit() && !isMouseVisable())
     {
+        cursoredModel = ((Model *)closestResults.m_collisionObject->\
+            getCollisionShape()->getUserPointer());
 
-        btVector3 p = from.lerp(to,
+        p = from.lerp(to,
             closestResults.m_closestHitFraction);
 
         dynamicsWorld->getDebugDrawer()->drawSphere(p, 0.1, blue);
         dynamicsWorld->getDebugDrawer()->drawLine(p, p
             + closestResults.m_hitNormalWorld, blue);
 
+    } else
+    {
+        cursoredModel = NULL;
     }
 }
 
-void setCurrentModel()
+void setPickedModel()
 {
-    if (currentModel == NULL)
+    if (cursoredModel != NULL)
     {
-        btVector3 from(cameraPos.x,cameraPos.y,cameraPos.z);
-        btVector3 to(cameraPos.x+cameraFront.x*1000,
-        cameraPos.y+cameraFront.y*1000, cameraPos.z+cameraFront.z*1000);
-
-        btCollisionWorld::ClosestRayResultCallback closestResults(from, to);
-        closestResults.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
-        closestResults.m_collisionFilterGroup = COL_SELECTER;
-        closestResults.m_collisionFilterMask = COL_SELECT_RAY_COLLIDES_WITH;
-
-        dynamicsWorld->rayTest(from, to, closestResults);
-
-        if (closestResults.hasHit() && !isMouseVisable())
+        if (pickedModel == NULL)
         {
-            currentModel = ((Model *)closestResults.m_collisionObject->\
-                getCollisionShape()->getUserPointer());
-            disableCollision(currentModel);
-            makeStatic(currentModel);
+            pickedModel = cursoredModel;
+            printf("picking stuff\n");
+            disableCollision(pickedModel);
+            makeStatic(pickedModel);
 
-            modelPhysics = currentModel->hasPhysics;
+            modelPhysics = pickedModel->hasPhysics;
 
-            modelName = currentModel->objectPath;
+            modelName = pickedModel->objectPath;
             size_t delimPos = modelName.find_last_of("/");
             modelName = modelName.substr(delimPos + 1);
+
+        } else
+        {
+            printf("un-picking stuff\n");
+            enableCollision(pickedModel);
+            makeDynamic(pickedModel);
+            modelPhysics = NULL;
+            modelName = "";
+            pickedModel = NULL;
+
+
         }
 
-    } else
-    {
-        enableCollision(currentModel);
-        makeDynamic(currentModel);
-        modelPhysics = NULL;
-        modelName = "";
-        currentModel = NULL;
-
-
     }
-    // currentModel = getModelPointerByName("Tree03");
+    // pickedModel = getModelPointerByName("Tree03");
 }
 
 void drawEditor()
 {
-    btVector3 from(cameraPos.x,cameraPos.y,cameraPos.z);
-    btVector3 to(cameraPos.x+cameraFront.x*1000,
-    cameraPos.y+cameraFront.y*1000, cameraPos.z+cameraFront.z*1000);
 
-    btVector3 blue(0.1, 0.3, 0.9);
-
-    dynamicsWorld->getDebugDrawer()->drawSphere(btVector3(0,0,0),
-        0.5, blue); //at origin
-    btCollisionWorld::ClosestRayResultCallback closestResults(from, to);
-    closestResults.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
-    closestResults.m_collisionFilterGroup = COL_SELECTER;
-    closestResults.m_collisionFilterMask = COL_SELECT_RAY_COLLIDES_WITH;
-
-    dynamicsWorld->rayTest(from, to, closestResults);
-
-    if (closestResults.hasHit() && !isMouseVisable())
-    {
-
-        btVector3 p = from.lerp(to,
-            closestResults.m_closestHitFraction);
-
-        dynamicsWorld->getDebugDrawer()->drawSphere(p, 0.1, blue);
-        dynamicsWorld->getDebugDrawer()->drawLine(p, p
-            + closestResults.m_hitNormalWorld, blue);
-
-        if (currentModel != NULL)
+    draw3dCursor();
+        if (pickedModel != NULL)
         {
-            updateModelPosition(currentModel, p);
+            updateModelPosition(pickedModel, p);
         }
-    }
+
 
     if(showProperties)
     {
-
 
         ImGuiWindowFlags window_flags = 0;
         window_flags |= ImGuiWindowFlags_NoScrollbar;
         window_flags |= ImGuiWindowFlags_NoResize;
         ImVec2 windowSize;
 
-        if (currentModel != NULL)
+        if (pickedModel != NULL || cursoredModel != NULL)
         {
             windowSize = ImVec2(ImGui::GetFontSize() * 20.0f, 70);
         } else
@@ -147,7 +121,7 @@ void drawEditor()
         ImGui::Begin("Properties", NULL, window_flags);
         ImGui::PushTextWrapPos(ImGui::GetFontSize() * 20.0f);
 
-        if (currentModel != NULL)
+        if (pickedModel != NULL)
         {
             ImGui::Text("Selected:");
             ImGui::SameLine();
