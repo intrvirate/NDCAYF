@@ -363,7 +363,6 @@ int main()
 //=========== LOOP ===========================================================
 
 
-
     Model *lastModel = NULL;    //last pointed-at model
     bool singleScale = true; //ajust scale as single value, or as x, y, and z values
 
@@ -570,7 +569,6 @@ int main()
 
             }
             break;
-
         case LOOP_MODE_EDIT :    {
 
 
@@ -722,7 +720,6 @@ int main()
                 }
                 //draw the players
             }
-
             break;
         case LOOP_MODE_PLAY :    {
             renderLoop3D(window);

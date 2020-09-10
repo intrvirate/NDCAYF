@@ -22,6 +22,7 @@ GLuint vertexShaderID3D;
 GLuint fragmentShaderID3D;
 GLuint shaderProgramID3D;
 
+//legacy buffers
 GLuint VBO3D; //Vertex Buffer Object
 GLuint VAO3D; //Vertex Array Object
 GLuint EBO3D; //Element Buffer Object
@@ -38,11 +39,11 @@ const glm::vec3 up = glm::vec3(0,1,0);
 
 int incolor;
 
-//map stuff
+//legacy map stuff
 glm::vec2 rendered_center;
 GLuint rendered_center_location;
 
-
+//legacy
 void load3DShaders(){
 
     vertexShaderID3D = LoadVertexShader("gamedata/shaders/vertexshader.glsl");
@@ -54,6 +55,7 @@ void load3DShaders(){
 
 }
 
+//legacy
 void load3DBuffers(){
     
     /*
@@ -123,10 +125,10 @@ void renderLoop3D(GLFWwindow *window){ //called once per frame in the render loo
 
     //update matrices
     view = glm::lookAt(cameraPos, cameraPos + cameraFront, up);
-    projection = glm::perspective(glm::radians(45.0f), CurrentWindowRatio, 0.1f, 100.0f);
-    model = glm::rotate(model, glm::radians(0.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+    projection = glm::perspective(glm::radians(45.0f), CurrentWindowRatio, 0.1f, 10000.0f);
+    model = glm::rotate(model, glm::radians(0.0f), glm::vec3(0.5f, 1.0f, 0.0f));//legacy
 
-    //old dynamic terain code; don't remove
+    //legacy dynamic terain code; don't remove
 /*
     glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(model));
     glUniformMatrix4fv(view_location, 1, GL_FALSE, glm::value_ptr(view));
