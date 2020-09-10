@@ -401,72 +401,8 @@ int main()
 
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
-            ImGui::NewFrame();
 
-
-            ImGuiWindowFlags window_flags = 0;
-            window_flags |= ImGuiWindowFlags_NoScrollbar;
-            window_flags |= ImGuiWindowFlags_NoCollapse;
-
-            ImGui::Begin("Lan View", NULL, window_flags);
-            ImGui::Text("All servers:");
-            ImGui::Text("");
-
-
-
-            for (int j = 0; j < MAXSERVERS; j = j + 1)
-            {
-                if (strcmp(serverList[j].name, "") != 0)
-                {
-                    ImGui::Text("Server %s\n", serverList[j].name);
-                    //printf("%d  %d\n", servers[j].hasLo, servers[j].loIndex);
-                    for (int q = 0; q < serverList[j].numRoutes; q++)
-                    {
-                        char txt[100];
-                        int len = sprintf(txt, "\tIP \"%s\"",
-                            (serverList[j].routes[q])) + 5;
-
-                        if (serverList[j].hasLo && q == serverList[j].loIndex)
-                        {
-                            sprintf(txt, "%s%5s", txt, "LO");
-                        }
-                        else
-                        {
-                            sprintf(txt, "%s    ", txt);
-                        }
-
-                        if (ImGui::Button(txt))
-                        {
-                            printf("Server %s, IP %s\n", serverList[j].name, serverList[j].routes[q]);
-                            if (!connectTo(serverList[j].routes[q]))
-                            {
-                                printf("Failed to connect to: %s at %s\n", serverList[j].name, serverList[j].routes[q]);
-                            }
-                            else
-                            {
-                                connected = true;
-                            }
-                        }
-                    }
-                }
-            }
-
-
-
-            ImGui::Text("");
-
-
-            if (ImGui::Button("Update"))
-            {
-                printf("Loading network\n");
-
-                getAllServers(serverList);
-            }
-
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
-                1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-
-            ImGui::End();
+            makeServerListWindow(serverList);
 
 
             ImGui::Render();

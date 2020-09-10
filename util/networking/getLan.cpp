@@ -9,9 +9,12 @@
 #include <sys/types.h>
 #include <ifaddrs.h>
 #include <sys/time.h>
+#include "util/imgui/imgui.h"
 
 #include "networkConfig.hpp"
 #include "getLan.hpp"
+#include "client.hpp"
+
 
 /*
 struct ifa {
@@ -408,30 +411,72 @@ void getAllServers(struct server servers[])
     close(bcast_sock);
 }
 
-
-/*
-int main(void)
+void makeServerListWindow(struct server *theList)
 {
-    struct server serverList[MAXSERVERS];
+    ImGui::NewFrame();
 
-    getAllServers(serverList);
+    ImGuiWindowFlags window_flags = 0;
+    window_flags |= ImGuiWindowFlags_NoScrollbar;
+    window_flags |= ImGuiWindowFlags_NoCollapse;
+
+    ImGui::Begin("Lan View", NULL, window_flags);
+    ImGui::Text("All servers:");
+    ImGui::Text("");
+
+
 
     for (int j = 0; j < MAXSERVERS; j = j + 1)
     {
-        if (strcmp(serverList[j].name, "") != 0)
+        if (strcmp(theList[j].name, "") != 0)
         {
-            printf("For server %s\n", serverList[j].name);
+            ImGui::Text("Server %s\n", theList[j].name);
             //printf("%d  %d\n", servers[j].hasLo, servers[j].loIndex);
-            for (int q = 0; q < serverList[j].numRoutes; q++)
+            for (int q = 0; q < theList[j].numRoutes; q++)
             {
-                printf("\tFound route \"%s\"", inet_ntoa(serverList[j].routes[q].sin_addr));
-                if (serverList[j].hasLo && q == serverList[j].loIndex)
+                char txt[100];
+                int len = sprintf(txt, "\tIP \"%s\"",
+                    (theList[j].routes[q])) + 5;
+
+                if (theList[j].hasLo && q == theList[j].loIndex)
                 {
-                    printf("\tLO");
+                    sprintf(txt, "%s%5s", txt, "LO");
                 }
-                printf("\n");
+                else
+                {
+                    sprintf(txt, "%s    ", txt);
+                }
+
+                if (ImGui::Button(txt))
+                {
+                    printf("Server %s, IP %s\n", theList[j].name, theList[j].routes[q]);
+                    if (!connectTo(theList[j].routes[q]))
+                    {
+                        printf("Failed to connect to: %s at %s\n", theList[j].name, theList[j].routes[q]);
+                    }
+                    else
+                    {
+                        connected = true;
+                    }
+                }
             }
         }
     }
+
+
+
+    ImGui::Text("");
+
+
+    if (ImGui::Button("Update"))
+    {
+        printf("Loading network\n");
+
+        getAllServers(theList);
+    }
+
+    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
+        1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+    ImGui::End();
+
 }
-*/
