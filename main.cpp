@@ -591,7 +591,6 @@ int main()
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
-            draw3dCursor();
 
             //Properties edit window
             drawEditor();

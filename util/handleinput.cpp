@@ -201,7 +201,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action,
     }
     else if (key == GLFW_KEY_G && action == GLFW_PRESS)
     {
-        setCurrentModel();
+        setPickedModel();
     }
 
     if(!mouseVisable){
