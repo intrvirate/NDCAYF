@@ -64,6 +64,7 @@ int main()
     {
         struct entities alls[10];
 
+
         /*
         glm::vec3 newPoss = glm::vec3(-1.694,9.585,-14.178);
         glm::vec3 fakeDirs = glm::vec3(-0.839,0.358,0.409);
