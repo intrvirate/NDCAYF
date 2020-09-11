@@ -24,9 +24,11 @@ string cursoredModelName = "";
 bool modelPhysics;
 bool cursoredModelPhysics;
 float yOffset = 0;
+float yRotateOffset = 0;
 float yIncrement = 0.125;
+float yRotateIncrement = 0.125;
 
-void editorTranslateVert(int direction)
+void editorTranslateY(int direction)
 {
     if (pickedModel != NULL)
     {
@@ -38,6 +40,13 @@ void editorTranslateVert(int direction)
             yOffset -= yIncrement;
         }
 
+    }
+}
+void editorRotateY(int direction)
+{
+    if (pickedModel != NULL)
+    {
+        printf("rotate\n");
     }
 }
 
@@ -80,7 +89,6 @@ void draw3dCursor()
 
     if (pickedModel != NULL && cursoredModel != NULL)
     {
-
         p.setY(p.getY() + (btScalar)yOffset);
         updateModelPosition(pickedModel, p);
     } else if (cursoredModel != NULL)
@@ -97,7 +105,6 @@ void setPickedModel()
         if (pickedModel == NULL)
         {
             pickedModel = cursoredModel;
-            printf("picking stuff\n");
             disableCollision(pickedModel);
             makeStatic(pickedModel);
 
@@ -109,7 +116,6 @@ void setPickedModel()
 
         } else
         {
-            printf("un-picking stuff\n");
             enableCollision(pickedModel);
             makeDynamic(pickedModel);
             modelPhysics = NULL;
@@ -139,7 +145,7 @@ void drawEditor()
 
         if (pickedModel != NULL || cursoredModel != NULL)
         {
-            windowSize = ImVec2(ImGui::GetFontSize() * 20.0f, 70);
+            windowSize = ImVec2(ImGui::GetFontSize() * 20.0f, 90);
         } else
         {
             windowSize = ImVec2(ImGui::GetFontSize() * 20.0f, 0);
@@ -148,6 +154,12 @@ void drawEditor()
         ImVec2 windowPos = ImVec2(25.0f, 25.0f);
         ImGui::SetNextWindowPos(windowPos);
 
+        string scrollModeText;
+        switch (scrollMode)
+        {
+            case 1 : scrollModeText = "Translate"; break;
+            case 2 : scrollModeText = "Rotate"; break;
+        }
         ImGui::Begin("Properties", NULL, window_flags);
         ImGui::PushTextWrapPos(ImGui::GetFontSize() * 20.0f);
 
@@ -156,6 +168,7 @@ void drawEditor()
             ImGui::Text("Picked:");
             ImGui::SameLine();
             ImGui::Text(modelName.c_str());
+            ImGui::Text(scrollModeText.c_str());
 
             if (modelPhysics)
             {
@@ -169,6 +182,7 @@ void drawEditor()
             ImGui::Text("Cursored:");
             ImGui::SameLine();
             ImGui::Text(cursoredModelName.c_str());
+            ImGui::Text(scrollModeText.c_str());
 
             if (cursoredModelPhysics)
             {
