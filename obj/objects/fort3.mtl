@@ -1,7 +1,7 @@
-# Blender MTL File: 'building.blend'
+# Blender MTL File: 'bridge.blend'
 # Material Count: 1
 
-newmtl Material
+newmtl Material.004
 Ns 323.999994
 Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000
