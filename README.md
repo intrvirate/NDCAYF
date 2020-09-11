@@ -1,5 +1,5 @@
 # NDCAYF 
-![cover art](/lore/EPACDestiny.jpg)
+![cover art](/lore/coverart.png)
 ### "Numbers Don't Care About Your Feelers"
 Lightweight first person shooter focused on multiplayer LAN-based gameplay, and geared towards native Linux compatibility.
 
