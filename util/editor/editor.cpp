@@ -23,6 +23,23 @@ string modelName = "";
 string cursoredModelName = "";
 bool modelPhysics;
 bool cursoredModelPhysics;
+float yOffset = 0;
+float yIncrement = 0.125;
+
+void editorTranslateVert(int direction)
+{
+    if (pickedModel != NULL)
+    {
+        if (direction > 0)
+        {
+            yOffset += yIncrement;
+        } else if (direction < 0)
+        {
+            yOffset -= yIncrement;
+        }
+
+    }
+}
 
 void draw3dCursor()
 {
@@ -59,6 +76,16 @@ void draw3dCursor()
     } else
     {
         cursoredModel = NULL;
+    }
+
+    if (pickedModel != NULL && cursoredModel != NULL)
+    {
+
+        p.setY(p.getY() + (btScalar)yOffset);
+        updateModelPosition(pickedModel, p);
+    } else if (cursoredModel != NULL)
+    {
+        yOffset = 0.0f;
     }
 }
 
@@ -100,10 +127,6 @@ void drawEditor()
 {
 
     draw3dCursor();
-        if (pickedModel != NULL)
-        {
-            updateModelPosition(pickedModel, p);
-        }
 
 
     if(showProperties)
