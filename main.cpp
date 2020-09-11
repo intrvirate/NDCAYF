@@ -58,8 +58,11 @@ GLFWwindow* window;
 
 bool test_nw = false;
 
+
 int main()
 {
+
+
     setTestNw(test_nw);
     if (test_nw)
     {
@@ -288,6 +291,8 @@ int main()
 
     //set up inputs
     glfwSetKeyCallback(window, key_callback);
+    //TODO This is for testing purposes, we'll implement it properly in a bit.
+    glfwSetScrollCallback(window, editorScrollCallback);
     glfwPollEvents();
 
     initializeMouse(window);

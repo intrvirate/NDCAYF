@@ -18,6 +18,7 @@
 
 #include "util/object/object.h"
 
+void editorTranslateVert(int direction);
 void draw3dCursor();
 void drawEditor();
 extern void setPickedModel();
