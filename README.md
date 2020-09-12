@@ -1,5 +1,5 @@
 # NDCAYF 
-![cover art](/lore/EPACDestiny.jpg)
+![cover art](/lore/coverart.png)
 ### "Numbers Don't Care About Your Feelers"
 Lightweight first person shooter focused on multiplayer LAN-based gameplay, and geared towards native Linux compatibility.
 
@@ -34,10 +34,6 @@ Lightweight first person shooter focused on multiplayer LAN-based gameplay, and 
 
 ## Current Progress
 * Render engine
-
-## TO-DO:
-* Add world editor
-* Add mousewheel speed control
 
 ## Feature Ideas:
 * CTF game mode in which both teams can move both flags.

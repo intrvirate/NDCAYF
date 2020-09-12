@@ -177,6 +177,12 @@ bool isMouseVisable(){
     return mouseVisable;
 }
 
+void editorScrollCallback(GLFWwindow* window, double xScroll, double yScroll)
+{
+    //printf("scrolling X: %f, Y: %f\n", xScroll, yScroll);
+    editorTranslateVert((int)yScroll);
+}
+
 void exitMenu(){
     exitMenuVal = true;
 }
@@ -196,7 +202,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action,
     }
     else if (key == GLFW_KEY_G && action == GLFW_PRESS)
     {
-        setCurrentModel();
+        setPickedModel();
     }
 
     if(!mouseVisable){
