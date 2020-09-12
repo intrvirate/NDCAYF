@@ -758,12 +758,22 @@ void updateModelRotation(Model* model, glm::quat rotation){
 }
 
 void updateRelativeModelRotation(Model* model, glm::quat rotation){
+
+    btTransform tr = model->body->getWorldTransform();
+    tr.setRotation(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w));
+    model->body->setWorldTransform(tr);
+
     model->rotation = model->rotation * rotation;
     syncMeshMatrices(model);
 }
 
 void updateRelativeModelRotation(Model* model, glm::vec3 rotation){
+
     glm::quat quatRot = glm::quat(rotation);
+    btTransform tr = model->body->getWorldTransform();
+    tr.setRotation(btQuaternion(quatRot.x, quatRot.y, quatRot.z, quatRot.w));
+    model->body->setWorldTransform(tr);
+
     model->rotation = model->rotation * quatRot;
     syncMeshMatrices(model);
 }
@@ -773,7 +783,8 @@ void syncMeshMatrices(Model* model){
     for(uint i = 0; i < model->meshes.size(); i++){
         glm::mat4 modelMat = glm::mat4(1.0f);
         modelMat = glm::translate(modelMat, model->pos);
-        modelMat = modelMat * glm::mat4_cast(model->rotation);
+        //modelMat = modelMat * glm::mat4_cast(model->rotation);
+        modelMat = glm::rotate(modelMat, 100.0f, glm::vec3(0,0,100));
         modelMat = glm::scale(modelMat, model->scale);
     }
 }

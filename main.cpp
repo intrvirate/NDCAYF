@@ -373,12 +373,6 @@ int main()
 //=========== LOOP ===========================================================
 
 
-
-
-    Model *lastModel = NULL;    //last pointed-at model
-    bool singleScale = true; //ajust scale as single value, or as x, y, and z values
-
-
     while( glfwWindowShouldClose(window) == 0){
 
         //setup stuff that runs regardless of the menu mode
@@ -386,7 +380,6 @@ int main()
         //glClearColor(0.0f, 0.0f, 0.4f, 0.0f); //default background color
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         runTransitionFunctions();
-
 
         switch (getLoopMode()){
         case LOOP_MODE_MENU :    {
