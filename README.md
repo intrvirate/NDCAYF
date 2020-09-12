@@ -35,10 +35,6 @@ Lightweight first person shooter focused on multiplayer LAN-based gameplay, and 
 ## Current Progress
 * Render engine
 
-## TO-DO:
-* Add world editor
-* Add mousewheel speed control
-
 ## Feature Ideas:
 * CTF game mode in which both teams can move both flags.
 * Quake game mode, modeled after jaun tap, start with one bullet and get one per kill.
