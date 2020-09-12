@@ -26,8 +26,8 @@ bool debugMode = false;
 //constants that describe location and size of the menu on screen
 const float menuTopOffsetFromCenter = 0.1;
 const float menuLeftOffsetFromCenter = -0.95;
-const float menuSpacing = 0.1;
-const float menuTextSize = 0.11;
+const float menuSpacing = 0.11;
+const float menuTextSize = 0.1;
 
 json menujson;
 json settingsjson;
