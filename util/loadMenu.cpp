@@ -24,10 +24,10 @@ using namespace std;
 bool debugMode = false;
 
 //constants that describe location and size of the menu on screen
-const float menuTopOffsetFromCenter = 0.9;
-const float menuLeftOffsetFromCenter = -0.3;
-const float menuSpacing = 0.1;
-const float menuTextSize = 0.07;
+const float menuTopOffsetFromCenter = 0.1;
+const float menuLeftOffsetFromCenter = -0.95;
+const float menuSpacing = 0.11;
+const float menuTextSize = 0.1;
 
 json menujson;
 json settingsjson;
@@ -53,11 +53,11 @@ void updateMenu(){
         for(int i = 0; !menujson[currentMenu][i].is_null(); i++){
             name = menujson[currentMenu][i]["name"];
             if(menujson[currentMenu][i]["type"] == "menu"){
-                activeColor  = glm::vec3(0.9, 0.9, 0.1);
-                passiveColor = glm::vec3(0.2, 0.5, 0.0);
+                activeColor  = glm::vec3(0.9, 0.4, 0.3);
+                passiveColor = glm::vec3(0.8, 1.0, 1.0);
             }else if (menujson[currentMenu][i]["type"] == "setting"){
-                activeColor  = glm::vec3(0.9, 0.9, 0.9);
-                passiveColor = glm::vec3(0.2, 0.9, 0.0);
+                activeColor  = glm::vec3(0.9, 0.4, 0.3);
+                passiveColor = glm::vec3(0.8, 1.0, 1.0);
             }
             addTextString(name, menuLeftOffsetFromCenter,
                 menuTopOffsetFromCenter - (menuSpacing*i) , menuTextSize,
@@ -67,8 +67,8 @@ void updateMenu(){
         inTextBox = true; //start reading text from keyboard
 
         //render setting item
-        activeColor  = glm::vec3(0.1, 0.1, 0.1);
-        passiveColor = glm::vec3(0.3, 0.3, 0.3);
+        activeColor  = glm::vec3(0.9, 0.4, 0.3);
+        passiveColor = glm::vec3(0.8, 1.0, 1.0);
         int i = 0; //will be used for spacing, not used yet
 
         if(!settingsjson[settingMenu].is_null()){
