@@ -45,7 +45,7 @@
             "scale": 0.2,
             "isInstanced": false,
             "meshCountHint": 2,
-            "pos": [4.0,4.0,4.0]
+            "pos": [4.0,0.0,4.0]
 
         },
         {
@@ -59,10 +59,10 @@
             "Rotatingfriction" : 0.7,
             "useSinglePrimitive": true,
             "primitiveType": "hull",
-            "scale": 2,
+            "scale": 0.5,
             "isInstanced": false,
             "meshCountHint": 2,
-            "pos": [4.0,4.0,4.0]
+            "pos": [0.0,4.0,4.0]
 
         },
         {
@@ -76,10 +76,10 @@
             "Rotatingfriction" : 0.7,
             "useSinglePrimitive": true,
             "primitiveType": "hull",
-            "scale": 2,
+            "scale": 0.5,
             "isInstanced": false,
             "meshCountHint": 2,
-            "pos": [4.0,4.0,4.0]
+            "pos": [0.0,0.0,4.0]
 
         },
         {
@@ -93,12 +93,13 @@
             "Rotatingfriction" : 0.7,
             "useSinglePrimitive": true,
             "primitiveType": "hull",
-            "scale": 2,
+            "scale": 0.5,
             "isInstanced": false,
             "meshCountHint": 2,
-            "pos": [4.0,4.0,4.0]
+            "pos": [4.0,4.0,30.0]
 
-        },{
+        },
+        {
             "path": "obj/objects/barrier_small01.obj",
             "shaders": ["generic","generic","generic"],
             "hasPhysics": true,
@@ -109,12 +110,13 @@
             "Rotatingfriction" : 0.7,
             "useSinglePrimitive": true,
             "primitiveType": "hull",
-            "scale": 2,
+            "scale": 0.5,
             "isInstanced": false,
             "meshCountHint": 2,
             "pos": [4.0,10.0,4.0]
 
-        },{
+        },
+        {
             "path": "obj/objects/barrier_small02.obj",
             "shaders": ["generic","generic","generic"],
             "hasPhysics": true,
@@ -125,13 +127,13 @@
             "Rotatingfriction" : 0.7,
             "useSinglePrimitive": true,
             "primitiveType": "hull",
-            "scale": 2,
+            "scale": 0.5,
             "isInstanced": false,
             "meshCountHint": 2,
             "pos": [4.0,10.0,5.0]
 
         },
-{
+        {
             "path": "obj/objects/barrier_large02.obj",
             "shaders": ["generic","generic","generic"],
             "hasPhysics": true,
@@ -142,13 +144,13 @@
             "Rotatingfriction" : 0.7,
             "useSinglePrimitive": true,
             "primitiveType": "hull",
-            "scale": 2,
+            "scale": 0.5,
             "isInstanced": false,
             "meshCountHint": 2,
             "pos": [20.0,4.0,4.0]
 
         },
-{
+        {
             "path": "obj/objects/barrier_large01.obj",
             "shaders": ["generic","generic","generic"],
             "hasPhysics": true,
@@ -159,12 +161,13 @@
             "Rotatingfriction" : 0.7,
             "useSinglePrimitive": true,
             "primitiveType": "hull",
-            "scale": 2,
+            "scale": 0.5,
             "isInstanced": false,
             "meshCountHint": 2,
             "pos": [20.0,4.0,4.0]
 
-        },{
+        },
+        {
             "path": "obj/objects/tunnel1.obj",
             "shaders": ["generic","generic","generic"],
             "hasPhysics": true,
@@ -175,13 +178,13 @@
             "Rotatingfriction" : 0.7,
             "useSinglePrimitive": true,
             "primitiveType": "hull",
-            "scale": 2,
+            "scale": 0.5,
             "isInstanced": false,
-            "meshCountHint": 2,
-            "pos": [4.0,0.0,4.0]
+            "meshCountHint": 3,
+            "pos": [4.0,-4.0,0.0]
 
         },
-                {
+        {
             "path": "obj/objects/player_BLUE.obj",
             "shaders": ["generic","generic","generic"],
             "hasPhysics": true,
@@ -194,7 +197,7 @@
             "primitiveType": "hull",
             "scale": 0.2,
             "isInstanced": false,
-            "meshCountHint": 2,
+            "meshCountHint": 6,
             "pos": [4.0,4.0,4.0]
 
         },
@@ -302,5 +305,4 @@
 
         }
     ]
-
 }

@@ -309,7 +309,7 @@ int main()
     glClearColor(0.2f, 0.2f, 0.3f, 0.0f); // default opengl background on startup: blue
 
     //loadModels("gamedata/world1.json");
-    loadModels("gamedata/scratchpadWorld.json");
+    loadModels("gamedata/fake.json");
     InitializePhysicsWorld();
 
 //=========== IMGUI =========================================================
