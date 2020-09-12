@@ -754,27 +754,31 @@ void updateModelPosition(Model* model, btVector3 pos){
 
 void updateModelRotation(Model* model, glm::quat rotation){
     model->rotation = rotation;
+    btTransform tr = model->body->getWorldTransform();
+    tr.setRotation(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w));
+    model->body->setWorldTransform(tr);
     syncMeshMatrices(model);
 }
 
 void updateRelativeModelRotation(Model* model, glm::quat rotation){
 
+    model->rotation = model->rotation * rotation;
     btTransform tr = model->body->getWorldTransform();
     tr.setRotation(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w));
-    model->body->setWorldTransform(tr);
 
-    model->rotation = model->rotation * rotation;
+    model->body->setWorldTransform(tr);
     syncMeshMatrices(model);
 }
 
 void updateRelativeModelRotation(Model* model, glm::vec3 rotation){
 
     glm::quat quatRot = glm::quat(rotation);
-    btTransform tr = model->body->getWorldTransform();
-    tr.setRotation(btQuaternion(quatRot.x, quatRot.y, quatRot.z, quatRot.w));
-    model->body->setWorldTransform(tr);
 
     model->rotation = model->rotation * quatRot;
+    btTransform tr = model->body->getWorldTransform();
+    tr.setRotation(btQuaternion(model->rotation.x, model->rotation.y, model->rotation.z, model->rotation.w));
+
+    model->body->setWorldTransform(tr);
     syncMeshMatrices(model);
 }
 

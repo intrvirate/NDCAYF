@@ -373,6 +373,11 @@ int main()
 //=========== LOOP ===========================================================
 
 
+    Model *testingModel = getModelPointerByName("Tree");
+    float inc = 1;
+    uint8_t tick = 0;
+
+
     while( glfwWindowShouldClose(window) == 0){
 
         //setup stuff that runs regardless of the menu mode
@@ -583,6 +588,13 @@ int main()
             renderLoop2D(window);
             //Bullet Simulation:
             RunStepSimulation();
+
+
+            //tick++;
+            //if (tick > 50){
+                inc =  -0.001f;
+                updateRelativeScale(testingModel, glm::vec3(inc,inc,inc));
+            //}
 
             debugDraw.SetMatrices(getViewMatrix(), getprojectionMatrix());
             if(physicsDebugEnabled){

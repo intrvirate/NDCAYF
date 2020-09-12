@@ -13,6 +13,14 @@ Lightweight first person shooter focused on multiplayer LAN-based gameplay, and 
 * Lightweight FPS game
 * Native Linux compatibility
 
+## Keybinds
+`q` enable debug mesh layer
+
+`c` show backs of meshes
+
+`r` increment through translation, rotation, and scaling
+
+`F1` quit
 
 ## Dependencies
 * cmake
