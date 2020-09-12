@@ -52,6 +52,8 @@ bool inTextBox = false;
 bool physicsDebugEnabled = false;
 bool showProperties = true;
 
+int scrollMode = 1;
+
 bool exitMenuVal = false;
 
 void updateCameraFront(double xpos, double ypos) {
@@ -180,7 +182,12 @@ bool isMouseVisable(){
 void editorScrollCallback(GLFWwindow* window, double xScroll, double yScroll)
 {
     //printf("scrolling X: %f, Y: %f\n", xScroll, yScroll);
-    editorTranslateVert((int)yScroll);
+    switch (scrollMode)
+    {
+    case 1 : editorTranslateY((int)yScroll); break;
+    case 2 : editorRotateY((int)yScroll); break;
+
+    }
 }
 
 void exitMenu(){
@@ -199,10 +206,18 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action,
     else if (key == GLFW_KEY_E && action == GLFW_PRESS)
     {
         showProperties = !showProperties;
-    }
-    else if (key == GLFW_KEY_G && action == GLFW_PRESS)
+    } else if (key == GLFW_KEY_G && action == GLFW_PRESS)
     {
         setPickedModel();
+    } else if (key == GLFW_KEY_R && action == GLFW_PRESS)
+    {
+        if (scrollMode < 2)
+        {
+            scrollMode++;
+        } else
+        {
+            scrollMode = 1;
+        }
     }
 
     if(!mouseVisable){
