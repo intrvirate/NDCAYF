@@ -53,11 +53,11 @@ void editorRotateY(int direction)
         if (direction > 0)
         {
             updateRelativeModelRotation(pickedModel,
-                glm::vec3(0, 0 - yRotateOffset, 0));
+                glm::vec3(0, -yRotateIncrement, 0));
         } else if (direction < 0)
         {
             updateRelativeModelRotation(pickedModel,
-                glm::vec3(0, yRotateOffset, 0));
+                glm::vec3(0, yRotateIncrement, 0));
         }
 
     }
