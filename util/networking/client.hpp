@@ -49,6 +49,8 @@ void applyKeys(char keys[], glm::vec3 dir, glm::vec3 *pos);
 
 struct generalPack makeBasicPack(int ptl);
 int send(struct generalPack toSend);
+int sendTo(struct generalPack toSend, struct sockaddr_in toAddr);
+int getFrom(struct generalPack *msg, struct sockaddr_in fromAddr);
 int checkServer(struct generalPack *msg);
 void setServerAddr(struct sockaddr_in newServerAddr);
 struct generalPack makeBasicPack(int ptl);

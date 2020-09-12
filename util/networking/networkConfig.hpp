@@ -18,6 +18,7 @@
 #define CONNECT 5
 #define MOVE 6
 #define DUMP 7
+#define INFO 8
 
 #define IPLEN 30
 
@@ -42,13 +43,7 @@ struct ifa {
     char ip[128];
 };
 
-struct server {
-    char routes[5][100];
-    int numRoutes;
-    char name[128];
-    bool hasLo;
-    int loIndex;
-};
+
 
 struct move
 {
@@ -62,6 +57,24 @@ struct entities
     struct move moves[60];
     unsigned short numMoves;
     unsigned int moveID;
+};
+
+struct infoStruct
+{
+    unsigned short maxPlayers;
+    unsigned short curPlayers;
+    char mapName[25];
+    char gameType[25];
+    bool isCustom;
+};
+
+struct server {
+    char routes[5][100];
+    int numRoutes;
+    char name[128];
+    bool hasLo;
+    int loIndex;
+    struct infoStruct about;
 };
 
 extern bool connected;

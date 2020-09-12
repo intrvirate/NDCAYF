@@ -41,6 +41,7 @@ void getAllServers(struct server servers[]);
 char lo[128];
 int DELAY_SECS = 1;
 int DELAY_USECS = 0;
+struct generalPack infoPack = makeBasicPack(INFO);
 
 
 struct pingPack
@@ -112,7 +113,7 @@ void broadcastAllInterfaces(int sock, struct ifa interfaces[], int elements, cha
     gettimeofday(&ping.time, NULL);
     strcpy(ping.key, SUPERSECRETKEY_CLIENT);
     strcpy(ping.name, name);
-    ping.protocol = PING;
+    ping.protocol = INFO;
 
     socklen_t addrlen = sizeof(broadcast_addr);
 
@@ -186,6 +187,7 @@ void getResponses(int sock, struct server servers[])
 
                     // add server info
                     strcpy(servers[index].routes[servers[index].numRoutes], ip);
+                    memcpy(&servers[index].about, &buf.data, sizeof(struct infoStruct));
                     servers[index].numRoutes++;
 
 
@@ -221,88 +223,6 @@ void getResponses(int sock, struct server servers[])
 
 }
 
-
-
-void getAllServersa(struct server servers[])
-{
-    printf("asdfasdfasdf\n");
-    /*
-    printf("Getting servers...\n");
-    char hostname[128];
-
-    struct ifa interfaces[10];
-    int numFaces = 0;
-
-    int bcast_sock;
-
-    // make the struct start with 0, and servername is empty str
-    for (int i = 0; i < MAXSERVERS; i++)
-    {
-
-            strcpy(serverKey, strtok(buf, "$"));
-            char *ip = inet_ntoa(in_addr.sin_addr);
-
-            // validate that this is a server
-            if (strcmp(serverKey, SUPERSECRETKEY_SERVER) == 0)
-            {
-                strcpy(name, strtok(NULL, "$"));
-                strcpy(protocol, strtok(NULL, "$"));
-                printf("IP of %s \"%-10s\"", name, ip);
-
-
-                if (numServers != MAXSERVERS)
-                {
-                    // add ip to a new server, or to an
-                    // old server with same name
-                    bool newServer = true;
-                    int index = numServers;
-                    for (int j = 0; j < numServers; j++)
-                    {
-                        if (strcmp(servers[j].name, name) == 0)
-                        {
-                            newServer = false;
-                            index = j;
-                        }
-
-                    }
-
-                    // add server info
-                    strcpy(servers[index].routes[servers[index].numRoutes], ip);
-                    servers[index].numRoutes++;
-
-
-                    if (strcmp(ip, lo) == 0)
-                    {
-                        servers[index].hasLo = true;
-                        servers[index].loIndex = index;
-                        printf("\tLO");
-                    }
-
-                    if (newServer)
-                    {
-                        strcpy(servers[index].name, name);
-                        numServers++;
-                    }
-                }
-
-                printf("\n");
-
-                //printf("Key: %s, Name: %s\n", serverKey, name);
-            }
-            else
-            {
-                printf("Rando found %s\n", ip);
-            }
-        }
-        else
-        {
-            printf("Finished\n\n");
-            waiting = false;
-        }
-    }
-*/
-
-}
 
 void printServerList(struct server *list)
 {
@@ -434,17 +354,17 @@ void makeServerListWindow(struct server *theList)
             for (int q = 0; q < theList[j].numRoutes; q++)
             {
                 char txt[100];
-                int len = sprintf(txt, "\tIP \"%s\"",
-                    (theList[j].routes[q])) + 5;
 
                 if (theList[j].hasLo && q == theList[j].loIndex)
                 {
-                    sprintf(txt, "%s%5s", txt, "LO");
+                    sprintf(txt, "%-3s IP %-15s", "LO", (theList[j].routes[q]));
                 }
                 else
                 {
-                    sprintf(txt, "%s    ", txt);
+                    sprintf(txt, "%-3s IP %-15s", "", (theList[j].routes[q]));
                 }
+
+                sprintf(txt, "%s %-25s %-25s %d/%d %s", txt, theList[j].about.mapName, theList[j].about.gameType, theList[j].about.curPlayers, theList[j].about.maxPlayers, theList[j].about.isCustom ? "C" : "N");
 
                 if (ImGui::Button(txt))
                 {

@@ -105,6 +105,14 @@ int main()
 
         printf("%ld, %ld\n", tv.tv_sec, tv.tv_usec);
         */
+        struct timeval testval;
+        testval.tv_sec = 1;
+        testval.tv_usec = 93;
+        struct timeval atime;
+        gettimeofday(&atime, NULL);
+
+        printf("time %lu%03lu.%03lu\n", testval.tv_sec, testval.tv_usec / 1000 , testval.tv_usec % 1000);
+        return 0;
 
 
         // to send
@@ -353,6 +361,12 @@ int main()
     struct generalPack *dumpPack = new struct generalPack;
     struct generalPack pingPack = makeBasicPack(PING);
     struct generalPack pongPack = makeBasicPack(PONG);
+    struct generalPack infoPack = makeBasicPack(INFO);
+
+    if (makeSocket() < 0)
+    {
+        perror("Failed to get socket");
+    }
 
     printf("Loading network\n");
     getAllServers(serverList);

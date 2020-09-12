@@ -218,6 +218,44 @@ int send(struct generalPack toSend)
     return success;
 }
 
+int sendTo(struct generalPack toSend, struct sockaddr_in toAddr)
+{
+    int success = 1;
+
+    //send timestamp, incase you forgot
+    gettimeofday(&toSend.time, NULL);
+
+    if (sendto(actualSock, (const void*)&toSend, bufSize, 0, (struct sockaddr *)&toAddr, serverAddrLen) < 0)
+    {
+        perror("Failed to send\n");
+        success = -1;
+    }
+
+    return success;
+}
+
+int getFrom(struct generalPack *msg, struct sockaddr_in fromAddr)
+{
+    int recvlen = -1;
+    int success = -1;
+
+    recvlen = recvfrom(actualSock, &buf, bufSize, 0, (struct sockaddr *)&rec_addr, &inAddrLen);
+    if (recvlen > 0)
+    {
+        printf("got a msg\n");
+    }
+
+    if (rec_addr.sin_addr.s_addr == fromAddr.sin_addr.s_addr && recvlen > 0)
+    {
+        success = 0;
+        *msg = buf;
+        //printf("Received %d bytes\n", recvlen);
+        //printf("%s, %s, %d, %ld, %ld\n", msg->key, msg->name, msg->protocol, msg->time.tv_sec, msg->time.tv_usec);
+    }
+
+    return success;
+}
+
 int checkServer(struct generalPack *msg)
 {
     int recvlen = -1;
