@@ -1,5 +1,5 @@
 # NDCAYF 
-![cover art](/lore/EPACDestiny.jpg)
+![cover art](/lore/coverart.png)
 ### "Numbers Don't Care About Your Feelers"
 Lightweight first person shooter focused on multiplayer LAN-based gameplay, and geared towards native Linux compatibility.
 
@@ -13,10 +13,18 @@ Lightweight first person shooter focused on multiplayer LAN-based gameplay, and 
 * Lightweight FPS game
 * Native Linux compatibility
 
+## Keybinds
+`q` enable debug mesh layer
+
+`c` show backs of meshes
+
+`r` increment through translation, rotation, and scaling
+
+`F1` quit
 
 ## Dependencies
 * cmake
-* glfw3 (glfw-x11 on archlinux)
+* glfw3 (glfw-x11 on ar(ch|tix)linux)
 * glew
 * assimp
 * bullet
@@ -35,14 +43,13 @@ Lightweight first person shooter focused on multiplayer LAN-based gameplay, and 
 ## Current Progress
 * Render engine
 
-## TO-DO:
-* Add world editor
-* Add mousewheel speed control
-
 ## Feature Ideas:
 * CTF game mode in which both teams can move both flags.
+* Quake game mode, modeled after jaun tap, start with one bullet and get one per kill.
+* Mario Kart Game mode, vehicle-based FFA.
 
 ## Links and Resources
+https://trello.com/b/23Q76eGP/ndcayf
 
 ### GitHub Repository
 [NDCAYF](https://github.com/intrvirate/NDCAYF)

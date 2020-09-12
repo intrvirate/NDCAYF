@@ -52,6 +52,8 @@ bool inTextBox = false;
 bool physicsDebugEnabled = false;
 bool showProperties = true;
 
+int scrollMode = 1;
+
 bool exitMenuVal = false;
 
 void updateCameraFront(double xpos, double ypos) {
@@ -177,6 +179,18 @@ bool isMouseVisable(){
     return mouseVisable;
 }
 
+void editorScrollCallback(GLFWwindow* window, double xScroll, double yScroll)
+{
+    //printf("scrolling X: %f, Y: %f\n", xScroll, yScroll);
+    switch (scrollMode)
+    {
+    case 1 : editorTranslateY((int)yScroll); break;
+    case 2 : editorRotateY((int)yScroll); break;
+    case 3 : editorScale((int)yScroll); break;
+
+    }
+}
+
 void exitMenu(){
     exitMenuVal = true;
 }
@@ -193,10 +207,18 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action,
     else if (key == GLFW_KEY_E && action == GLFW_PRESS)
     {
         showProperties = !showProperties;
-    }
-    else if (key == GLFW_KEY_G && action == GLFW_PRESS)
+    } else if (key == GLFW_KEY_G && action == GLFW_PRESS)
     {
-        setCurrentModel();
+        setPickedModel();
+    } else if (key == GLFW_KEY_R && action == GLFW_PRESS)
+    {
+        if (scrollMode < 3)
+        {
+            scrollMode++;
+        } else
+        {
+            scrollMode = 1;
+        }
     }
 
     if(!mouseVisable){
@@ -271,7 +293,6 @@ glm::vec3 calcCameraMovement(GLFWwindow* window){
                 printf(" w ");
                 printf("[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
             }
-            //keys.append(UNI_FD);
         }
 
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -282,7 +303,6 @@ glm::vec3 calcCameraMovement(GLFWwindow* window){
                 printf(" s ");
                 printf("[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
             }
-            //keys.append(UNI_BK);
         }
 
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
@@ -293,7 +313,6 @@ glm::vec3 calcCameraMovement(GLFWwindow* window){
                 printf(" a ");//is bad
                 printf("[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
             }
-            //keys.append(UNI_LT);
         }
 
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
@@ -304,7 +323,6 @@ glm::vec3 calcCameraMovement(GLFWwindow* window){
                 printf(" d ");//bad
                 printf("[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
             }
-            //keys.append(UNI_RT);
         }
 
         if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
@@ -341,7 +359,7 @@ glm::vec3 calcCameraMovement(GLFWwindow* window){
 
         if (getConnection())
         {
-            printf("  after[%.3f,%.3f,%.3f]\n", cameraPos.x, cameraPos.y, cameraPos.z);
+            //printf("  after[%.3f,%.3f,%.3f]\n", cameraPos.x, cameraPos.y, cameraPos.z);
             netLog(cameraPos, cameraFront, key);
         }
     }

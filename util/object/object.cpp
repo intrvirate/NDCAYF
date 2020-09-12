@@ -8,11 +8,13 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <stb_image.h>
-#include <glm/glm.hpp>
-#include <glm/glm.hpp>
 
+#include <glm/glm.hpp>
+#include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/quaternion.hpp>
+
 #include <util/render/render3D.hpp>
 #include "util/handleinput.hpp"
 
@@ -170,6 +172,8 @@ void loadModels(string jsonPath){
         top_model[i]->useSinglePrimitive = modelJson["models"][i]["useSinglePrimitive"];
         top_model[i]->scale = glm::vec3(modelJson["models"][i]["scale"]);
         top_model[i]->isInstanced = modelJson["models"][i]["isInstanced"];
+        //TODO: load rotation:
+        top_model[i]->rotation = glm::quat(1.0f,0.0f,0.0f,0.0f);
         if(top_model[i]->isInstanced){
             //load the modelMatrices vector here
             top_model[i]->modelMatrices.reserve(modelJson["models"][i]["pos"].size());
@@ -301,7 +305,6 @@ void loadModels(string jsonPath){
 
             top_model[i]->collisionShape->setUserPointer(top_model[i]);
             top_model[i]->collisionShape->setLocalScaling( btVector3(top_model[i]->scale.x, top_model[i]->scale.y, top_model[i]->scale.z));
-
             float inerta = modelJson["models"][i]["inerta"];
             btVector3 localInertia(inerta, inerta, inerta);
             top_model[i]->inerta = inerta;
@@ -685,6 +688,7 @@ void RunStepSimulation(){
 //see https://pybullet.org/Bullet/phpBB3/viewtopic.php?t=11690 for context
 void disableCollision(Model* model){
     //model->body->setCollisionFlags(model->body->getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
+
     btBroadphaseProxy* proxy = model->body->getBroadphaseProxy();
     proxy->m_collisionFilterGroup = COL_NOTHING;
     proxy->m_collisionFilterMask = COL_NOTHING_COLLIDES_WITH;
@@ -698,7 +702,6 @@ void enableCollision(Model* model){
 }
 
 void makeStatic(Model* model){
-    //dynamicsWorld->removeRigidBody(model->body); //first remove body to make changes
 
     model->body->setMassProps(0,btVector3(0,0,0));
     model->body->setLinearVelocity(btVector3(0.0,0.0,0.0));
@@ -706,20 +709,17 @@ void makeStatic(Model* model){
 
     model->body->setCollisionFlags(model->body->getCollisionFlags() | btCollisionObject::CF_STATIC_OBJECT);
 
-    //dynamicsWorld->addRigidBody(model->body); //add it back
-
 }
 
 void makeDynamic(Model* model){
 
-    //dynamicsWorld->removeRigidBody(model->body);
 
     model->body->setMassProps(model->mass,btVector3(model->inerta,model->inerta,model->inerta));
+    model->body->activate();
     model->body->updateInertiaTensor();
 
-    model->body->setCollisionFlags(model->body->getCollisionFlags() | btCollisionObject::CF_STATIC_OBJECT);
+    model->body->setCollisionFlags(model->body->getCollisionFlags() & ~btCollisionObject::CF_STATIC_OBJECT);
 
-    //dynamicsWorld->addRigidBody(model->body);
 }
 
 //note: this is not a very fast function; use it sparingly.
@@ -733,35 +733,74 @@ Model* getModelPointerByName(string name){
 }
 
 void updateModelPosition(Model* model, glm::vec3 pos){
+
     btTransform tr = model->body->getWorldTransform();
     tr.setOrigin(btVector3(pos.x,pos.y,pos.z));
     model->body->setWorldTransform(tr);
-    //update all sub meshes
-    for (uint i = 0; i < model->meshes.size(); i++){
-        glm::mat4 modelMat = glm::mat4(1.0f);
-        modelMat = glm::translate(modelMat, pos);
-        modelMat = glm::scale(modelMat, model->scale);
-        model->meshes[i]->model = modelMat;
-    }
+    model->pos = pos;
+
+    syncMeshMatrices(model);
+
 }
 
 void updateModelPosition(Model* model, btVector3 pos){
+
     btTransform tr = model->body->getWorldTransform();
     tr.setOrigin(pos);
     model->body->setWorldTransform(tr);
-    //update all sub meshes
-    glm::vec3 glmPos = glm::vec3(pos.x(), pos.y(), pos.z());
-    for (uint i = 0; i < model->meshes.size(); i++){
-        glm::mat4 modelMat = glm::mat4(1.0f);
-        modelMat = glm::translate(modelMat, glmPos);
-        modelMat = glm::scale(modelMat, model->scale);
-        model->meshes[i]->model = modelMat;
-    }
+
+    model->pos = glm::vec3(pos.x(), pos.y(), pos.z());
+
+    syncMeshMatrices(model);
+}
+
+void updateModelRotation(Model* model, glm::quat rotation){
+    model->rotation = rotation;
+    btTransform tr = model->body->getWorldTransform();
+    tr.setRotation(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w));
+    model->body->setWorldTransform(tr);
+    syncMeshMatrices(model);
+}
+
+void updateRelativeModelRotation(Model* model, glm::quat rotation){
+
+    model->rotation = model->rotation * rotation;
+    btTransform tr = model->body->getWorldTransform();
+    tr.setRotation(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w));
+
+    model->body->setWorldTransform(tr);
+    syncMeshMatrices(model);
+}
+
+void updateRelativeModelRotation(Model* model, glm::vec3 rotation){
+
+    glm::quat quatRot = glm::quat(rotation);
+
+    model->rotation =  model->rotation * quatRot;
+    btTransform tr = model->body->getWorldTransform();
+    tr.setRotation(btQuaternion(model->rotation.x, model->rotation.y, model->rotation.z, model->rotation.w));
+
+    model->body->setWorldTransform(tr);
+    syncMeshMatrices(model);
 }
 
 
+void updateScale(Model* model, glm::vec3 scale){
+    model->scale = scale;
+    syncMeshMatrices(model);
+}
+void updateRelativeScale(Model* model, glm::vec3 scale){
+    model->scale += scale;
+    syncMeshMatrices(model);
+}
 
+void syncMeshMatrices(Model* model){
 
-
-
-
+    for(uint i = 0; i < model->meshes.size(); i++){
+        glm::mat4 modelMat = glm::mat4(1.0f);
+        modelMat = glm::translate(modelMat, model->pos);
+        modelMat = modelMat * glm::mat4_cast(model->rotation);
+        //modelMat = glm::rotate(modelMat, 100.0f, glm::vec3(0,0,100));
+        modelMat = glm::scale(modelMat, model->scale);
+    }
+}

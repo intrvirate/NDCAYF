@@ -6,6 +6,7 @@ extern std::string textEntryString;
 extern bool inTextBox;
 extern bool physicsDebugEnabled;
 extern bool showProperties;
+extern int scrollMode;
 
 extern glm::vec3 cameraFront;
 extern glm::vec3 cameraPos;
@@ -23,6 +24,7 @@ float getFrameTime();
 glm::vec2 getMousePos();
 void calculateFrameTime();
 bool isMouseVisable();
+void editorScrollCallback(GLFWwindow* window, double xScroll, double yScroll);
 void exitMenu();
 void initializeMouse(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
