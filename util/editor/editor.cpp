@@ -24,9 +24,9 @@ string cursoredModelName = "";
 bool modelDynamic;
 bool cursoredModelDynamic;
 float yOffset = 0;
-float yRotateOffset = 0;
 float yIncrement = 0.125;
-float yRotateIncrement = 0.125;
+float yRotateOffset = 0;
+float yRotateIncrement = 0.261799387799;
 
 void editorTranslateY(int direction)
 {
@@ -46,7 +46,15 @@ void editorRotateY(int direction)
 {
     if (pickedModel != NULL)
     {
-        printf("rotate\n");
+        if (direction > 0)
+        {
+            yRotateOffset -= yRotateIncrement;
+        } else if (direction < 0)
+        {
+            yRotateOffset += yRotateIncrement;
+        }
+
+        updateRelativeModelRotation(pickedModel, glm::vec3(0,yRotateOffset,0));
     }
 }
 
@@ -86,6 +94,7 @@ void draw3dCursor()
     } else
     {
         cursoredModel = NULL;
+        cursoredModelDynamic = false;
     }
 
     if (pickedModel != NULL && cursoredModel != NULL)
