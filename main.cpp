@@ -375,7 +375,7 @@ int main()
 
     Model *testingModel = getModelPointerByName("Tree");
     //updateModelRotation(testingModel, glm::quat(1,1,1,1));
-    float inc = 1;
+    float inc = 0.01f;
     uint8_t tick = 0;
 
 
@@ -594,7 +594,7 @@ int main()
             //tick++;
             //if (tick > 50){
                 //inc = 0.01f;
-                //updateRelativeModelRotation(testingModel, glm::vec3(0,0,inc));
+                //updateRelativeModelRotation(testingModel, glm::vec3(inc,0,0));
             //}
 
             debugDraw.SetMatrices(getViewMatrix(), getprojectionMatrix());
