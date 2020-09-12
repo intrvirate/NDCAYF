@@ -16,6 +16,8 @@
 #include "util/object/object.h"
 #include "util/handleinput.hpp"
 
+#include "util/editor/browser.hpp"
+
 Model *pickedModel = NULL;
 Model *cursoredModel = NULL;
 btVector3 p;
@@ -166,6 +168,8 @@ void drawEditor()
 {
 
     draw3dCursor();
+    drawBrowser(true);
+    drawBrowser(false);
 
 
     if(showProperties)
