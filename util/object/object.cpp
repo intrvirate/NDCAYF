@@ -172,6 +172,8 @@ void loadModels(string jsonPath){
         top_model[i]->useSinglePrimitive = modelJson["models"][i]["useSinglePrimitive"];
         top_model[i]->scale = glm::vec3(modelJson["models"][i]["scale"]);
         top_model[i]->isInstanced = modelJson["models"][i]["isInstanced"];
+        //TODO: load rotation:
+        top_model[i]->rotation = glm::quat(1,1,1,1);
         if(top_model[i]->isInstanced){
             //load the modelMatrices vector here
             top_model[i]->modelMatrices.reserve(modelJson["models"][i]["pos"].size());
@@ -774,7 +776,7 @@ void updateRelativeModelRotation(Model* model, glm::vec3 rotation){
 
     glm::quat quatRot = glm::quat(rotation);
 
-    model->rotation = model->rotation * quatRot;
+    model->rotation =  model->rotation * quatRot;
     btTransform tr = model->body->getWorldTransform();
     tr.setRotation(btQuaternion(model->rotation.x, model->rotation.y, model->rotation.z, model->rotation.w));
 
@@ -797,8 +799,8 @@ void syncMeshMatrices(Model* model){
     for(uint i = 0; i < model->meshes.size(); i++){
         glm::mat4 modelMat = glm::mat4(1.0f);
         modelMat = glm::translate(modelMat, model->pos);
-        //modelMat = modelMat * glm::mat4_cast(model->rotation);
-        modelMat = glm::rotate(modelMat, 100.0f, glm::vec3(0,0,100));
+        modelMat = modelMat * glm::mat4_cast(model->rotation);
+        //modelMat = glm::rotate(modelMat, 100.0f, glm::vec3(0,0,100));
         modelMat = glm::scale(modelMat, model->scale);
     }
 }
