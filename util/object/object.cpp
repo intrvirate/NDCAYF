@@ -778,6 +778,16 @@ void updateRelativeModelRotation(Model* model, glm::vec3 rotation){
     syncMeshMatrices(model);
 }
 
+
+void updateScale(Model* model, glm::vec3 scale){
+    model->scale = scale;
+    syncMeshMatrices(model);
+}
+void updateRelativeScale(Model* model, glm::vec3 scale){
+    model->scale += scale;
+    syncMeshMatrices(model);
+}
+
 void syncMeshMatrices(Model* model){
 
     for(uint i = 0; i < model->meshes.size(); i++){

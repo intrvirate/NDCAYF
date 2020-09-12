@@ -171,6 +171,8 @@ void makeDynamic(Model* model);
 void updateModelRotation(Model* model, glm::quat rotation);
 void updateRelativeModelRotation(Model* model, glm::quat rotation);
 void updateRelativeModelRotation(Model* model, glm::vec3 rotation);
+void updateScale(Model* model, glm::vec3 scale);
+void updateRelativeScale(Model* model, glm::vec3 scale);
 void syncMeshMatrices(Model* model);
 
 
