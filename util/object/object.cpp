@@ -73,7 +73,7 @@ void loadModels(string jsonPath){
         top_shader[i].vPath = modelJson["shaders"][i]["vPath"];
         top_shader[i].fPath = modelJson["shaders"][i]["fPath"];
         //TODO: fix
-        top_shader[i].CullFaceState = (modelJson["shaders"][i]["CullFace"] == "front") ?  GL_FRONT : ((modelJson["shaders"][i]["CullFace"] == "back") ? GL_BACK: GL_NONE);
+        //top_shader[i].CullFaceState = (modelJson["shaders"][i]["CullFace"] == "front") ?  GL_FRONT : ((modelJson["shaders"][i]["CullFace"] == "back") ? GL_BACK: GL_NONE);
 
         string vCode;
         string fCode;
@@ -176,7 +176,9 @@ void loadModels(string jsonPath){
         top_model[i]->rotation = glm::quat(1.0f,0.0f,0.0f,0.0f);
         if(top_model[i]->isInstanced){
             //load the modelMatrices vector here
+            top_model[i]->modelPositions.reserve(modelJson["models"][i]["pos"].size());
             top_model[i]->modelMatrices.reserve(modelJson["models"][i]["pos"].size());
+
             top_model[i]->instanceCount = modelJson["models"][i]["pos"].size()/3;
             for(uint instanceCounter = 0; !modelJson["models"][i]["pos"][instanceCounter].is_null(); instanceCounter = instanceCounter + 3){
                 glm::vec3 instancePos;
@@ -186,6 +188,7 @@ void loadModels(string jsonPath){
                 glm::mat4 posMatrix  = glm::mat4(1.0);
                 posMatrix = glm::translate(posMatrix, instancePos);
                 //todo: add scaling and rotation
+                top_model[i]->modelPositions.push_back(instancePos);
                 top_model[i]->modelMatrices.push_back(posMatrix);
             }
         }else{
@@ -213,6 +216,7 @@ void loadModels(string jsonPath){
                     Mesh *currentMesh = new Mesh;
                     top_shader[j].meshes.push_back(currentMesh);
                     currentMesh->parentModel = top_model[i];
+                    currentMesh->parentShader = &top_shader[j];
 
                     currentMesh->isInstanced = modelJson["models"][i]["isInstanced"];
                     if(currentMesh->isInstanced){
@@ -255,7 +259,7 @@ void loadModels(string jsonPath){
                  top_model[i]->isDynamic = true;
 
             float friction = modelJson["models"][i]["friction"];
-            float rotatingFriction = modelJson["models"][i]["Rotatingfriction"];
+            float rotatingFriction = modelJson["models"][i]["rotatingfriction"];
 
             int numTriangles = top_model[i]->meshes[0]->indices.size() / 3 ;
             uint* triangleIndexBase = &(top_model[i]->meshes[0]->indices[0]);
@@ -268,6 +272,7 @@ void loadModels(string jsonPath){
 
             if(modelJson["models"][i]["useSinglePrimitive"] == true){
                 string primitiveType = modelJson["models"][i]["primitiveType"];
+                top_model[i]->primitiveType = primitiveType;
 
                 if(primitiveType == "sphere"){
                     float primitiveSize = modelJson["models"][i]["primitiveSize"];
@@ -326,6 +331,7 @@ void loadModels(string jsonPath){
 
             //collision masks:
             string collisionType = modelJson["models"][i]["collisionType"];
+            top_model[i]->collisionType = collisionType;
             top_model[i]->origionalCollisionGroup = getCollisionGroupByString(collisionType);
             top_model[i]->origionalCollisionMask = getCollisionMaskByString(collisionType);
             // syntax: addRigidBody( body, group, mask);
@@ -546,6 +552,62 @@ void processMesh(Mesh *mesh,aiMesh *impMesh, const aiScene *assimpModel, string 
     glBindVertexArray(0);
 }
 
+//returns -1 if fails, returns 1 if sucussfull
+int saveJson(string jsonPath){
+    json exportJson;
+    //shaders:
+    for(uint i = 0; i < top_shader.size(); i++){
+        exportJson["shaders"][i]["name"] = top_shader[i].name;
+        exportJson["shaders"][i]["vPath"] = top_shader[i].vPath;
+        exportJson["shaders"][i]["fPath"] = top_shader[i].fPath;
+
+    }
+    //models:
+    for(uint i = 0; i < top_model.size(); i++){
+        exportJson["models"][i]["path"] = top_model[i]->objectPath;
+        exportJson["models"][i]["scale"] = top_model[i]->scale.x;
+        exportJson["models"][i]["isInstanced"] = top_model[i]->isInstanced;
+        exportJson["models"][i]["meshCountHint"] = top_model[i]->meshes.size();
+
+        //physics fields
+        exportJson["models"][i]["hasPhysics"] = top_model[i]->hasPhysics;
+        if(top_model[i]->hasPhysics){
+            exportJson["models"][i]["collisionType"] = top_model[i]->collisionType;
+            exportJson["models"][i]["mass"] = top_model[i]->mass;
+            exportJson["models"][i]["inerta"] = top_model[i]->inerta;
+            exportJson["models"][i]["friction"] = top_model[i]->body->getFriction();
+            exportJson["models"][i]["rotatingfriction"] = top_model[i]->body->getRollingFriction();
+            exportJson["models"][i]["useSinglePrimitive"] = top_model[i]->useSinglePrimitive;
+            exportJson["models"][i]["primitiveType"] = top_model[i]->primitiveType;
+        }
+
+        //fields that exist per mesh:
+        for(uint j = 0; j < top_model[i]->meshes.size(); j++){
+            exportJson["models"][i]["shaders"][j] = top_model[i]->meshes[j]->parentShader->name;
+        }
+
+        //instancing fields
+        if(!top_model[i]->isInstanced){
+            exportJson["models"][i]["pos"][0] = top_model[i]->pos.x;
+            exportJson["models"][i]["pos"][1] = top_model[i]->pos.y;
+            exportJson["models"][i]["pos"][2] = top_model[i]->pos.z;
+        }else{
+            for(uint j = 0; j < top_model[i]->modelMatrices.size(); j++){
+                exportJson["models"][i]["pos"][3*j + 0] = top_model[i]->modelPositions[j].x;
+                exportJson["models"][i]["pos"][3*j + 1] = top_model[i]->modelPositions[j].y;
+                exportJson["models"][i]["pos"][3*j + 2] = top_model[i]->modelPositions[j].z;
+            }
+        }
+    }
+
+    //write to file
+    ofstream outputFile;
+    outputFile.open (jsonPath);
+    outputFile << exportJson.dump(3);
+    outputFile.close();
+    return 0;
+}
+
 
 unsigned int findTextureID(const char* path){
     for(uint i = 0; i < top_texture.size(); i++){
@@ -680,9 +742,9 @@ void InitializePhysicsWorld(){
 }
 
 void RunStepSimulation(){
-
     dynamicsWorld->stepSimulation(getFrameTime(), 10);
 }
+
 
 
 //see https://pybullet.org/Bullet/phpBB3/viewtopic.php?t=11690 for context
@@ -693,6 +755,7 @@ void disableCollision(Model* model){
     proxy->m_collisionFilterGroup = COL_NOTHING;
     proxy->m_collisionFilterMask = COL_NOTHING_COLLIDES_WITH;
 }
+
 void enableCollision(Model* model){
     //model->body->setCollisionFlags(model->body->getCollisionFlags() & ~btCollisionObject::CF_NO_CONTACT_RESPONSE);
 
@@ -721,6 +784,7 @@ void makeDynamic(Model* model){
     model->body->setCollisionFlags(model->body->getCollisionFlags() & ~btCollisionObject::CF_STATIC_OBJECT);
 
 }
+
 
 //note: this is not a very fast function; use it sparingly.
 Model* getModelPointerByName(string name){
@@ -784,13 +848,15 @@ void updateRelativeModelRotation(Model* model, glm::vec3 rotation){
     syncMeshMatrices(model);
 }
 
-
 void updateScale(Model* model, glm::vec3 scale){
     model->scale = scale;
+    model->collisionShape->setLocalScaling( btVector3(model->scale.x, model->scale.y, model->scale.z));
     syncMeshMatrices(model);
 }
+
 void updateRelativeScale(Model* model, glm::vec3 scale){
     model->scale += scale;
+    model->collisionShape->setLocalScaling( btVector3(model->scale.x, model->scale.y, model->scale.z));
     syncMeshMatrices(model);
 }
 

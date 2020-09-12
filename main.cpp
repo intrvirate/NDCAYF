@@ -377,7 +377,7 @@ int main()
     //updateModelRotation(testingModel, glm::quat(1,1,1,1));
     //float inc = 1;
     //uint8_t tick = 0;
-
+    saveJson("hi");
 
     while( glfwWindowShouldClose(window) == 0){
 

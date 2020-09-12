@@ -19,8 +19,8 @@ extern BulletDebugDrawer_OpenGL debugDraw;
 
 using namespace std;
 
-struct Model;   //needed because of circular reference
-                //and yes, I don't care that this is bad practice. Performace < Style
+struct Model;   //needed because of circular references
+struct Shader;  //and yes, I don't care that this is bad practice. Performace < Style
 
 /*
  * Top level texture tree. This simply stores all loaded textures, preventing the same
@@ -77,6 +77,7 @@ struct Mesh{
     Texture texture;
     unsigned int VAO, VBO, EBO;
     Model* parentModel;
+    Shader* parentShader;
     bool showObjectSelection; //whether to highlight this mesh when it's object is selected
     glm::mat4 model;
     //instancing
@@ -125,6 +126,7 @@ struct Model {
     vector<Mesh*> meshes; //vector of pointers; actual mesh is dynamicaly allocated
     string directory;
     string objectPath;
+    string collisionType;
     glm::vec3 scale;
     glm::vec3 pos;
     glm::quat rotation;
@@ -133,6 +135,7 @@ struct Model {
     bool hasPhysics;
     bool isDynamic;
     bool useSinglePrimitive;
+    string primitiveType;
     int16_t origionalCollisionGroup;
     int16_t origionalCollisionMask;
     btRigidBody* body;
@@ -142,6 +145,7 @@ struct Model {
     //instancing
     bool isInstanced;
     unsigned int instanceCount;
+    vector<glm::vec3> modelPositions;
     vector<glm::mat4> modelMatrices;
     //TODO: figure out how to instance bullet objects
     //networking
@@ -154,6 +158,7 @@ void loadModels(string jsonPath); //loads models from a json file
 collisionMasks getCollisionGroupByString(string str);
 collisionGroups getCollisionMaskByString(string str);
 void processMesh(Mesh *mesh, aiMesh *impMesh, const aiScene *assimpModel, string directory);
+int saveJson(string jsonPath);
 unsigned int findTextureID(const char* path);
 unsigned int TextureFromFile(const char *path, const string &directory);
 void drawObjects();
