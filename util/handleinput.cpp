@@ -186,6 +186,7 @@ void editorScrollCallback(GLFWwindow* window, double xScroll, double yScroll)
     {
     case 1 : editorTranslateY((int)yScroll); break;
     case 2 : editorRotateY((int)yScroll); break;
+    case 3 : editorScale((int)yScroll); break;
 
     }
 }
@@ -211,7 +212,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action,
         setPickedModel();
     } else if (key == GLFW_KEY_R && action == GLFW_PRESS)
     {
-        if (scrollMode < 2)
+        if (scrollMode < 3)
         {
             scrollMode++;
         } else

@@ -20,6 +20,7 @@
 
 void editorTranslateY(int direction);
 void editorRotateY(int direction);
+void editorScale(int direction);
 void draw3dCursor();
 void drawEditor();
 extern void setPickedModel();
