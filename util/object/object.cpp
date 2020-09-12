@@ -173,7 +173,7 @@ void loadModels(string jsonPath){
         top_model[i]->scale = glm::vec3(modelJson["models"][i]["scale"]);
         top_model[i]->isInstanced = modelJson["models"][i]["isInstanced"];
         //TODO: load rotation:
-        top_model[i]->rotation = glm::quat(1,1,1,1);
+        top_model[i]->rotation = glm::quat(1.0f,0.0f,0.0f,0.0f);
         if(top_model[i]->isInstanced){
             //load the modelMatrices vector here
             top_model[i]->modelMatrices.reserve(modelJson["models"][i]["pos"].size());
