@@ -30,7 +30,6 @@ float yIncrement = 0.125;
 float yRotateOffset = 0;
 float yRotateIncrement = 0.261799387799;
 
-float scaleOffset = 0;
 float scaleIncrement = 0.01;
 
 void editorTranslateY(int direction)
@@ -53,13 +52,14 @@ void editorRotateY(int direction)
     {
         if (direction > 0)
         {
-            yRotateOffset -= yRotateIncrement;
+            updateRelativeModelRotation(pickedModel,
+                glm::vec3(0, -yRotateIncrement, 0));
         } else if (direction < 0)
         {
-            yRotateOffset += yRotateIncrement;
+            updateRelativeModelRotation(pickedModel,
+                glm::vec3(0, yRotateIncrement, 0));
         }
 
-        updateRelativeModelRotation(pickedModel, glm::vec3(0,yRotateOffset,0));
     }
 }
 
