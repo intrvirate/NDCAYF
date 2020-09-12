@@ -23,10 +23,15 @@ string modelName = "";
 string cursoredModelName = "";
 bool modelDynamic;
 bool cursoredModelDynamic;
+
 float yOffset = 0;
 float yIncrement = 0.125;
+
 float yRotateOffset = 0;
 float yRotateIncrement = 0.261799387799;
+
+float scaleOffset = 0;
+float scaleIncrement = 0.01;
 
 void editorTranslateY(int direction)
 {
@@ -55,6 +60,22 @@ void editorRotateY(int direction)
         }
 
         updateRelativeModelRotation(pickedModel, glm::vec3(0,yRotateOffset,0));
+    }
+}
+
+void editorScale(int direction)
+{
+    if (pickedModel != NULL)
+    {
+        if (direction > 0)
+        {
+            updateRelativeScale(pickedModel, glm::vec3(scaleIncrement,
+                scaleIncrement, scaleIncrement));
+        } else if (direction < 0)
+        {
+            updateRelativeScale(pickedModel, glm::vec3(0 - scaleIncrement,
+                0 - scaleIncrement, 0 - scaleIncrement));
+        }
     }
 }
 
@@ -171,6 +192,7 @@ void drawEditor()
         {
             case 1 : scrollModeText = "Translate"; break;
             case 2 : scrollModeText = "Rotate"; break;
+            case 3 : scrollModeText = "Scale"; break;
         }
         ImGui::Begin("Properties", NULL, window_flags);
         ImGui::PushTextWrapPos(ImGui::GetFontSize() * 20.0f);
