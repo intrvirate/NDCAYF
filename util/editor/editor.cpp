@@ -21,12 +21,18 @@ Model *cursoredModel = NULL;
 btVector3 p;
 string modelName = "";
 string cursoredModelName = "";
-bool modelPhysics;
-bool cursoredModelPhysics;
+bool modelDynamic;
+bool cursoredModelDynamic;
+
 float yOffset = 0;
 float yIncrement = 0.125;
 
-void editorTranslateVert(int direction)
+float yRotateOffset = 0;
+float yRotateIncrement = 0.261799387799;
+
+float scaleIncrement = 0.01;
+
+void editorTranslateY(int direction)
 {
     if (pickedModel != NULL)
     {
@@ -38,6 +44,38 @@ void editorTranslateVert(int direction)
             yOffset -= yIncrement;
         }
 
+    }
+}
+void editorRotateY(int direction)
+{
+    if (pickedModel != NULL)
+    {
+        if (direction > 0)
+        {
+            updateRelativeModelRotation(pickedModel,
+                glm::vec3(0, -yRotateIncrement, 0));
+        } else if (direction < 0)
+        {
+            updateRelativeModelRotation(pickedModel,
+                glm::vec3(0, yRotateIncrement, 0));
+        }
+
+    }
+}
+
+void editorScale(int direction)
+{
+    if (pickedModel != NULL)
+    {
+        if (direction > 0)
+        {
+            updateRelativeScale(pickedModel, glm::vec3(scaleIncrement,
+                scaleIncrement, scaleIncrement));
+        } else if (direction < 0)
+        {
+            updateRelativeScale(pickedModel, glm::vec3(0 - scaleIncrement,
+                0 - scaleIncrement, 0 - scaleIncrement));
+        }
     }
 }
 
@@ -63,6 +101,7 @@ void draw3dCursor()
             getCollisionShape()->getUserPointer());
 
         cursoredModelName = cursoredModel->objectPath;
+        cursoredModelDynamic = cursoredModel->isDynamic;
         size_t delimPos = cursoredModelName.find_last_of("/");
         cursoredModelName = cursoredModelName.substr(delimPos + 1);
 
@@ -76,11 +115,11 @@ void draw3dCursor()
     } else
     {
         cursoredModel = NULL;
+        cursoredModelDynamic = false;
     }
 
     if (pickedModel != NULL && cursoredModel != NULL)
     {
-
         p.setY(p.getY() + (btScalar)yOffset);
         updateModelPosition(pickedModel, p);
     } else if (cursoredModel != NULL)
@@ -96,12 +135,13 @@ void setPickedModel()
 
         if (pickedModel == NULL)
         {
+
             pickedModel = cursoredModel;
-            printf("picking stuff\n");
+
+            modelDynamic = pickedModel->isDynamic;
+
             disableCollision(pickedModel);
             makeStatic(pickedModel);
-
-            modelPhysics = pickedModel->hasPhysics;
 
             modelName = pickedModel->objectPath;
             size_t delimPos = modelName.find_last_of("/");
@@ -109,10 +149,9 @@ void setPickedModel()
 
         } else
         {
-            printf("un-picking stuff\n");
+
             enableCollision(pickedModel);
             makeDynamic(pickedModel);
-            modelPhysics = NULL;
             modelName = "";
             pickedModel = NULL;
 
@@ -139,7 +178,7 @@ void drawEditor()
 
         if (pickedModel != NULL || cursoredModel != NULL)
         {
-            windowSize = ImVec2(ImGui::GetFontSize() * 20.0f, 70);
+            windowSize = ImVec2(ImGui::GetFontSize() * 20.0f, 90);
         } else
         {
             windowSize = ImVec2(ImGui::GetFontSize() * 20.0f, 0);
@@ -148,6 +187,13 @@ void drawEditor()
         ImVec2 windowPos = ImVec2(25.0f, 25.0f);
         ImGui::SetNextWindowPos(windowPos);
 
+        string scrollModeText;
+        switch (scrollMode)
+        {
+            case 1 : scrollModeText = "Translate"; break;
+            case 2 : scrollModeText = "Rotate"; break;
+            case 3 : scrollModeText = "Scale"; break;
+        }
         ImGui::Begin("Properties", NULL, window_flags);
         ImGui::PushTextWrapPos(ImGui::GetFontSize() * 20.0f);
 
@@ -156,26 +202,28 @@ void drawEditor()
             ImGui::Text("Picked:");
             ImGui::SameLine();
             ImGui::Text(modelName.c_str());
+            ImGui::Text(scrollModeText.c_str());
 
-            if (modelPhysics)
+            if (modelDynamic)
             {
-                ImGui::Text("Has Physics");
+                ImGui::Text("Is Dynamic");
             } else
             {
-                ImGui::Text("No Physics");
+                ImGui::Text("Is Static");
             }
         } else if (cursoredModel != NULL)
         {
             ImGui::Text("Cursored:");
             ImGui::SameLine();
             ImGui::Text(cursoredModelName.c_str());
+            ImGui::Text(scrollModeText.c_str());
 
-            if (cursoredModelPhysics)
+            if (cursoredModelDynamic)
             {
-                ImGui::Text("Has Physics");
+                ImGui::Text("Is Dynamic");
             } else
             {
-                ImGui::Text("No Physics");
+                ImGui::Text("Is Static");
             }
         }
         ImGui::End();

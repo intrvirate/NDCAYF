@@ -14,7 +14,9 @@ void SetFPScounter(bool state);
 #define LOOP_MODE_LEGACY 5
 
 int getLoopMode();
+int getOldLoopMode();
 void setLoopMode(int val);
+void setOldLoopMode(int val);
 
 //bool
 struct boolLink {

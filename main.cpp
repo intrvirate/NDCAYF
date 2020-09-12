@@ -11,6 +11,8 @@
 
 #include <btBulletDynamicsCommon.h>
 
+#include "main.hpp"
+
 #include "util/imgui/imgui.h"
 #include "util/imgui/imgui_impl_glfw.h"
 #include "util/imgui/imgui_impl_opengl3.h"
@@ -303,7 +305,7 @@ int main()
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     glEnable(GL_CULL_FACE);
-    glClearColor(0.0f, 0.0f, 0.4f, 0.0f); // default opengl background on startup: blue
+    glClearColor(0.2f, 0.2f, 0.3f, 0.0f); // default opengl background on startup: blue
 
     //loadModels("gamedata/world1.json");
     loadModels("gamedata/scratchpadWorld.json");
@@ -371,10 +373,10 @@ int main()
 //=========== LOOP ===========================================================
 
 
-
-
-    Model *lastModel = NULL;    //last pointed-at model
-    bool singleScale = true; //ajust scale as single value, or as x, y, and z values
+    //Model *testingModel = getModelPointerByName("Tree");
+    //updateModelRotation(testingModel, glm::quat(1,1,1,1));
+    //float inc = 1;
+    //uint8_t tick = 0;
 
 
     while( glfwWindowShouldClose(window) == 0){
@@ -383,7 +385,7 @@ int main()
         calculateFrameTime();
         //glClearColor(0.0f, 0.0f, 0.4f, 0.0f); //default background color
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+        runTransitionFunctions();
 
         switch (getLoopMode()){
         case LOOP_MODE_MENU :    {
@@ -588,6 +590,13 @@ int main()
             //Bullet Simulation:
             RunStepSimulation();
 
+
+            //tick++;
+            //if (tick > 50){
+                //inc = 0.01f;
+                //updateRelativeModelRotation(testingModel, glm::vec3(inc,0,0));
+            //}
+
             debugDraw.SetMatrices(getViewMatrix(), getprojectionMatrix());
             if(physicsDebugEnabled){
                 dynamicsWorld->debugDrawWorld();
@@ -747,5 +756,101 @@ int main()
     glfwTerminate();
 
     return 0;
+}
+
+
+//mode transition functions: these are called
+//once when the mode changes to be the listed mode
+void enterMenu(){
+    fprintf(stderr, "entered menu\n");
+
+}
+void enterNetwork(){
+    fprintf(stderr, "entered network\n");
+
+}
+void enterEdit(){
+    fprintf(stderr, "entered edit\n");
+
+}
+void enterPlay(){
+    fprintf(stderr, "entered play\n");
+
+}
+void enterLegacy(){
+    fprintf(stderr, "entered legacy\n");
+
+}
+
+void leaveMenu(){
+    fprintf(stderr, "left menu\n");
+
+}
+void leaveNetwork(){
+    fprintf(stderr, "left network\n");
+
+}
+void leaveEdit(){
+    fprintf(stderr, "left edit\n");
+
+}
+void leavePlay(){
+    fprintf(stderr, "left play\n");
+
+}
+void leaveLegacy(){
+    fprintf(stderr, "left legacy\n");
+
+}
+
+void runTransitionFunctions(){
+    if(getLoopMode() != getOldLoopMode()){
+
+        switch (getOldLoopMode()){
+            case LOOP_MODE_MENU:{
+                leaveMenu();
+                break;
+            }
+            case LOOP_MODE_NETWORK: {
+                leaveNetwork();
+                break;
+            }
+            case LOOP_MODE_EDIT: {
+                leaveEdit();
+                break;
+            }
+            case LOOP_MODE_PLAY:{
+                leavePlay();
+                break;
+            }
+            case LOOP_MODE_LEGACY:{
+                leaveLegacy();
+                break;
+            }
+        }
+        setOldLoopMode(getLoopMode());
+        switch (getLoopMode()){
+            case LOOP_MODE_MENU:{
+                enterMenu();
+                break;
+            }
+            case LOOP_MODE_NETWORK: {
+                enterNetwork();
+                break;
+            }
+            case LOOP_MODE_EDIT: {
+                enterEdit();
+                break;
+            }
+            case LOOP_MODE_PLAY:{
+                enterPlay();
+                break;
+            }
+            case LOOP_MODE_LEGACY:{
+                enterLegacy();
+                break;
+            }
+        }
+    }
 }
 
