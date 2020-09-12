@@ -317,7 +317,7 @@ int main()
     glClearColor(0.2f, 0.2f, 0.3f, 0.0f); // default opengl background on startup: blue
 
     //loadModels("gamedata/world1.json");
-    loadModels("gamedata/fake.json");
+    loadModels("gamedata/scratchpadWorld.json");
     InitializePhysicsWorld();
 
 //=========== IMGUI =========================================================
@@ -378,11 +378,6 @@ int main()
     unsigned short numEntities = 0;
 
     int interlopeCount = 0;
-
-    /*
-
-    printf("%f, %f, %f\n", cameraPos.x, cameraPos.y, cameraPos.z);
-    */
 
 
 //=========== LOOP ===========================================================
@@ -446,7 +441,7 @@ int main()
                 //printf("Data %s  %d   %llu  %s\n", msg.name, msg.ptl, msg.time, msg.data);
                 printf("ID %d\n", getID());
                 printf("===================Waiting for server=================\n");
-                setLoopMode(LOOP_MODE_EDIT);
+                setLoopMode(LOOP_MODE_PLAY);
 
                 //setPositions(all, msg.data);
                 // wait for the server to send the info
