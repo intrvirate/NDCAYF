@@ -21,8 +21,8 @@ Model *cursoredModel = NULL;
 btVector3 p;
 string modelName = "";
 string cursoredModelName = "";
-bool modelPhysics;
-bool cursoredModelPhysics;
+bool modelDynamic;
+bool cursoredModelDynamic;
 float yOffset = 0;
 float yRotateOffset = 0;
 float yIncrement = 0.125;
@@ -72,6 +72,7 @@ void draw3dCursor()
             getCollisionShape()->getUserPointer());
 
         cursoredModelName = cursoredModel->objectPath;
+        cursoredModelDynamic = cursoredModel->isDynamic;
         size_t delimPos = cursoredModelName.find_last_of("/");
         cursoredModelName = cursoredModelName.substr(delimPos + 1);
 
@@ -104,11 +105,13 @@ void setPickedModel()
 
         if (pickedModel == NULL)
         {
+
             pickedModel = cursoredModel;
+
+            modelDynamic = pickedModel->isDynamic;
+
             disableCollision(pickedModel);
             makeStatic(pickedModel);
-
-            modelPhysics = pickedModel->hasPhysics;
 
             modelName = pickedModel->objectPath;
             size_t delimPos = modelName.find_last_of("/");
@@ -116,9 +119,9 @@ void setPickedModel()
 
         } else
         {
+
             enableCollision(pickedModel);
             makeDynamic(pickedModel);
-            modelPhysics = NULL;
             modelName = "";
             pickedModel = NULL;
 
@@ -170,12 +173,12 @@ void drawEditor()
             ImGui::Text(modelName.c_str());
             ImGui::Text(scrollModeText.c_str());
 
-            if (modelPhysics)
+            if (modelDynamic)
             {
-                ImGui::Text("Has Physics");
+                ImGui::Text("Is Dynamic");
             } else
             {
-                ImGui::Text("No Physics");
+                ImGui::Text("Is Static");
             }
         } else if (cursoredModel != NULL)
         {
@@ -184,12 +187,12 @@ void drawEditor()
             ImGui::Text(cursoredModelName.c_str());
             ImGui::Text(scrollModeText.c_str());
 
-            if (cursoredModelPhysics)
+            if (cursoredModelDynamic)
             {
-                ImGui::Text("Has Physics");
+                ImGui::Text("Is Dynamic");
             } else
             {
-                ImGui::Text("No Physics");
+                ImGui::Text("Is Static");
             }
         }
         ImGui::End();
