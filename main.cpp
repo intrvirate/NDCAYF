@@ -305,7 +305,7 @@ int main()
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     glEnable(GL_CULL_FACE);
-    glClearColor(0.0f, 0.0f, 0.4f, 0.0f); // default opengl background on startup: blue
+    glClearColor(0.2f, 0.2f, 0.3f, 0.0f); // default opengl background on startup: blue
 
     //loadModels("gamedata/world1.json");
     loadModels("gamedata/scratchpadWorld.json");
