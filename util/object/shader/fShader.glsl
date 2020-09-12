@@ -39,7 +39,7 @@ void main()
     vec3 result = (ambient + diffuse) * objectColor.xyz;
     FragColor = vec4(result, objectColor.a);
 
-    if (FragColor.a < 0.1)
+    if (FragColor.a < 0.5)
     {
         discard;
     }

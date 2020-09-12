@@ -127,6 +127,7 @@ struct Model {
     string objectPath;
     glm::vec3 scale;
     glm::vec3 pos;
+    glm::quat rotation;
     //unsigned int instanceModelBuffer;
     //physics
     bool hasPhysics;
@@ -167,6 +168,10 @@ void updateModelPosition(Model* model, glm::vec3 pos);
 void updateModelPosition(Model* model, btVector3 pos);
 void makeStatic(Model* model);
 void makeDynamic(Model* model);
+void updateModelRotation(Model* model, glm::quat rotation);
+void updateRelativeModelRotation(Model* model, glm::quat rotation);
+void updateRelativeModelRotation(Model* model, glm::vec3 rotation);
+void syncMeshMatrices(Model* model);
 
 
 #endif // OBJECT_H

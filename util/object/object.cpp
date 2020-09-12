@@ -8,11 +8,13 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <stb_image.h>
-#include <glm/glm.hpp>
-#include <glm/glm.hpp>
 
+#include <glm/glm.hpp>
+#include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/quaternion.hpp>
+
 #include <util/render/render3D.hpp>
 #include "util/handleinput.hpp"
 
@@ -705,7 +707,6 @@ void makeStatic(Model* model){
 
     model->body->setCollisionFlags(model->body->getCollisionFlags() | btCollisionObject::CF_STATIC_OBJECT);
 
-
 }
 
 void makeDynamic(Model* model){
@@ -731,38 +732,48 @@ Model* getModelPointerByName(string name){
 
 void updateModelPosition(Model* model, glm::vec3 pos){
 
-        btTransform tr = model->body->getWorldTransform();
-        tr.setOrigin(btVector3(pos.x,pos.y,pos.z));
-        model->body->setWorldTransform(tr);
+    btTransform tr = model->body->getWorldTransform();
+    tr.setOrigin(btVector3(pos.x,pos.y,pos.z));
+    model->body->setWorldTransform(tr);
+    model->pos = pos;
 
-    //update all sub meshes
-    for (uint i = 0; i < model->meshes.size(); i++){
-        glm::mat4 modelMat = glm::mat4(1.0f);
-        modelMat = glm::translate(modelMat, pos);
-        modelMat = glm::scale(modelMat, model->scale);
-        model->meshes[i]->model = modelMat;
-    }
+    syncMeshMatrices(model);
+
 }
 
 void updateModelPosition(Model* model, btVector3 pos){
 
-        btTransform tr = model->body->getWorldTransform();
-        tr.setOrigin(pos);
-        model->body->setWorldTransform(tr);
+    btTransform tr = model->body->getWorldTransform();
+    tr.setOrigin(pos);
+    model->body->setWorldTransform(tr);
 
-    //update all sub meshes
-    glm::vec3 glmPos = glm::vec3(pos.x(), pos.y(), pos.z());
-    for (uint i = 0; i < model->meshes.size(); i++){
-        glm::mat4 modelMat = glm::mat4(1.0f);
-        modelMat = glm::translate(modelMat, glmPos);
-        modelMat = glm::scale(modelMat, model->scale);
-        model->meshes[i]->model = modelMat;
-    }
+    model->pos = glm::vec3(pos.x(), pos.y(), pos.z());
+
+    syncMeshMatrices(model);
 }
 
+void updateModelRotation(Model* model, glm::quat rotation){
+    model->rotation = rotation;
+    syncMeshMatrices(model);
+}
 
+void updateRelativeModelRotation(Model* model, glm::quat rotation){
+    model->rotation = model->rotation * rotation;
+    syncMeshMatrices(model);
+}
 
+void updateRelativeModelRotation(Model* model, glm::vec3 rotation){
+    glm::quat quatRot = glm::quat(rotation);
+    model->rotation = model->rotation * quatRot;
+    syncMeshMatrices(model);
+}
 
+void syncMeshMatrices(Model* model){
 
-
-
+    for(uint i = 0; i < model->meshes.size(); i++){
+        glm::mat4 modelMat = glm::mat4(1.0f);
+        modelMat = glm::translate(modelMat, model->pos);
+        modelMat = modelMat * glm::mat4_cast(model->rotation);
+        modelMat = glm::scale(modelMat, model->scale);
+    }
+}

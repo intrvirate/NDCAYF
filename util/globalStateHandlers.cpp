@@ -42,8 +42,11 @@ void SetFPScounter(bool state)  { FPScounter = state; }
 
 
 int loopMode = LOOP_MODE_MENU; //stores what main render loop to use
+int oldLoopMode = loopMode;
 int getLoopMode()            { return loopMode; }
+int getOldLoopMode()            { return oldLoopMode; }
 void setLoopMode(int val) { loopMode = val;  }
+void setOldLoopMode(int val) { oldLoopMode = val;  }
 
 
 
