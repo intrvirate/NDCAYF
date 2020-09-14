@@ -5,6 +5,7 @@
 #include <vector>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <bits/stdc++.h>
 
 #include <iostream>
 #include "util/imgui/imgui.h"
@@ -16,6 +17,9 @@ vector<string> files;
 string path = "./";
 string pathToFile;
 char delimiter = '/';
+bool hasSaved = false;
+bool cached = false;
+string savePath = "";
 
 int getFiles(string path)
 {
@@ -42,6 +46,7 @@ int getFiles(string path)
             }
 
             files.push_back(file);
+            sort(files.begin(),files.end());
         }
         closedir(currentDir);
     }
@@ -49,12 +54,12 @@ int getFiles(string path)
     return 0;
 }
 
-int drawBrowser(bool saving)
+int drawBrowser(bool saving, string matches)
 {
     string title;
     ImGuiWindowFlags windowFlags = 0;
     windowFlags |= ImGuiWindowFlags_NoScrollbar;
-    windowFlags |= ImGuiWindowFlags_AlwaysAutoResize;
+    // windowFlags |= ImGuiWindowFlags_AlwaysAutoResize;
     if (saving)
     {
         title = "Save as:";
@@ -63,28 +68,73 @@ int drawBrowser(bool saving)
         title = "Open:";
     }
 
-    getFiles(path);
+    if (!cached)
+    {
+        getFiles(path);
+    }
 
     ImVec2 windowSize;
+    windowSize = ImVec2(ImGui::GetFontSize() * 20.0f, 90);
     ImGui::Begin(title.c_str(), NULL, windowFlags);
+
+    ImGuiWindowFlags fileWindowFlags = 0;
+
+    string pathToDisplay = "Path: " + path;
+    ImGui::Text(pathToDisplay.c_str());
+    ImGui::BeginChild(path.c_str(), ImVec2(ImGui::GetWindowContentRegionWidth()
+        * 0.9f, 150), false, fileWindowFlags);
     int selected = -1;
-    for ( uint i=0; i < files.size(); i++)
+    uint i = 0;
+    if (path == "./")
+    {
+        i = 1;
+    }
+    for ( ; i < files.size(); i++)
     {
         string file = files[i];
 
         if (ImGui::Selectable(file.c_str(), i == selected))
         {
-            printf("%d\n",selected);
+            printf("Reloading files to display\n");
+            cached = false;
             selected = i;
             if (file.back() == (char)delimiter)
             {
-                path += file.c_str();
+                if (file == "../")
+                {
+                    size_t last = path.substr(0,path.size()
+                        - 1).find_last_of("/");
+                    path = path.substr(0,1 + last);
+                } else if (file != "./" && file != "../")
+                {
+                    path += file.c_str();
+                }
             } else
             {
                 pathToFile = path + file;
             }
-            printf("path: %s\n",path.c_str());
-            printf("pathToFile: %s\n",pathToFile.c_str());
+        }
+    }
+    ImGui::EndChild();
+
+    string pathToFileToDisplay = "File: " + pathToFile;
+    ImGui::Text(pathToFileToDisplay.c_str());
+
+    if (saving)
+    {
+        ImGui::SameLine();
+        static bool save = false;
+        if (ImGui::Button("Save"))
+        {
+            printf("Got to save\n");
+            hasSaved = true;
+            save = true;
+        }
+        if (save)
+        {
+            savePath = pathToFile;
+            printf("set savePath: %s\n", savePath.c_str());
+            save = false;
         }
     }
 

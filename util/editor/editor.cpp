@@ -34,6 +34,8 @@ float yRotateIncrement = 0.261799387799;
 
 float scaleIncrement = 0.01;
 
+bool needSave = true;
+
 void editorTranslateY(int direction)
 {
     if (pickedModel != NULL)
@@ -151,26 +153,30 @@ void setPickedModel()
 
         } else
         {
-
             enableCollision(pickedModel);
             makeDynamic(pickedModel);
             modelName = "";
             pickedModel = NULL;
-
-
         }
-
     }
-    // pickedModel = getModelPointerByName("Tree03");
 }
 
 void drawEditor()
 {
 
     draw3dCursor();
-    drawBrowser(true);
-    drawBrowser(false);
 
+    if (needSave)
+    {
+        drawBrowser(true, "");
+        if (hasSaved)
+        {
+            printf("savepath: %s\n",savePath.c_str());
+            needSave = false;
+        }
+    }
+
+    drawBrowser(false, "");
 
     if(showProperties)
     {
