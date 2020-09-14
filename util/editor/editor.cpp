@@ -35,6 +35,7 @@ float yRotateIncrement = 0.261799387799;
 float scaleIncrement = 0.01;
 
 bool needSave = true;
+bool needOpen = true;
 
 void editorTranslateY(int direction)
 {
@@ -175,8 +176,16 @@ void drawEditor()
             needSave = false;
         }
     }
+    if (needOpen)
+    {
+        drawBrowser(false, "");
+        if (hasOpened)
+        {
+            printf("openpath: %s\n",openPath.c_str());
+            needOpen = false;
+        }
+    }
 
-    drawBrowser(false, "");
 
     if(showProperties)
     {

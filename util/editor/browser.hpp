@@ -15,6 +15,8 @@
 #include "util/imgui/imgui_impl_opengl3.h"
 extern bool hasSaved;
 extern string savePath;
+extern bool hasOpened;
+extern string openPath;
 
 int getFiles();
 int drawBrowser(bool saving, string matches);

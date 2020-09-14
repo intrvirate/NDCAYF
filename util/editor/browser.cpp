@@ -18,8 +18,12 @@ string path = "./";
 string pathToFile;
 char delimiter = '/';
 bool hasSaved = false;
-bool cached = false;
 string savePath = "";
+bool hasOpened = false;
+string openPath = "";
+bool cached = false;
+// The input save box
+char input[255] = "";
 
 int getFiles(string path)
 {
@@ -96,6 +100,8 @@ int drawBrowser(bool saving, string matches)
         if (ImGui::Selectable(file.c_str(), i == selected))
         {
             printf("Reloading files to display\n");
+
+
             cached = false;
             selected = i;
             if (file.back() == (char)delimiter)
@@ -113,6 +119,10 @@ int drawBrowser(bool saving, string matches)
             {
                 pathToFile = path + file;
             }
+            // Set the input box to the new filename
+            string filename = pathToFile.substr(pathToFile.find_last_of("/") + 1,
+                pathToFile.size());
+            strcpy(input, filename.c_str());
         }
     }
     ImGui::EndChild();
@@ -120,23 +130,43 @@ int drawBrowser(bool saving, string matches)
     string pathToFileToDisplay = "File: " + pathToFile;
     ImGui::Text(pathToFileToDisplay.c_str());
 
+
+    ImGui::InputText("", input, IM_ARRAYSIZE(input));
+
+    string buttonText;
     if (saving)
     {
+        buttonText = "Save";
+    } else
+    {
+        buttonText = "Open";
+    }
+
         ImGui::SameLine();
-        static bool save = false;
-        if (ImGui::Button("Save"))
+        bool save = false;
+        bool open = false;
+        if (ImGui::Button(buttonText.c_str()))
         {
-            printf("Got to save\n");
-            hasSaved = true;
-            save = true;
+            if (saving)
+            {
+                hasSaved = true;
+                save = true;
+            } else
+            {
+                hasOpened = true;
+                open = true;
+            }
         }
         if (save)
         {
-            savePath = pathToFile;
-            printf("set savePath: %s\n", savePath.c_str());
+            savePath = path + input;
             save = false;
         }
-    }
+        if (open)
+        {
+            openPath = path + input;
+            open = false;
+        }
 
     ImGui::End();
 
