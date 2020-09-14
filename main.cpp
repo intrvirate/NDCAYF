@@ -65,175 +65,8 @@ int main()
 {
     if (test_nw)
     {
-        struct entities alls[10];
-
-
-        /*
-        glm::vec3 newPoss = glm::vec3(-1.694,9.585,-14.178);
-        glm::vec3 fakeDirs = glm::vec3(-0.839,0.358,0.409);
-
-
-                        printf("before [%.3f,%.3f,%.3f]\n", newPoss.x, newPoss.y, newPoss.z);
-            applyKeys("wd", fakeDirs, &newPoss);
-
-                        printf("after [%.3f,%.3f,%.3f]\n", newPoss.x, newPoss.y, newPoss.z);
-                        */
-
-
-        int x = sizeof(struct generalPack);
-        int y = 10;
-        int z = 10;
-        int a = sizeof(unsigned short int);
-        int b = sizeof(struct timeval);
-        int c = 1000;
-
-        struct timeval tv;
-
-        gettimeofday(&tv, NULL);
-
-        /*
-        printf("%d ", y);
-        printf("%d ", z);
-        printf("%d ", a);
-        printf("%d ", b);
-        printf("%d\n", c);
-        printf("Theoritical %d\n", y+z+a+b+c);
-        printf("Actual      %d\n", x);
-
-        printf("%ld, %ld\n", tv.tv_sec, tv.tv_usec);
-        */
-        struct timeval testval;
-        testval.tv_sec = 1;
-        testval.tv_usec = 93;
-        struct timeval atime;
-        gettimeofday(&atime, NULL);
-
-        printf("time %lu%03lu.%03lu\n", testval.tv_sec, testval.tv_usec / 1000 , testval.tv_usec % 1000);
-        return 0;
-
-
-        // to send
-        struct generalPack pack;
-
-        // to recieve
-        struct generalPack *msgPack = new struct generalPack;
-
-        // add to pack
-        strcpy(pack.key, "key");
-        strcpy(pack.name, "key");
-        pack.protocol = PING;
-        pack.time = tv;
-        //strcpy(pack.data, "1234567891");
-
-        struct sockaddr_in serverAddra;
-        struct server serverLista[MAXSERVERS];
-
-        printf("Loading network\n");
-        getAllServers(serverLista);
-
-        printServerList(serverLista);
-
-
-        // set the server
-        struct sockaddr_in serverAddr;
-
-        memset(&serverAddr, 0, sizeof(serverAddr));
-        serverAddr.sin_family = AF_INET;
-        serverAddr.sin_port = htons(PORT);
-        serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
-
-        //setServerAddr(serverAddr);
-        char ip[] = "10.55.20.48";
-        if (!connectTo(ip))
-        {
-            printf("Failed to connect\n");
-        }
-
-        long sum = 0;
-        int numberOfPings = 1000;
-        for (int i = 0; i < numberOfPings; i++)
-        {
-            gettimeofday(&pack.time, NULL);
-            send(&pack);
-            //printf("\t%s, %s, %d, %ld, %ld\n", pack.key, pack.name, pack.protocol, pack.time.tv_sec, pack.time.tv_usec);
-
-
-            if (checkServer(msgPack) < 0)
-            {
-                printf("failed to receve\n");
-            }
-            gettimeofday(&(msgPack->time), NULL);
-
-            //printf("\t%s, %s, %d, %ld, %ld\n", msgPack->key, msgPack->name, msgPack->protocol, msgPack->time.tv_sec, msgPack->time.tv_usec);
-
-            long diff = msgPack->time.tv_usec - pack.time.tv_usec;
-            sum += diff;
-            //printf("lag in microseconds %ld\n", diff);
-        }
-        printf("Average %ld, total %ld\n", sum / numberOfPings, sum);
-
-        glm::vec3 Pos = glm::vec3(1.0f,1.0f,1.0f);
-        printf("%.2f %.2f %.2f\n", Pos.x, Pos.y, Pos.z);
-
-        glm::vec3 cameraFront(0,0,0);
-        char keys[5] = "hi .";
-        netLog(Pos, cameraFront, keys);
-
-
-
 
         return 0;
-        /*
-        struct MsgPacket pack;
-        int numAlls = 0;
-        processMsg(tmsg10, &pack);
-
-        printf("name %s, ptl %d, time %llu, data %s\n\n", pack.name, pack.ptl, pack.time, pack.data);
-
-        applyDumpData(alls, pack.data, &numAlls);
-
-        for (int i = 0; i < numAlls; i++)
-        {
-            if (i != getID())
-            {
-                printf("Num of moves %d\n", alls[i].numMoves);
-            }
-        }
-
-        /*
-        reconcileClient(alls[getID()], cameraPos);
-{
-    glm::vec3 cameraPos;
-    glm::vec3 cameraDirection;
-    struct move moves[100];
-    int numMoves;
-};
-         */
-
-        /*
-        printf("asdfasfd%d\n", numAlls);
-        for (int i = 0; i < numAlls; i++)
-        {
-            printf("Pos [%.3f,%.3f,%.3f], Dir [%.3f,%.3f,%.3f]\n", alls[i].cameraPos.x, alls[i].cameraPos.y, alls[i].cameraPos.z,
-                alls[i].cameraDirection.x, alls[i].cameraDirection.y, alls[i].cameraDirection.z);
-            if (i == 0)
-            {
-                printf("this is this comupter\n");
-
-            }
-            else
-            {
-                for (int j = 0; j < alls[i].numMoves; j++)
-                {
-                    printf("\tMove, dir [%.3f,%.3f,%.3f], keys [%s]\n", alls[i].keys[j].dir.x, alls[i].keys[j].dir.y, alls[i].keys[j].dir.z,
-                        alls[i].keys[j].moves);
-                }
-            }
-        }
-        */
-
-
-        return -1;
     }
 
     //=========== SETUP ==========================================================
@@ -340,9 +173,6 @@ int main()
 
 
 //================networking stuff====================================
-    //bool connected = false;
-    bool networkLoaded = false;
-    setConnection(false);
     struct sockaddr_in serverAddr;
     struct server serverList[MAXSERVERS];
 
@@ -398,14 +228,18 @@ int main()
 
             }
             break;
-        case LOOP_MODE_NETWORK : {
+        case LOOP_MODE_NETWORK :
+        {
             if (!isMouseVisable())
             {
                 toggleMouseVisibility(window);
             }
-            if (connected)
+            // we were connected but arn't now so set to false
+            // interlope needs to be set at the begining
+            if (getConnection())
             {
-                connected = false;
+                setConnection(false);
+                interlopeCount = 0;
             }
             renderLoop3D(window);
             renderLoop2D(window);
@@ -415,67 +249,61 @@ int main()
 
             makeServerListWindow(serverList);
 
-
             ImGui::Render();
             int display_w, display_h;
             glfwGetFramebufferSize(window, &display_w, &display_h);
             glViewport(0, 0, display_w, display_h);
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-            if (connected)
+            if (getConnection())
             {
                 serverAddr = getServerAddr();
-                printf("Connection successful to: %s\n", inet_ntoa(serverAddr.sin_addr));
-                //printf("Data %s  %d   %llu  %s\n", msg.name, msg.ptl, msg.time, msg.data);
-                printf("ID %d\n", getID());
+                printf("Connection successful to: %s as id: %d\n", inet_ntoa(serverAddr.sin_addr), getID());
                 printf("===================Waiting for server=================\n");
-                setLoopMode(LOOP_MODE_PLAY);
-                if (isMouseVisable())
-                {
-                    toggleMouseVisibility(window);
-                }
 
-                //setPositions(all, msg.data);
                 // wait for the server to send the info
+                // loops keeps it from consuming the client
                 bool waiting = true;
                 int loops = 0;
-                dumpPack->protocol = 1000;
                 while (waiting)
                 {
-                    // get msg
-                    printf("Waiting\n");
-                    printf("asdf%d\n", dumpPack->protocol);
+                    // only try for so long
                     loops++;
+                    if (loops > 500)
+                    {
+                        // failed to get data so we arn't connected anymore
+                        waiting = false;
+                        setConnection(false);
+                    }
                     if (checkServer(dumpPack) >= 0)
                     {
-                        printf("got one %d\n", dumpPack->protocol);
+                        //printf("got one %d\n", dumpPack->protocol);
 
                         if (dumpPack->protocol == DUMP)
                         {
                             waiting = false;
-                            //TODO create/change objects based off of the server data
+
                             int buf = 0;
-                            printf("=====%d, %s, %s, %d, %ld, %ld\n", dumpPack->numObjects, dumpPack->key, dumpPack->name, dumpPack->protocol, dumpPack->time.tv_sec, dumpPack->time.tv_usec);
+
+                            printf("Got the dump=====%d, %s, %s, %d, %ld, %ld\n", dumpPack->numObjects,
+                                dumpPack->key, dumpPack->name, dumpPack->protocol,
+                                dumpPack->time.tv_sec, dumpPack->time.tv_usec);
+
+                            // loads the data into the right spot, all dumps only have players rn
                             numEntities = dumpPack->numObjects;
                             for (int i = 0; i < dumpPack->numObjects; i++)
                             {
                                 if (i == getID())
                                 {
-                                    //printf("us\n");
                                     // get the move data
                                     struct move temp;
                                     memcpy(&temp, &dumpPack->data[buf], sizeof(struct move));
                                     buf += sizeof(struct move);
 
                                     // player data is set
-
-                                    //printf("%.2f,%.2f,%.2f\n", temp.pos.x, temp.pos.y, temp.pos.z);
-                                    //printf("[%.3f,%.3f,%.3f] :", cameraPos.x, cameraPos.y, cameraPos.z);
                                     cameraPos = temp.pos;
-                                    //printf("[%.3f,%.3f,%.3f]\n", cameraPos.x, cameraPos.y, cameraPos.z);
-                                    //cameraFront = temp.dir;
 
-                                    // and the last moveID
+                                    // move number is synced
                                     memcpy(&players[i].moveID, &dumpPack->data[buf], sizeof(unsigned int));
                                     buf += sizeof(unsigned int);
                                     setMove((players[i].moveID + (unsigned int)1));
@@ -483,46 +311,35 @@ int main()
                                 }
                                 else
                                 {
-                                    printf("them1\n");
-                                    //get the inital int
+                                    //get the number of moves int
                                     memcpy(&players[i].numMoves, &dumpPack->data[buf], sizeof(unsigned short));
                                     buf += sizeof(unsigned short);
-                                    printf("them2\n");
 
-                                    // get the moves
+                                    // use to get all the moves out
                                     memcpy(&players[i].moves, &dumpPack->data[buf], sizeof(struct move) * players[i].numMoves);
                                     buf += (sizeof(struct move) * players[i].numMoves);
-                                    printf("them3\n");
                                 }
                             }
-
-
-                            //printf("me [%.3f,%.3f,%.3f], server [%.3f,%.3f,%.3f]\n", cameraPos.x, cameraPos.y, cameraPos.z, all[getID()].cameraPos.x, all[getID()].cameraPos.y, all[getID()].cameraPos.z);
-
-                            // TODO force client to be inline with the server
-                            // if they were the same at that point and there are points that the server hasn't seen then pretend those are valid
-                            // if they are different then move the player based off of the difference between the servers point and the clients equevalent point
-                            //reconcileClient(&all[getID()]);
-
-                            //printf("reconcile [%.3f,%.3f,%.3f]\n", all[getID()].cameraPos.x, all[getID()].cameraPos.y, all[getID()].cameraPos.z);
-                            interlopeCount = 0;
-
                         }
                         else
                         {
                             send(&pongPack);
                         }
                     }
-
                 }
-                printf("Got initial data\n");
-                printf("Starting at %.2f, %.2f, %.2f\n", cameraPos.x, cameraPos.y, cameraPos.z);
+                // we shall exit to the play loop, also make mouse go away
+                if (getConnection())
+                {
+                    printf("Starting at %.2f, %.2f, %.2f\n", cameraPos.x, cameraPos.y, cameraPos.z);
+                    setLoopMode(LOOP_MODE_PLAY);
+                    if (isMouseVisable())
+                    {
+                        toggleMouseVisibility(window);
+                    }
+                }
             }
-
-
-
-            }
-            break;
+        }
+        break;
         case LOOP_MODE_EDIT :    {
 
             renderLoop3D(window);
@@ -579,23 +396,21 @@ int main()
 
 
             //=== do the network
-
-            if (connected)
+            if (getConnection())
             {
                 if (checkServer(dumpPack) >= 0)
                 {
-
-                    // receve dump and do stuff
                     if (dumpPack->protocol == DUMP)
                     {
+                        // reset the count to we start interloping at the begining
                         interlopeCount = 0;
-                        //TODO create/change objects based off of the server data
 
+                        printf("=====%s, %s, %d, %ld, %ld\n", dumpPack->key, dumpPack->name,
+                            dumpPack->protocol, dumpPack->time.tv_sec, dumpPack->time.tv_usec);
+
+                        // keep our place
                         int buf = 0;
                         numEntities = dumpPack->numObjects;
-                        //printf("dump %lu %lu %d %d\n", dumpPack->numObjects, dumpPack->time.tv_sec, dumpPack->time.tv_usec, dumpPack->protocol);
-                        printf("=====%s, %s, %d, %ld, %ld\n", dumpPack->key, dumpPack->name, dumpPack->protocol, dumpPack->time.tv_sec, dumpPack->time.tv_usec);
-                        dumpPack->protocol = (unsigned short)1000;
                         for (int i = 0; i < dumpPack->numObjects; i++)
                         {
                             if (i == getID())
@@ -605,19 +420,21 @@ int main()
                                 memcpy(&temp, &dumpPack->data[buf], sizeof(struct move));
                                 buf += sizeof(struct move);
 
-                                // and the last moveID
+                                // get the id of this move
                                 memcpy(&players[i].moveID, &dumpPack->data[buf], sizeof(unsigned int));
                                 buf += sizeof(unsigned int);
 
+                                /*
                                 if (!(temp.pos.x == cameraPos.x && temp.pos.y == cameraPos.y && temp.pos.z == cameraPos.z))
                                 {
+                                    //debug
                                     printf("server %.2f, %.2f, %.2f == ", temp.pos.x, temp.pos.y, temp.pos.z);
                                     printf("us %.2f, %.2f, %.2f\n", cameraPos.x, cameraPos.y, cameraPos.z);
                                 }
+                                */
+
                                 // only change cameraPos if the server and client don't agree on where the player was at the servers id
                                 reconcileClient(&players[i], &temp, &cameraPos);
-
-
                             }
                             else
                             {
@@ -634,42 +451,32 @@ int main()
                                 //printf("them13\n");
                             }
                         }
-
-                        // TODO force client to be inline with the server
-                        // if they were the same at that point and there are points that the server hasn't seen then pretend those are valid
-                        // if they are different then move the player based off of the difference between the servers point and the clients equevalent point
-                        //reconcileClient(&all[getID()]);
-                        }
                     }
-
-                    //interlope
-                    string pink = "PINK";
-                    string blue = "BLUE";
-                    string green = "GREN";
-                    string orange = "ORNG";
-                    string names[4] = {blue, pink, green, orange};
-
-
-                    int name = 0;
-                    for (int i = 0; i < numEntities; i++)
-                    {
-                        if (i != getID())
-                        {
-                            // applies the next move
-                            if (interlopeCount < players[i].numMoves)
-                            {
-                                //printf("updating %s's pos\n", names[name].c_str());
-                                Model *temp = getModelPointerByName(names[name]);
-                                updateModelPosition(temp, players[i].moves[interlopeCount].pos);
-
-                            }
-                        }
-                        name++;
-                    }
-                    // next time we will do the next one
-                    interlopeCount++;
                 }
-                //draw the players
+
+                // temporary stuff
+                string pink = "PINK";
+                string blue = "BLUE";
+                string green = "GREN";
+                string orange = "ORNG";
+                string names[4] = {blue, pink, green, orange};
+
+
+                // goes through each entity and applies its interlope point
+                // increments the interlopeCount by one afterwards so we get the next one
+                for (int i = 0; i < numEntities; i++)
+                {
+                    if (i != getID())
+                    {
+                        if (interlopeCount < players[i].numMoves)
+                        {
+                            Model *temp = getModelPointerByName(names[i]);
+                            updateModelPosition(temp, players[i].moves[interlopeCount].pos);
+                        }
+                    }
+                }
+                interlopeCount++;
+            }
 
             debugDraw.draw();
             renderSkybox();

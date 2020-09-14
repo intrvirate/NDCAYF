@@ -20,9 +20,9 @@ struct generalPack
 int makeSocket();
 
 // getters and setters
-int getID();
-void setConnection(bool value);
 bool getConnection();
+void setConnection(bool newConnection);
+int getID();
 struct sockaddr_in getServerAddr();
 void resetMoves();
 void setMove(unsigned int id);

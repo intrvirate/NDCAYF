@@ -5,7 +5,7 @@
 /*
  * store all network constants here,
  * or elsewhere once integrated into
- * the main code, ikc
+ * the main code, idc
  *
  */
 #define PORT  12345
@@ -20,6 +20,9 @@
 #define DUMP 7
 #define INFO 8
 
+#define UDP_TV_SEC 0
+#define UDP_TV_USEC 100
+
 #define IPLEN 30
 
 #define SERVERDUMPSPERSEC 6
@@ -28,22 +31,10 @@
 #define MAXSERVERS 5
 #define MAXPLAYERS 20
 
-// not sure if this value is important enough
-#define BUFSIZE 2048
-
-// a universal key map that all clients will understand 
-#define UNI_FD "w"
-#define UNI_BK "s"
-#define UNI_RT "d"
-#define UNI_LT "a"
-
-
 struct ifa {
     char name[128];
     char ip[128];
 };
-
-
 
 struct move
 {
@@ -82,7 +73,5 @@ struct server {
     int loIndex;
     struct infoStruct about;
 };
-
-extern bool connected;
 
 #endif

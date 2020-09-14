@@ -25,11 +25,8 @@ size_t bufSize = sizeof(struct generalPack);
 struct sockaddr_in rec_addr;
 socklen_t inAddrLen = sizeof(rec_addr);
 
-char hostname[128];
-int DELAY_SECS2 = 0;
-int DELAY_USECS2 = 100;
-
 int clientID;
+char hostname[128];
 
 struct Unvalid *unvalidated = new struct Unvalid[100];
 int numUnvalid = 0;
@@ -38,42 +35,60 @@ unsigned int unvalidID = 0;
 
 struct generalPack movePointData = makeBasicPack(MOVE);
 
+// whether we are connected to a server
 bool connected = false;
 
-void resetMove()
-{
-    unvalidID = 0;
-}
 
-void setMove(unsigned int id)
-{
-    unvalidID = id;
-}
-void setConnection(bool value)
-{
-    connected = value;
-}
-
+//get the connection value
 bool getConnection()
 {
     return connected;
 }
 
+
+// set the connnection value
+void setConnection(bool newConnection)
+{
+    connected = newConnection;
+}
+
+
+// set to 0
+void resetMove()
+{
+    unvalidID = 0;
+}
+
+
+// allows us to sync moveID with server on start
+void setMove(unsigned int id)
+{
+    unvalidID = id;
+}
+
+
+// gets the serverAddr
 struct sockaddr_in getServerAddr()
 {
     return serverAddr;
 }
 
+
+// sets the serverAddr
 void setServerAddr(struct sockaddr_in newServerAddr)
 {
     serverAddr = newServerAddr;
 }
 
+
+// returns our id
 int getID()
 {
     return clientID;
 }
 
+
+// makes the upd socket to use
 int makeSocket()
 {
     struct timeval tv;
@@ -82,10 +97,9 @@ int makeSocket()
     // create udp socket
     actualSock = socket(AF_INET, SOCK_DGRAM, 0);
 
-
     // create timeout for socket
-    tv.tv_sec = DELAY_SECS2;
-    tv.tv_usec = DELAY_USECS2;
+    tv.tv_sec = UDP_TV_SEC;
+    tv.tv_usec = UDP_TV_USEC;
 
     if (setsockopt(actualSock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
     {
@@ -93,14 +107,11 @@ int makeSocket()
         return -1;
     }
 
-
-    //int broadcastEnable = 1;
-    //int ret = setsockopt(actualSock, SOL_SOCKET, SO_BROADCAST, &broadcastEnable, sizeof(broadcastEnable));
-
     return 0;
 }
 
 
+// trys to use this ip as the server
 bool connectTo(char ip[])
 {
     bool success = false;
@@ -154,16 +165,13 @@ bool connectTo(char ip[])
         }
     }
 
-    printf("protocol %d == %d\n", msgPack->protocol, CONNECT);
-    printf("found %s\n", found ? "true" : "false");
     // if found and is a connect packet then we are good
     if (found && (msgPack->protocol == CONNECT))
     {
         success = true;
-        printf("%s, %s, %d, %ld, %ld", msgPack->key, msgPack->name, msgPack->protocol, msgPack->time.tv_sec, msgPack->time.tv_usec, msgPack->data);
+        //printf("%s, %s, %d, %ld, %ld", msgPack->key, msgPack->name, msgPack->protocol, msgPack->time.tv_sec, msgPack->time.tv_usec, msgPack->data);
         // get the int out of the extra bytes
         clientID = (int)*(msgPack->data);
-        printf(", %d\n", clientID);
     }
     else
     {
@@ -174,6 +182,8 @@ bool connectTo(char ip[])
     return success;
 }
 
+
+// makes a packet and fills in most of the data
 struct generalPack makeBasicPack(int ptl)
 {
     struct generalPack pack;
@@ -186,8 +196,7 @@ struct generalPack makeBasicPack(int ptl)
 }
 
 
-
-// sends to a specified addr
+// sends a packet to a specified addr
 int sendTo(struct generalPack *toSend, struct sockaddr_in *toAddr)
 {
     int success = 1;
@@ -204,12 +213,12 @@ int sendTo(struct generalPack *toSend, struct sockaddr_in *toAddr)
     return success;
 }
 
+
 // sends to server
 int send(struct generalPack *toSend)
 {
     return sendTo(toSend, &serverAddr);
 }
-
 
 
 // gets from a specified addr
@@ -219,10 +228,6 @@ int getFrom(struct generalPack *msg, struct sockaddr_in fromAddr)
     int success = -1;
 
     recvlen = recvfrom(actualSock, &buf, bufSize, 0, (struct sockaddr *)&rec_addr, &inAddrLen);
-    if (recvlen > 0)
-    {
-        printf("got a msg\n");
-    }
 
     if (rec_addr.sin_addr.s_addr == fromAddr.sin_addr.s_addr && recvlen > 0)
     {
@@ -231,9 +236,14 @@ int getFrom(struct generalPack *msg, struct sockaddr_in fromAddr)
         //printf("Received %d bytes\n", recvlen);
         //printf("%s, %s, %d, %ld, %ld\n", msg->key, msg->name, msg->protocol, msg->time.tv_sec, msg->time.tv_usec);
     }
+    else if (recvlen > 0)
+    {
+        printf("Got a msg from a rando\n");
+    }
 
     return success;
 }
+
 
 // gets from server
 int checkServer(struct generalPack *msg)
@@ -242,6 +252,11 @@ int checkServer(struct generalPack *msg)
 }
 
 
+// will decide if we need to move the cameraPos
+// if clientID > serverID then check the point where cliID == serID
+//     1: if they are equal then don't move
+//     2: if different then get the difference and apply to cPos
+// else set cPos to serverPos, and move the buffer along
 void reconcileClient(struct entities *me, struct move *server, glm::vec3 *cPos)
 {
     bool found = false;
@@ -249,12 +264,13 @@ void reconcileClient(struct entities *me, struct move *server, glm::vec3 *cPos)
     int actualIndex = unvalidStart;
     int toRmFromArr = 0; // how much can be cut out of the buffer
 
+    // find if we have a point the server doesn't know about(end)
     for (int i = 0; i < numUnvalid; i++)
     {
         if ((unvalidated[actualIndex].id > me->moveID) && !found)
         {
             toRmFromArr = i;
-            printf("%u > %u : us > server\n", unvalidated[actualIndex].id, me->moveID);
+            //printf("%u > %u : us > server\n", unvalidated[actualIndex].id, me->moveID);
             end = actualIndex;
             found = true;
         }
@@ -281,23 +297,25 @@ void reconcileClient(struct entities *me, struct move *server, glm::vec3 *cPos)
         }
 
 
-        printf("enad %d ", end); printf("curlen %u ", numUnvalid); printf("serverID %d\n", serverID);
+        //////debug
+        //printf("enad %d ", end); printf("curlen %u ", numUnvalid); printf("serverID %d\n", serverID);
 
         // where the server thinks we are
-        printf("server %u == cur %u\n", me->moveID, serverID);
+        //printf("server %u == cur %u\n", me->moveID, serverID);
 
         // these two can be equal, unless lots of lag then probably not
-        printf("recent %.2f, %.2f, %.2f\n", unvalidated[unvalidStart + numUnvalid - 1].theMove.pos.x, unvalidated[unvalidStart + numUnvalid - 1].theMove.pos.y, unvalidated[unvalidStart + numUnvalid - 1].theMove.pos.z);
-        printf("us %.2f, %.2f, %.2f\n", unvalidated[end].theMove.pos.x, unvalidated[end].theMove.pos.y, unvalidated[end].theMove.pos.z);
+        //printf("recent %.2f, %.2f, %.2f\n", unvalidated[unvalidStart + numUnvalid - 1].theMove.pos.x, unvalidated[unvalidStart + numUnvalid - 1].theMove.pos.y, unvalidated[unvalidStart + numUnvalid - 1].theMove.pos.z);
+        //printf("us %.2f, %.2f, %.2f\n", unvalidated[end].theMove.pos.x, unvalidated[end].theMove.pos.y, unvalidated[end].theMove.pos.z);
 
         // should be equal unless the server made a change to our pos internally, or it skiped an move because it was bad
-        printf("same as server %.2f, %.2f, %.2f\n", unvalidated[serverID].theMove.pos.x, unvalidated[serverID].theMove.pos.y, unvalidated[serverID].theMove.pos.z);
-        printf("server %.2f, %.2f, %.2f\n", server->pos.x, server->pos.y, server->pos.z);
+        //printf("same as server %.2f, %.2f, %.2f\n", unvalidated[serverID].theMove.pos.x, unvalidated[serverID].theMove.pos.y, unvalidated[serverID].theMove.pos.z);
+        //printf("server %.2f, %.2f, %.2f\n", server->pos.x, server->pos.y, server->pos.z);
+        ////////debug
 
         // check if our pos (with the same id as the server) is equal to the servers pos
         if (unvalidated[serverID].theMove.pos.x == server->pos.x && unvalidated[serverID].theMove.pos.y == server->pos.y && unvalidated[serverID].theMove.pos.z == server->pos.z)
         {
-            printf("doing nothing\n");
+            //printf("doing nothing\n");
         }
         else
         {
@@ -306,12 +324,13 @@ void reconcileClient(struct entities *me, struct move *server, glm::vec3 *cPos)
             printf("the DIFF %.2f, %.2f, %.2f====================================================================\n", diff.x, diff.y, diff.z);
             *cPos += diff;
 
-            // make the last unvalid point reflect the change
+            // make the equivalent unvalid point reflect the change
+            // might need a for loop
             unvalidated[unvalidStart + numUnvalid - 1].theMove.pos = *cPos;
         }
 
 
-        // the buffer is 
+        // set the start to be the oldest unvalid point, and length to be what didn't get chopped
         unvalidStart = end;
         numUnvalid = newLen;
     }
@@ -330,6 +349,9 @@ void reconcileClient(struct entities *me, struct move *server, glm::vec3 *cPos)
     }
 }
 
+
+// turn our pos and dir and special moves into a msg
+// add this pos/dir/special to the unvalidated list
 void netLog(glm::vec3 pos, glm::vec3 front, char key[])
 {
     struct move moveData;
