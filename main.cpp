@@ -63,9 +63,6 @@ bool test_nw = false;
 
 int main()
 {
-
-
-    setTestNw(test_nw);
     if (test_nw)
     {
         struct entities alls[10];
@@ -152,21 +149,12 @@ int main()
             printf("Failed to connect\n");
         }
 
-        /*
-        printf("made a socket\n");
-        if (makeSocket() < 0)
-        {
-            printf("failed to make\n");
-        }
-        */
-
-
         long sum = 0;
         int numberOfPings = 1000;
         for (int i = 0; i < numberOfPings; i++)
         {
             gettimeofday(&pack.time, NULL);
-            send(pack);
+            send(&pack);
             //printf("\t%s, %s, %d, %ld, %ld\n", pack.key, pack.name, pack.protocol, pack.time.tv_sec, pack.time.tv_usec);
 
 
@@ -442,6 +430,10 @@ int main()
                 printf("ID %d\n", getID());
                 printf("===================Waiting for server=================\n");
                 setLoopMode(LOOP_MODE_PLAY);
+                if (isMouseVisable())
+                {
+                    toggleMouseVisibility(window);
+                }
 
                 //setPositions(all, msg.data);
                 // wait for the server to send the info
@@ -469,7 +461,7 @@ int main()
                             {
                                 if (i == getID())
                                 {
-                                    printf("us\n");
+                                    //printf("us\n");
                                     // get the move data
                                     struct move temp;
                                     memcpy(&temp, &dumpPack->data[buf], sizeof(struct move));
@@ -477,15 +469,16 @@ int main()
 
                                     // player data is set
 
-                                    printf("%.2f,%.2f,%.2f\n", temp.pos.x, temp.pos.y, temp.pos.z);
-                                    printf("[%.3f,%.3f,%.3f] :", cameraPos.x, cameraPos.y, cameraPos.z);
+                                    //printf("%.2f,%.2f,%.2f\n", temp.pos.x, temp.pos.y, temp.pos.z);
+                                    //printf("[%.3f,%.3f,%.3f] :", cameraPos.x, cameraPos.y, cameraPos.z);
                                     cameraPos = temp.pos;
-                                    printf("[%.3f,%.3f,%.3f]\n", cameraPos.x, cameraPos.y, cameraPos.z);
+                                    //printf("[%.3f,%.3f,%.3f]\n", cameraPos.x, cameraPos.y, cameraPos.z);
                                     //cameraFront = temp.dir;
 
                                     // and the last moveID
                                     memcpy(&players[i].moveID, &dumpPack->data[buf], sizeof(unsigned int));
                                     buf += sizeof(unsigned int);
+                                    setMove((players[i].moveID + (unsigned int)1));
 
                                 }
                                 else
@@ -517,7 +510,7 @@ int main()
                         }
                         else
                         {
-                            send(pongPack);
+                            send(&pongPack);
                         }
                     }
 
@@ -612,28 +605,33 @@ int main()
                                 memcpy(&temp, &dumpPack->data[buf], sizeof(struct move));
                                 buf += sizeof(struct move);
 
-                                cameraPos = temp.pos;
-                                printf("us %.2f, %.2f, %.2f\n", temp.pos.x, temp.pos.y, temp.pos.z);
-                                //cameraFront = temp.dir;
-
                                 // and the last moveID
                                 memcpy(&players[i].moveID, &dumpPack->data[buf], sizeof(unsigned int));
                                 buf += sizeof(unsigned int);
 
+                                if (!(temp.pos.x == cameraPos.x && temp.pos.y == cameraPos.y && temp.pos.z == cameraPos.z))
+                                {
+                                    printf("server %.2f, %.2f, %.2f == ", temp.pos.x, temp.pos.y, temp.pos.z);
+                                    printf("us %.2f, %.2f, %.2f\n", cameraPos.x, cameraPos.y, cameraPos.z);
+                                }
+                                // only change cameraPos if the server and client don't agree on where the player was at the servers id
+                                reconcileClient(&players[i], &temp, &cameraPos);
+
+
                             }
                             else
                             {
-                                printf("them11\n");
+                                //printf("them11\n");
                                 //get the inital int
                                 memcpy(&players[i].numMoves, &dumpPack->data[buf], sizeof(unsigned short));
                                 buf += sizeof(unsigned short);
-                                printf("them12\n");
+                                //printf("them12\n");
 
                                 // get the moves
                                 // had abug here
                                 memcpy(&players[i].moves, &dumpPack->data[buf], sizeof(struct move) * players[i].numMoves);
                                 buf += (sizeof(struct move) * players[i].numMoves);
-                                printf("them13\n");
+                                //printf("them13\n");
                             }
                         }
 

@@ -52,6 +52,12 @@ struct move
     char extraActions[5];
 };
 
+struct Unvalid
+{
+    struct move theMove;
+    int id;
+};
+
 struct entities
 {
     struct move moves[60];

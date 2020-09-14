@@ -278,7 +278,7 @@ glm::vec3 calcCameraMovement(GLFWwindow* window){
 
         if (getConnection())
         {
-            printf("before move[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
+            //printf("before move[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
         }
 
 
@@ -290,8 +290,8 @@ glm::vec3 calcCameraMovement(GLFWwindow* window){
             cameraPos += cameraSpeed * cameraFront;
             if (getConnection())
             {
-                printf(" w ");
-                printf("[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
+                //printf(" w ");
+                //printf("[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
             }
         }
 
@@ -300,8 +300,8 @@ glm::vec3 calcCameraMovement(GLFWwindow* window){
             cameraPos -= cameraSpeed * cameraFront;
             if (getConnection())
             {
-                printf(" s ");
-                printf("[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
+                //printf(" s ");
+                //printf("[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
             }
         }
 
@@ -310,8 +310,8 @@ glm::vec3 calcCameraMovement(GLFWwindow* window){
             cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
             if (getConnection())
             {
-                printf(" a ");//is bad
-                printf("[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
+                //printf(" a ");//is bad
+                //printf("[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
             }
         }
 
@@ -320,8 +320,8 @@ glm::vec3 calcCameraMovement(GLFWwindow* window){
             cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
             if (getConnection())
             {
-                printf(" d ");//bad
-                printf("[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
+                //printf(" d ");//bad
+                //printf("[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
             }
         }
 
@@ -330,8 +330,8 @@ glm::vec3 calcCameraMovement(GLFWwindow* window){
             cameraPos += cameraSpeed * cameraUp;
             if (getConnection())
             {
-                printf(" sp ");
-                printf("[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
+                //printf(" sp ");
+                //printf("[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
             }
         }
 
@@ -340,8 +340,8 @@ glm::vec3 calcCameraMovement(GLFWwindow* window){
             cameraPos -= cameraSpeed * cameraUp;
             if (getConnection())
             {
-                printf(" ls ");//asdf
-                printf("[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
+                //printf(" ls ");//asdf
+                //printf("[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
             }
         }
 

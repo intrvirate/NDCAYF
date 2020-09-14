@@ -29,16 +29,26 @@ char hostname[128];
 int DELAY_SECS2 = 0;
 int DELAY_USECS2 = 100;
 
-int keyID = 0;
 int clientID;
-//struct datapoint *unvalidated = new struct datapoint[10000];
-int unvalidSize = 0;
+
+struct Unvalid *unvalidated = new struct Unvalid[100];
+int numUnvalid = 0;
+int unvalidStart = 0;
+unsigned int unvalidID = 0;
+
+struct generalPack movePointData = makeBasicPack(MOVE);
+
 bool connected = false;
-bool test_nw_cl = false;
 
-const glm::vec3 upp = glm::vec3(0.0f, 1.0f, 0.0f);
-float cameraSpeedp = 0.05f;
+void resetMove()
+{
+    unvalidID = 0;
+}
 
+void setMove(unsigned int id)
+{
+    unvalidID = id;
+}
 void setConnection(bool value)
 {
     connected = value;
@@ -62,32 +72,6 @@ void setServerAddr(struct sockaddr_in newServerAddr)
 int getID()
 {
     return clientID;
-}
-
-int getKeyID()
-{
-    return keyID;
-}
-
-void setTestNw(bool value)
-{
-    test_nw_cl = value;
-}
-
-// yes i did copy the source code of printf
-int debugPrint(const char *format, ...)
-{
-   int done = 0;
-   if (test_nw_cl)
-   {
-       va_list arg;
-
-       va_start (arg, format);
-       done = vfprintf (stdout, format, arg);
-       va_end (arg);
-   }
-
-   return done;
 }
 
 int makeSocket()
@@ -142,7 +126,7 @@ bool connectTo(char ip[])
     }
 
     // send the connect pack
-    if (send(connectPack) < 0)
+    if (send(&connectPack) < 0)
     {
         printf("Send failed\n");
     }
@@ -202,14 +186,16 @@ struct generalPack makeBasicPack(int ptl)
 }
 
 
-int send(struct generalPack toSend)
+
+// sends to a specified addr
+int sendTo(struct generalPack *toSend, struct sockaddr_in *toAddr)
 {
     int success = 1;
 
     //send timestamp, incase you forgot
-    gettimeofday(&toSend.time, NULL);
+    gettimeofday(&toSend->time, NULL);
 
-    if (sendto(actualSock, (const void*)&toSend, bufSize, 0, (struct sockaddr *)&serverAddr, serverAddrLen) < 0)
+    if (sendto(actualSock, (const void*)toSend, bufSize, 0, (struct sockaddr *)toAddr, serverAddrLen) < 0)
     {
         perror("Failed to send\n");
         success = -1;
@@ -218,22 +204,15 @@ int send(struct generalPack toSend)
     return success;
 }
 
-int sendTo(struct generalPack toSend, struct sockaddr_in toAddr)
+// sends to server
+int send(struct generalPack *toSend)
 {
-    int success = 1;
-
-    //send timestamp, incase you forgot
-    gettimeofday(&toSend.time, NULL);
-
-    if (sendto(actualSock, (const void*)&toSend, bufSize, 0, (struct sockaddr *)&toAddr, serverAddrLen) < 0)
-    {
-        perror("Failed to send\n");
-        success = -1;
-    }
-
-    return success;
+    return sendTo(toSend, &serverAddr);
 }
 
+
+
+// gets from a specified addr
 int getFrom(struct generalPack *msg, struct sockaddr_in fromAddr)
 {
     int recvlen = -1;
@@ -256,334 +235,123 @@ int getFrom(struct generalPack *msg, struct sockaddr_in fromAddr)
     return success;
 }
 
+// gets from server
 int checkServer(struct generalPack *msg)
 {
-    int recvlen = -1;
-    int success = -1;
-
-    recvlen = recvfrom(actualSock, &buf, bufSize, 0, (struct sockaddr *)&rec_addr, &inAddrLen);
-    if (recvlen > 0)
-    {
-        printf("got a msg\n");
-    }
-
-    if (rec_addr.sin_addr.s_addr == serverAddr.sin_addr.s_addr && recvlen > 0)
-    {
-        success = 0;
-        *msg = buf;
-        //printf("Received %d bytes\n", recvlen);
-        //printf("%s, %s, %d, %ld, %ld\n", msg->key, msg->name, msg->protocol, msg->time.tv_sec, msg->time.tv_usec);
-    }
-
-    return success;
+    return getFrom(msg, serverAddr);
 }
 
 
-void getParts(std::string parts[], std::string raw, int amount, std::string deli)
+void reconcileClient(struct entities *me, struct move *server, glm::vec3 *cPos)
 {
-    size_t pos = 0;
-    int cur = 0;
-    std::string token;
-    while ((pos = raw.find(deli)) != std::string::npos) {
-        //debugPrint("cur %d\n", cur);
-        token = raw.substr(0, pos);
-        parts[cur] = token;
-        cur++;
-        raw.erase(0, pos + deli.length());
-    }
-    parts[cur] = raw;
-}
-
-
-void applyDumpData(struct entities *them, char data[], int *count)
-{
-    /*
-    ///////remove/////////////
-    //clientID = 0;
-    ////////////////////////
-    *count = 0;
-
-    std::string raw = data;
-    // one for each player
-    std::string parts[MAXPLAYERS];
-    std::string playerdeli("(");
-
-    // movesments per dump * 2, at one second intervals thats 60 + 60, 
-    // though sometimes i get more than that, 132
-    int numberOfMoves = 164;
-    std::string section[numberOfMoves];
-    std::string secdeli("&");
-
-    // store pos, float
-    std::string floats[3];
-    std::string fldeli(",");
-    // which entity we are on
-    int id;
-
-
-    debugPrint("beforeLoop\n");
-    getParts(parts, raw, 10, playerdeli);
-    for (int i = 0; i < MAXPLAYERS; i++)
-    {
-        // for each player/entity
-        if (strcmp(parts[i].c_str(), "") != 0)
-        {
-            debugPrint("loop number %d\n", i);
-            debugPrint("%s\n", parts[i].c_str());
-            (*count)++;
-            //printf("%s\n", parts[i].c_str());
-            // get each section
-            getParts(section, parts[i], 60, secdeli);
-            debugPrint("got sections\n");
-
-            id = std::stoi(section[0].c_str());
-
-
-            // get pos
-            getParts(floats, section[1], 3, fldeli);
-            debugPrint("got pos\n");
-            them[id].cameraPos = glm::vec3(std::stod(floats[0]), std::stod(floats[1]), std::stod(floats[2]));
-
-            // get dir
-            getParts(floats, section[2], 3, fldeli);
-            debugPrint("got dir\n");
-            them[id].cameraDirection = glm::vec3(std::stod(floats[0]), std::stod(floats[1]), std::stod(floats[2]));
-
-            if (id == clientID)
-            {
-                // last value is the keyid, apply all key ids greater than this one, for reconciliation
-                them[id].moveID = std::stoi(section[3]);
-
-            }
-            else
-            {
-                // all remaining sections are of the format
-                // f,f,f s
-                // but we want both a f,f,f and a s
-                // ex 10.0,10.0,10.0&was&0.0,0.0,0.0,&w
-                them[id].numMoves = 0;
-                debugPrint("nextLoop\n");
-                for (int j = 3; j < numberOfMoves; j = j + 2)
-                {
-                    struct move action;
-                    if (strcmp(section[j].c_str(), "") != 0 && section[j].length() > 15)
-                    {
-                        debugPrint("number %d, data %s\n", j, section[j].c_str());
-                        //get the dir
-
-                        getParts(floats, section[j], 3, fldeli);
-                        action.dir = glm::vec3(std::stod(floats[0]), std::stod(floats[1]), std::stod(floats[2]));
-
-                        // get the moves
-                        strcpy(action.moves, section[j + 1].c_str());
-
-                        them[id].keys[them[id].numMoves] = action;
-                        them[id].numMoves++;
-
-                    }
-                }
-            }
-        }
-    }
-    */
-}
-
-void reconcileClient(struct entities *me)
-{
-    /*
-    //printf("im at %d servers at %d size %d\n", unvalidated[unvalidSize - 1].id, me->moveID, unvalidSize);
-
-    int end;
-    int newLen;
     bool found = false;
-    glm::vec3 newPos = me->cameraPos;
-    glm::vec3 fakeDir;
+    int end = unvalidStart;           // end is the first id greater than the servers id, if one is found
+    int actualIndex = unvalidStart;
+    int toRmFromArr = 0; // how much can be cut out of the buffer
 
-    if (unvalidSize == 0)
+    for (int i = 0; i < numUnvalid; i++)
     {
-        //printf("Early\n");
-        return ;
-    }
-
-    for (int i = 0; i < unvalidSize; i++)
-    {
-        if (unvalidated[i].id > me->moveID && !found)
+        if ((unvalidated[actualIndex].id > me->moveID) && !found)
         {
-            end = i;
+            toRmFromArr = i;
+            printf("%u > %u : us > server\n", unvalidated[actualIndex].id, me->moveID);
+            end = actualIndex;
             found = true;
         }
+
+        // increment actual, then check if it when over to loop back
+        actualIndex++;
+        if (actualIndex > 99)
+        {
+            actualIndex = 0;
+        }
     }
 
+    if ((toRmFromArr == 0) && found) { printf("oh no!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"); } // this means the buffer is bad
+
+    // if so then check if we agree at were i was at the servers id
     if (found)
     {
-        newLen = unvalidSize - end;
-
-        printf("Applying %d moves to client\n", newLen);
-
-        // makes new arr, with the unvalidated points from the old, and space for the new
-        struct datapoint *newUnvalid = new struct datapoint[newLen + 1000];
-
-
-        // copy to the new list
-        for (int i = 0; i < newLen; i++)
+        int newLen = numUnvalid - toRmFromArr;
+        // the index of the serverid in unvalidated
+        int serverID = end - 1;
+        if (end == 0)
         {
-            newUnvalid[i].id = unvalidated[i + end].id;
-            strcpy(newUnvalid[i].move, unvalidated[i + end].move);
-            strcpy(newUnvalid[i].direction, unvalidated[i + end].direction);
-
+            serverID = 99;
         }
 
 
-        std::string raw;
-        std::string floats[3];
-        std::string fldeli(",");
-        // move
-        for (int i = 0; i < newLen; i++)
+        printf("enad %d ", end); printf("curlen %u ", numUnvalid); printf("serverID %d\n", serverID);
+
+        // where the server thinks we are
+        printf("server %u == cur %u\n", me->moveID, serverID);
+
+        // these two can be equal, unless lots of lag then probably not
+        printf("recent %.2f, %.2f, %.2f\n", unvalidated[unvalidStart + numUnvalid - 1].theMove.pos.x, unvalidated[unvalidStart + numUnvalid - 1].theMove.pos.y, unvalidated[unvalidStart + numUnvalid - 1].theMove.pos.z);
+        printf("us %.2f, %.2f, %.2f\n", unvalidated[end].theMove.pos.x, unvalidated[end].theMove.pos.y, unvalidated[end].theMove.pos.z);
+
+        // should be equal unless the server made a change to our pos internally, or it skiped an move because it was bad
+        printf("same as server %.2f, %.2f, %.2f\n", unvalidated[serverID].theMove.pos.x, unvalidated[serverID].theMove.pos.y, unvalidated[serverID].theMove.pos.z);
+        printf("server %.2f, %.2f, %.2f\n", server->pos.x, server->pos.y, server->pos.z);
+
+        // check if our pos (with the same id as the server) is equal to the servers pos
+        if (unvalidated[serverID].theMove.pos.x == server->pos.x && unvalidated[serverID].theMove.pos.y == server->pos.y && unvalidated[serverID].theMove.pos.z == server->pos.z)
         {
-            printf("\tMoving %s, dir %s, id %d\n", newUnvalid[i].move, newUnvalid[i].direction, newUnvalid[i].id);
-            // get direction
-            raw = newUnvalid[i].direction;
-            getParts(floats, raw, 3, fldeli);
-
-            fakeDir = glm::vec3(std::stod(floats[0]), std::stod(floats[1]), std::stod(floats[2]));
-
-            // move position
-                        //printf("before [%.3f,%.3f,%.3f]\n", newPos.x, newPos.y, newPos.z);
-            applyKeys(newUnvalid[i].move, fakeDir, &newPos);
-
-                        //printf("after [%.3f,%.3f,%.3f]\n", newPos.x, newPos.y, newPos.z);
+            printf("doing nothing\n");
+        }
+        else
+        {
+            // they are off so we apply the difference of the points to our pos
+            glm::vec3 diff = unvalidated[serverID].theMove.pos - server->pos;
+            printf("the DIFF %.2f, %.2f, %.2f====================================================================\n", diff.x, diff.y, diff.z);
+            *cPos += diff;
+            //printf("the diff %.2f, %.2f, %.2f\n", diff.x, diff.y, diff.z);
         }
 
-        // set to the new pos
-        me->cameraPos = newPos;
 
-        // remove old list replace with the new one
-        delete [] unvalidated;
-        unvalidated = newUnvalid;
-        unvalidSize = newLen;
+        // the buffer is 
+        unvalidStart = end;
+        numUnvalid = newLen;
     }
     else
     {
-        // we are on insync, make a new invalid list
-        //printf("newList\n");
-        delete [] unvalidated;
-        unvalidated = new struct datapoint[1000];
-        unvalidSize = 0;
+        // move start to after these points, make sure it wraps
+        unvalidStart += numUnvalid;
+        if (unvalidStart > 99)
+        {
+            unvalidStart = unvalidStart - 100;
+        }
 
-    }
-    */
-
-
-
-}
-
-void applyKeys(char keys[], glm::vec3 dir, glm::vec3 *pos)
-{
-    // apply for each key
-    glm::vec3 cameraRight = glm::normalize(glm::cross(upp, dir));
-    glm::vec3 cameraUp = glm::cross(dir, cameraRight);
-
-    for (int i = 0; i < strlen(keys); i++)
-    {
-
-        if (keys[i] == *UNI_FD)
-            *pos += cameraSpeedp * dir;
-
-        if (keys[i] == *UNI_BK)
-            *pos -= cameraSpeedp * dir;
-
-        if (keys[i] == *UNI_LT)
-            *pos -= glm::normalize(glm::cross(dir, cameraUp)) * cameraSpeedp;
-
-        if (keys[i] == *UNI_RT)
-            *pos += glm::normalize(glm::cross(dir, cameraUp)) * cameraSpeedp;
+        numUnvalid = 0;
     }
 }
-
 
 void netLog(glm::vec3 pos, glm::vec3 front, char key[])
 {
-    // separates each key by , useless
-    /*
-    int len = key.length();
-    for (int i = 0; i < len; i++)
-    {
-        key.insert(i*2 + 1, ",");
-    }
-    key.pop_back();
-
-    //key.insert(0, "(");
-    //key.append(")");
-    */
-
-    //strcpy(unvalidated[unvalidSize].move, key.c_str());
-
-    //strcpy(unvalidated[unvalidSize].direction, dir);
-
-    //unvalidated[unvalidSize].id = keyID++;
-
-    //printf("Key: [%s], dir: [%s], [%d]\n", unvalidated[unvalidSize].move, unvalidated[unvalidSize].direction, unvalidated[unvalidSize].id);
-    struct generalPack movePoint = makeBasicPack(MOVE);
     struct move moveData;
 
     moveData.pos = pos;
     moveData.dir = front;
     strcpy(moveData.extraActions, key);
-    unsigned int moveID = 10;
 
-    //char * ptr = *((char)moveData + (char)a);
-
-
-    /* debug
-    printf("[");
-    for (int i = 0; i < sizeof(moveID); i++)
+    // gets the next position in buf, and wraps it
+    int nextValue = unvalidStart + numUnvalid;
+    if (nextValue > 99)
     {
-        printf("%02x", ((char *)&moveID)[i]);
+        nextValue = nextValue - 100;
     }
-    printf("]\n");
+
+    unvalidated[nextValue].theMove = moveData;
+    unvalidated[nextValue].id = unvalidID;
 
 
-    printf("[");
-    for (int i = 0; i < sizeof(moveData); i++)
-    {
-        printf("%02x", ((char*)&moveData)[i]);
-    }
-    printf("]\n");
-    */
+    // copy to the packet we send
+    memcpy(&movePointData.data, &moveData, sizeof(moveData));
+    memcpy(&movePointData.data[sizeof(moveData)], &unvalidID, sizeof(unvalidID));
 
-    // copy to the packet buffer
-    memcpy(&movePoint.data, &moveData, sizeof(moveData));
-    memcpy(&movePoint.data[sizeof(moveData)], &moveID, sizeof(moveID));
+    // increment the size of buf, and the id
+    unvalidID++;
+    numUnvalid++;
 
-    /* debug
-    printf("[");
-    for (int i = 0; i < 1040; i++)
-    {
-        printf("%02x", ((char*)&movePoint)[i]);
-    }
-    printf("]\n");
-
-    char * ptr = (char*)&movePoint;
-    struct generalPack pack = *(struct generalPack*)ptr;
-
-    struct move moveafter;
-    memcpy(&moveafter, &pack.data, sizeof(struct move));
-
-    int aa;
-    memcpy(&aa, &pack.data[sizeof(struct move)], sizeof(int));
-
-    printf("%s\n", moveafter.extraActions);
-    printf("%d\n", aa);
-
-    printf("%d\n", sizeof(movePoint));
-    // debug*/
-
-    send(movePoint);
-    /*
-    if (sendMoveData(unvalidated[unvalidSize]) < 0)
-    {
-        printf("Something went wrong with key send\n");
-    }
-    unvalidSize++;
-    */
+    send(&movePointData);
 }

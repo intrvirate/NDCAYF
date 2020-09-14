@@ -2,20 +2,8 @@
 #define CLIENT_H
 
 #include <glm/glm.hpp>
-//#include <libioP.h>
 #include <stdarg.h>
 #include <stdio.h>
-
-// stores the key press and the direciton before key press
-// and the id
-struct datapoint
-{
-    char move[10];
-    char direction[30];
-    int id;
-};
-
-
 
 struct generalPack
 {
@@ -28,32 +16,32 @@ struct generalPack
 };
 
 
+// udp
 int makeSocket();
-void netLog(glm::vec3 pos, glm::vec3 front, char key[]);
 
-int getKeyID();
+// getters and setters
 int getID();
 void setConnection(bool value);
 bool getConnection();
 struct sockaddr_in getServerAddr();
-void setTestNw(bool value);
-int debugPrint(const char *format, ...);
-
-
-// rm
-void applyDumpData(struct entities *them, char data[], int *count);
-void reconcileClient(struct entities *me);
-
-void applyKeys(char keys[], glm::vec3 dir, glm::vec3 *pos);
-
-
-struct generalPack makeBasicPack(int ptl);
-int send(struct generalPack toSend);
-int sendTo(struct generalPack toSend, struct sockaddr_in toAddr);
-int getFrom(struct generalPack *msg, struct sockaddr_in fromAddr);
-int checkServer(struct generalPack *msg);
+void resetMoves();
+void setMove(unsigned int id);
 void setServerAddr(struct sockaddr_in newServerAddr);
 struct generalPack makeBasicPack(int ptl);
+
+// special
+void reconcileClient(struct entities *me, struct move *server, glm::vec3 *cPos);
+
+// basic upd sock stuff
+int send(struct generalPack *toSend);
+int sendTo(struct generalPack *toSend, struct sockaddr_in toAddr);
+int getFrom(struct generalPack *msg, struct sockaddr_in fromAddr);
+int checkServer(struct generalPack *msg);
+
+// special udp socks
 bool connectTo(char ip[]);
+void netLog(glm::vec3 pos, glm::vec3 front, char key[]);
+
+//TODO add tcp sock stuff
 
 #endif
