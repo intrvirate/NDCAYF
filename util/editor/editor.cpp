@@ -16,6 +16,8 @@
 #include "util/object/object.h"
 #include "util/handleinput.hpp"
 
+#include "util/editor/browser.hpp"
+
 Model *pickedModel = NULL;
 Model *cursoredModel = NULL;
 btVector3 p;
@@ -31,6 +33,8 @@ float yRotateOffset = 0;
 float yRotateIncrement = 0.261799387799;
 
 float scaleIncrement = 0.01;
+
+bool needSave = true;
 
 void editorTranslateY(int direction)
 {
@@ -149,17 +153,12 @@ void setPickedModel()
 
         } else
         {
-
             enableCollision(pickedModel);
             makeDynamic(pickedModel);
             modelName = "";
             pickedModel = NULL;
-
-
         }
-
     }
-    // pickedModel = getModelPointerByName("Tree03");
 }
 
 void drawEditor()
@@ -167,6 +166,17 @@ void drawEditor()
 
     draw3dCursor();
 
+    if (needSave)
+    {
+        drawBrowser(true, "");
+        if (hasSaved)
+        {
+            printf("savepath: %s\n",savePath.c_str());
+            needSave = false;
+        }
+    }
+
+    drawBrowser(false, "");
 
     if(showProperties)
     {
