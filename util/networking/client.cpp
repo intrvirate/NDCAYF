@@ -305,7 +305,9 @@ void reconcileClient(struct entities *me, struct move *server, glm::vec3 *cPos)
             glm::vec3 diff = unvalidated[serverID].theMove.pos - server->pos;
             printf("the DIFF %.2f, %.2f, %.2f====================================================================\n", diff.x, diff.y, diff.z);
             *cPos += diff;
-            //printf("the diff %.2f, %.2f, %.2f\n", diff.x, diff.y, diff.z);
+
+            // make the last unvalid point reflect the change
+            unvalidated[unvalidStart + numUnvalid - 1].theMove.pos = *cPos;
         }
 
 
@@ -323,6 +325,8 @@ void reconcileClient(struct entities *me, struct move *server, glm::vec3 *cPos)
         }
 
         numUnvalid = 0;
+
+        *cPos = server->pos;
     }
 }
 
