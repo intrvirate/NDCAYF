@@ -8,12 +8,15 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <stb_image.h>
-
+//gtc
 #include <glm/glm.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/quaternion.hpp>
+//gtx
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/matrix_decompose.hpp>
 
 #include <util/render/render3D.hpp>
 #include "util/handleinput.hpp"
@@ -170,10 +173,12 @@ void loadModels(string jsonPath){
         top_model[i]->directory = top_model[i]->objectPath.substr(0, top_model[i]->objectPath.find_last_of('/'));
         top_model[i]->hasPhysics = modelJson["models"][i]["hasPhysics"];
         top_model[i]->useSinglePrimitive = modelJson["models"][i]["useSinglePrimitive"];
-        top_model[i]->scale = glm::vec3(modelJson["models"][i]["scale"]);
         top_model[i]->isInstanced = modelJson["models"][i]["isInstanced"];
-        //TODO: load rotation:
-        top_model[i]->rotation = glm::quat(1.0f,0.0f,0.0f,0.0f);
+
+        glm::vec3 pos; //out here because the physics code uses it below
+        float scale;
+        glm::quat rot;
+
         if(top_model[i]->isInstanced){
             //load the modelMatrices vector here
             top_model[i]->modelPositions.reserve(modelJson["models"][i]["pos"].size());
@@ -192,9 +197,24 @@ void loadModels(string jsonPath){
                 top_model[i]->modelMatrices.push_back(posMatrix);
             }
         }else{
-            top_model[i]->pos.x = modelJson["models"][i]["pos"][0];
-            top_model[i]->pos.y = modelJson["models"][i]["pos"][1];
-            top_model[i]->pos.z = modelJson["models"][i]["pos"][2];
+            glm::mat4 posMatrix  = glm::mat4(1.0);
+            scale = modelJson["models"][i]["scale"];
+            fprintf(stderr, "scale set: %f ", scale);
+            posMatrix = glm::scale(posMatrix, glm::vec3(scale, scale, scale));
+
+            rot.x = modelJson["models"][i]["rotquat"][0];
+            rot.y = modelJson["models"][i]["rotquat"][1];
+            rot.z = modelJson["models"][i]["rotquat"][2];
+            rot.w = modelJson["models"][i]["rotquat"][3];
+            posMatrix = glm::mat4_cast(rot) * posMatrix;
+
+            //pos is declared higher up
+            pos.x = modelJson["models"][i]["pos"][0];
+            pos.y = modelJson["models"][i]["pos"][1];
+            pos.z = modelJson["models"][i]["pos"][2];
+            posMatrix = glm::translate(posMatrix, pos);
+
+            top_model[i]->modelMatrices.push_back(posMatrix);
         }
 
         //read file
@@ -231,14 +251,9 @@ void loadModels(string jsonPath){
                         currentMesh->showObjectSelection = false;
                     }
 
-                    glm::mat4 Matrix = glm::scale(glm::mat4(1.0f), top_model[i]->scale);
-                    Matrix = glm::translate(Matrix, top_model[i]->pos);
-
-                    currentMesh->model = Matrix;
-
                     top_model[i]->meshes.push_back(currentMesh); //push pointer to vector of pointers
 
-                    fprintf(stderr, "added mesh. pos = %f,%f,%f\n", top_model[i]->pos.x, top_model[i]->pos.y, top_model[i]->pos.z);
+                    //fprintf(stderr, "added mesh. pos = %f,%f,%f\n", top_model[i]->pos.x, top_model[i]->pos.y, top_model[i]->pos.z);
                     break; //don't add to multiple shaders, so don't need to keep scanning remaining
                 }
 
@@ -252,7 +267,8 @@ void loadModels(string jsonPath){
 
             btTransform transform;
             transform.setIdentity();
-            transform.setOrigin(btVector3(top_model[i]->pos.x, top_model[i]->pos.y, top_model[i]->pos.z));
+            transform.setOrigin(btVector3(pos.x, pos.y, pos.z));
+            transform.setRotation(tobt(rot));
             float mass = modelJson["models"][i]["mass"]; //NOTE: to make an object static, mass and inerta must be set to 0
             top_model[i]->mass = mass;
             if(mass != 0)
@@ -309,7 +325,8 @@ void loadModels(string jsonPath){
             }
 
             top_model[i]->collisionShape->setUserPointer(top_model[i]);
-            top_model[i]->collisionShape->setLocalScaling( btVector3(top_model[i]->scale.x, top_model[i]->scale.y, top_model[i]->scale.z));
+            top_model[i]->collisionShape->setLocalScaling(btVector3(scale, scale, scale));
+
             float inerta = modelJson["models"][i]["inerta"];
             btVector3 localInertia(inerta, inerta, inerta);
             top_model[i]->inerta = inerta;
@@ -551,7 +568,7 @@ void processMesh(Mesh *mesh,aiMesh *impMesh, const aiScene *assimpModel, string 
 
     glBindVertexArray(0);
 }
-
+/*
 //returns -1 if fails, returns 1 if sucussfull
 int saveJson(string jsonPath){
     json exportJson;
@@ -577,8 +594,16 @@ int saveJson(string jsonPath){
             exportJson["models"][i]["inerta"] = top_model[i]->inerta;
             exportJson["models"][i]["friction"] = top_model[i]->body->getFriction();
             exportJson["models"][i]["rotatingfriction"] = top_model[i]->body->getRollingFriction();
-            exportJson["models"][i]["useSinglePrimitive"] = top_model[i]->useSinglePrimitive;
             exportJson["models"][i]["primitiveType"] = top_model[i]->primitiveType;
+
+            exportJson["models"][i]["useSinglePrimitive"] = top_model[i]->useSinglePrimitive;
+            if(top_model[i]->useSinglePrimitive){
+                if(top_model[i]->primitiveType == "sphere"){
+                    exportJson["models"][i]["primitiveSize"] = top_model[i]->scale.x;
+                }else if(top_model[i]->primitiveType == "cylinder"){
+                    fprintf(stderr, "\n\n>>>>NEED TO ADD SUPPORT FOR THIS\n\n");
+                }
+            }
         }
 
         //fields that exist per mesh:
@@ -608,7 +633,7 @@ int saveJson(string jsonPath){
     return 0;
 }
 
-
+*/
 unsigned int findTextureID(const char* path){
     for(uint i = 0; i < top_texture.size(); i++){
         if(std::strcmp(top_texture[i].path.c_str(), path) == 0){
@@ -673,17 +698,17 @@ void drawObjects(){
 
         for(uint meshIndex = 0; meshIndex < top_shader[i].meshes.size(); meshIndex++){
 
-
             //per mesh uniforms:
             if(top_shader[i].meshes[meshIndex]->parentModel->hasPhysics){
                 glm::mat4 modelPhys = glm::mat4(1.0f);
                 top_shader[i].meshes[meshIndex]->parentModel->body->getWorldTransform().getOpenGLMatrix(glm::value_ptr(modelPhys));
-                modelPhys = glm::scale(modelPhys, top_shader[i].meshes[meshIndex]->parentModel->scale);
+                //modelPhys = glm::scale(modelPhys, top_shader[i].meshes[meshIndex]->parentModel->scale);//edit to use classbtCollisionShape.getLocalScaling()
+                btVector3 scale = top_shader[i].meshes[meshIndex]->parentModel->collisionShape->getLocalScaling();
+                modelPhys = glm::scale(modelPhys, glm::vec3(scale.x(), scale.y(), scale.z()));
                 glUniformMatrix4fv(top_shader[i].modelLocation, 1, GL_FALSE, glm::value_ptr(modelPhys));
             }else{
-                glUniformMatrix4fv(top_shader[i].modelLocation, 1, GL_FALSE, glm::value_ptr(top_shader[i].meshes[meshIndex]->model));
+                glUniformMatrix4fv(top_shader[i].modelLocation, 1, GL_FALSE, glm::value_ptr(top_shader[i].meshes[meshIndex]->parentModel->modelMatrices[0]));
             }
-
 
             int location;
 
@@ -745,7 +770,22 @@ void RunStepSimulation(){
     dynamicsWorld->stepSimulation(getFrameTime(), 10);
 }
 
+//helper conversion functions:
+btVector3 tobt(glm::vec3 vec){
+    return btVector3(vec.x, vec.y, vec.z);
+}
 
+glm::vec3 toglm(btVector3 vec){
+    return glm::vec3(vec.x(), vec.y(), vec.z());
+}
+
+btQuaternion tobt(glm::quat quat){
+    return btQuaternion(quat.x, quat.y, quat.z, quat.w);
+}
+
+glm::quat toglm(btQuaternion quat){
+    return glm::quat(quat.x(), quat.y(), quat.z(), quat.w());
+}
 
 //see https://pybullet.org/Bullet/phpBB3/viewtopic.php?t=11690 for context
 void disableCollision(Model* model){
@@ -785,7 +825,6 @@ void makeDynamic(Model* model){
 
 }
 
-
 //note: this is not a very fast function; use it sparingly.
 Model* getModelPointerByName(string name){
     for (uint i = 0; i < top_model.size(); i++){
@@ -796,77 +835,180 @@ Model* getModelPointerByName(string name){
     return NULL;
 }
 
-void updateModelPosition(Model* model, glm::vec3 pos){
-
+void updateModelPosition(Model* model, glm::vec3 newPos){
+    //pull data
+    glm::vec3 scale;
+    glm::quat rotation;
+    glm::vec3 pos;
+    glm::vec3 skew;
+    glm::vec4 perspective;
+    glm::decompose(model->modelMatrices[0], scale, rotation, pos, skew, perspective);
+    //update data: openGL and physics
+    pos = newPos;
     btTransform tr = model->body->getWorldTransform();
     tr.setOrigin(btVector3(pos.x,pos.y,pos.z));
     model->body->setWorldTransform(tr);
-    model->pos = pos;
-
-    syncMeshMatrices(model);
+    //reconstruct matrix
+    model->modelMatrices[0] = glm::mat4(1.0); //identity matrix
+    model->modelMatrices[0] = glm::scale(model->modelMatrices[0], scale);
+    model->modelMatrices[0] = glm::mat4_cast(rotation) * model->modelMatrices[0];
+    model->modelMatrices[0] = glm::translate(model->modelMatrices[0], pos);
 
 }
 
-void updateModelPosition(Model* model, btVector3 pos){
-
+void updateModelPosition(Model* model, btVector3 newPos){
+    //pull data
+    glm::vec3 scale;
+    glm::quat rotation;
+    glm::vec3 pos;
+    glm::vec3 skew;
+    glm::vec4 perspective;
+    glm::decompose(model->modelMatrices[0], scale, rotation, pos, skew, perspective);
+    //update data: openGL and physics
+    pos = glm::vec3(newPos.x(), newPos.y(), newPos.z());
     btTransform tr = model->body->getWorldTransform();
-    tr.setOrigin(pos);
+    tr.setOrigin(newPos);
     model->body->setWorldTransform(tr);
+    //reconstruct matrix
+    model->modelMatrices[0] = glm::mat4(1.0); //identity matrix
+    model->modelMatrices[0] = glm::scale(model->modelMatrices[0], scale);
+    model->modelMatrices[0] = glm::mat4_cast(rotation) * model->modelMatrices[0];
+    model->modelMatrices[0] = glm::translate(model->modelMatrices[0], pos);
 
-    model->pos = glm::vec3(pos.x(), pos.y(), pos.z());
-
-    syncMeshMatrices(model);
 }
 
-void updateModelRotation(Model* model, glm::quat rotation){
-    model->rotation = rotation;
+void updateModelRotation(Model* model, glm::quat newRotation){
+    //pull data
+    glm::vec3 scale;
+    glm::quat rotation;
+    glm::vec3 pos;
+    glm::vec3 skew;
+    glm::vec4 perspective;
+    glm::decompose(model->modelMatrices[0], scale, rotation, pos, skew, perspective);
+    //update data: openGL and physics
+    rotation = newRotation;
     btTransform tr = model->body->getWorldTransform();
     tr.setRotation(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w));
     model->body->setWorldTransform(tr);
-    syncMeshMatrices(model);
+    //reconstruct matrix
+    model->modelMatrices[0] = glm::mat4(1.0); //identity matrix
+    model->modelMatrices[0] = glm::scale(model->modelMatrices[0], scale);
+    model->modelMatrices[0] = glm::mat4_cast(rotation) * model->modelMatrices[0];
+    model->modelMatrices[0] = glm::translate(model->modelMatrices[0], pos);
+
 }
 
-void updateRelativeModelRotation(Model* model, glm::quat rotation){
-
-    model->rotation = model->rotation * rotation;
+void updateRelativeModelRotation(Model* model, glm::quat newRotation){
+    //pull data
+    glm::vec3 scale;
+    glm::quat rotation;
+    glm::vec3 pos;
+    glm::vec3 skew;
+    glm::vec4 perspective;
+    glm::decompose(model->modelMatrices[0], scale, rotation, pos, skew, perspective);
+    //update data: openGL and physics
+    rotation = rotation * newRotation;
     btTransform tr = model->body->getWorldTransform();
     tr.setRotation(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w));
-
     model->body->setWorldTransform(tr);
-    syncMeshMatrices(model);
+    //reconstruct matrix
+    model->modelMatrices[0] = glm::mat4(1.0); //identity matrix
+    model->modelMatrices[0] = glm::scale(model->modelMatrices[0], scale);
+    model->modelMatrices[0] = glm::mat4_cast(rotation) * model->modelMatrices[0];
+    model->modelMatrices[0] = glm::translate(model->modelMatrices[0], pos);
+
 }
 
-void updateRelativeModelRotation(Model* model, glm::vec3 rotation){
-
-    glm::quat quatRot = glm::quat(rotation);
-
-    model->rotation =  model->rotation * quatRot;
+void updateRelativeModelRotation(Model* model, glm::vec3 newRotation){
+    //pull data
+    glm::vec3 scale;
+    glm::quat rotation;
+    glm::vec3 pos;
+    glm::vec3 skew;
+    glm::vec4 perspective;
+    glm::decompose(model->modelMatrices[0], scale, rotation, pos, skew, perspective);
+    //update data: openGL and physics
+    rotation = rotation * glm::quat(newRotation);
     btTransform tr = model->body->getWorldTransform();
-    tr.setRotation(btQuaternion(model->rotation.x, model->rotation.y, model->rotation.z, model->rotation.w));
-
+    tr.setRotation(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w));
     model->body->setWorldTransform(tr);
-    syncMeshMatrices(model);
+    //reconstruct matrix
+    model->modelMatrices[0] = glm::mat4(1.0); //identity matrix
+    model->modelMatrices[0] = glm::scale(model->modelMatrices[0], scale);
+    model->modelMatrices[0] = glm::mat4_cast(rotation) * model->modelMatrices[0];
+    model->modelMatrices[0] = glm::translate(model->modelMatrices[0], pos);
+
 }
 
-void updateScale(Model* model, glm::vec3 scale){
-    model->scale = scale;
-    model->collisionShape->setLocalScaling( btVector3(model->scale.x, model->scale.y, model->scale.z));
-    syncMeshMatrices(model);
+glm::vec3 getPos(Model* model){
+    glm::vec3 scale;
+    glm::quat rotation;
+    glm::vec3 pos;
+    glm::vec3 skew;
+    glm::vec4 perspective;
+    glm::decompose(model->modelMatrices[0], scale, rotation, pos, skew, perspective);
+    return pos;
+
 }
 
-void updateRelativeScale(Model* model, glm::vec3 scale){
-    model->scale += scale;
-    model->collisionShape->setLocalScaling( btVector3(model->scale.x, model->scale.y, model->scale.z));
-    syncMeshMatrices(model);
+glm::vec3 getScale(Model* model){
+    glm::vec3 scale;
+    glm::quat rotation;
+    glm::vec3 pos;
+    glm::vec3 skew;
+    glm::vec4 perspective;
+    glm::decompose(model->modelMatrices[0], scale, rotation, pos, skew, perspective);
+    return scale;
 }
 
-void syncMeshMatrices(Model* model){
+glm::quat getRot(Model* model){
+    glm::vec3 scale;
+    glm::quat rotation;
+    glm::vec3 pos;
+    glm::vec3 skew;
+    glm::vec4 perspective;
+    glm::decompose(model->modelMatrices[0], scale, rotation, pos, skew, perspective);
+    return scale;
+}
 
-    for(uint i = 0; i < model->meshes.size(); i++){
-        glm::mat4 modelMat = glm::mat4(1.0f);
-        modelMat = glm::translate(modelMat, model->pos);
-        modelMat = modelMat * glm::mat4_cast(model->rotation);
-        //modelMat = glm::rotate(modelMat, 100.0f, glm::vec3(0,0,100));
-        modelMat = glm::scale(modelMat, model->scale);
-    }
+void updateScale(Model* model, glm::vec3 newScale){
+    //pull data
+    glm::vec3 scale;
+    glm::quat rotation;
+    glm::vec3 pos;
+    glm::vec3 skew;
+    glm::vec4 perspective;
+    glm::decompose(model->modelMatrices[0], scale, rotation, pos, skew, perspective);
+    //update data: openGL and physics
+    scale = newScale;
+    model->collisionShape->setLocalScaling( btVector3(scale.x, scale.y, scale.z));
+    //reconstruct matrix
+    model->modelMatrices[0] = glm::mat4(1.0); //identity matrix
+    model->modelMatrices[0] = glm::scale(model->modelMatrices[0], scale);
+    model->modelMatrices[0] = glm::mat4_cast(rotation) * model->modelMatrices[0];
+    model->modelMatrices[0] = glm::translate(model->modelMatrices[0], pos);
+
+}
+
+void updateRelativeScale(Model* model, glm::vec3 changeScaleBy){
+
+    //pull data
+    glm::vec3 scale;
+    glm::quat rotation;
+    glm::vec3 pos;
+    glm::vec3 skew;
+    glm::vec4 perspective;
+    glm::decompose(model->modelMatrices[0], scale, rotation, pos, skew, perspective);
+    //update data: openGL and physics
+    fprintf(stderr, "oldScale = %f\n\n", scale.y);
+    scale += changeScaleBy;
+    fprintf(stderr, "changeScale = %f\n", changeScaleBy.y);
+    fprintf(stderr, "newscale = %f\n\n", scale.y);
+    model->collisionShape->setLocalScaling( btVector3(scale.y, scale.y, scale.y));
+    //reconstruct matrix
+    model->modelMatrices[0] = glm::mat4(1.0); //identity matrix
+    model->modelMatrices[0] = glm::scale(model->modelMatrices[0], scale);
+    model->modelMatrices[0] = glm::mat4_cast(rotation) * model->modelMatrices[0];
+    model->modelMatrices[0] = glm::translate(model->modelMatrices[0], pos);
+
 }

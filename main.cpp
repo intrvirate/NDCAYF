@@ -309,6 +309,7 @@ int main()
 
     //loadModels("gamedata/world1.json");
     loadModels("gamedata/scratchpadWorld.json");
+    //loadModels("testSaveWorld.json");
     InitializePhysicsWorld();
 
 //=========== IMGUI =========================================================
@@ -377,7 +378,6 @@ int main()
     //updateModelRotation(testingModel, glm::quat(1,1,1,1));
     //float inc = 1;
     //uint8_t tick = 0;
-    saveJson("hi");
 
     while( glfwWindowShouldClose(window) == 0){
 
@@ -779,6 +779,7 @@ void enterPlay(){
 }
 void enterLegacy(){
     fprintf(stderr, "entered legacy\n");
+    //saveJson("testSaveWorld.json");
 
 }
 
