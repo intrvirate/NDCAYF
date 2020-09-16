@@ -1,6 +1,6 @@
 # Blender v2.90.0 OBJ File: ''
 # www.blender.org
-mtllib player_BLUE.mtl
+mtllib player_NULL.mtl
 o Cylinder.001
 v -0.454928 4.417332 0.592664
 v -0.539764 4.310680 0.222262
