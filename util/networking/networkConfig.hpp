@@ -5,10 +5,11 @@
 /*
  * store all network constants here,
  * or elsewhere once integrated into
- * the main code, ikc
+ * the main code, idc
  *
  */
 #define PORT  12345
+#define PORTTCP  54321
 #define SUPERSECRETKEY_SERVER "ndcayfser"
 #define SUPERSECRETKEY_CLIENT "ndcayfcli"
 #define PONG 1
@@ -18,6 +19,18 @@
 #define CONNECT 5
 #define MOVE 6
 #define DUMP 7
+#define INFO 8
+#define SENDINGFILE 9
+#define NEXTLINE 10
+#define ENDDOWNLOAD 11
+
+#define MAP 1
+#define GAMEMODE 2
+#define OBJ 3
+#define TEXTURE 4
+
+#define UDP_TV_SEC 0
+#define UDP_TV_USEC 100
 
 #define IPLEN 30
 
@@ -27,27 +40,9 @@
 #define MAXSERVERS 5
 #define MAXPLAYERS 20
 
-// not sure if this value is important enough
-#define BUFSIZE 2048
-
-// a universal key map that all clients will understand 
-#define UNI_FD "w"
-#define UNI_BK "s"
-#define UNI_RT "d"
-#define UNI_LT "a"
-
-
 struct ifa {
     char name[128];
     char ip[128];
-};
-
-struct server {
-    char routes[5][100];
-    int numRoutes;
-    char name[128];
-    bool hasLo;
-    int loIndex;
 };
 
 struct move
@@ -57,6 +52,12 @@ struct move
     char extraActions[5];
 };
 
+struct Unvalid
+{
+    struct move theMove;
+    int id;
+};
+
 struct entities
 {
     struct move moves[60];
@@ -64,6 +65,22 @@ struct entities
     unsigned int moveID;
 };
 
-extern bool connected;
+struct infoStruct
+{
+    unsigned short maxPlayers;
+    unsigned short curPlayers;
+    char mapName[25];
+    char gameType[25];
+    bool isCustom;
+};
+
+struct server {
+    char routes[5][100];
+    int numRoutes;
+    char name[128];
+    bool hasLo;
+    int loIndex;
+    struct infoStruct about;
+};
 
 #endif

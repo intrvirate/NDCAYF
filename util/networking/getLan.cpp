@@ -9,35 +9,16 @@
 #include <sys/types.h>
 #include <ifaddrs.h>
 #include <sys/time.h>
+#include "util/imgui/imgui.h"
 
 #include "networkConfig.hpp"
 #include "getLan.hpp"
-
-/*
-struct ifa {
-    char name[128];
-    char ip[128];
-};
-
-struct server {
-    struct sockaddr_in routes[5];
-    int numRoutes;
-    char name[128];
-    bool hasLo;
-    int loIndex;
-};
-
-
-void getInterfaces(struct ifa interfaces[], int *numFaces);
-void broadcastAllInterfaces(int sock, struct ifa interfaces[], int elements, char name[]);
-void getResponses(int sock, struct server servers[]);
-void getAllServers(struct server servers[]);
-
-*/
+#include "client.hpp"
 
 char lo[128];
 int DELAY_SECS = 1;
 int DELAY_USECS = 0;
+struct generalPack infoPack = makeBasicPack(INFO);
 
 
 struct pingPack
@@ -48,7 +29,6 @@ struct pingPack
     struct timeval time;
     char data[1000];
 };
-
 
 
 void getInterfaces(struct ifa interfaces[], int *numFaces)
@@ -109,7 +89,7 @@ void broadcastAllInterfaces(int sock, struct ifa interfaces[], int elements, cha
     gettimeofday(&ping.time, NULL);
     strcpy(ping.key, SUPERSECRETKEY_CLIENT);
     strcpy(ping.name, name);
-    ping.protocol = PING;
+    ping.protocol = INFO;
 
     socklen_t addrlen = sizeof(broadcast_addr);
 
@@ -183,6 +163,7 @@ void getResponses(int sock, struct server servers[])
 
                     // add server info
                     strcpy(servers[index].routes[servers[index].numRoutes], ip);
+                    memcpy(&servers[index].about, &buf.data, sizeof(struct infoStruct));
                     servers[index].numRoutes++;
 
 
@@ -218,88 +199,6 @@ void getResponses(int sock, struct server servers[])
 
 }
 
-
-
-void getAllServersa(struct server servers[])
-{
-    printf("asdfasdfasdf\n");
-    /*
-    printf("Getting servers...\n");
-    char hostname[128];
-
-    struct ifa interfaces[10];
-    int numFaces = 0;
-
-    int bcast_sock;
-
-    // make the struct start with 0, and servername is empty str
-    for (int i = 0; i < MAXSERVERS; i++)
-    {
-
-            strcpy(serverKey, strtok(buf, "$"));
-            char *ip = inet_ntoa(in_addr.sin_addr);
-
-            // validate that this is a server
-            if (strcmp(serverKey, SUPERSECRETKEY_SERVER) == 0)
-            {
-                strcpy(name, strtok(NULL, "$"));
-                strcpy(protocol, strtok(NULL, "$"));
-                printf("IP of %s \"%-10s\"", name, ip);
-
-
-                if (numServers != MAXSERVERS)
-                {
-                    // add ip to a new server, or to an
-                    // old server with same name
-                    bool newServer = true;
-                    int index = numServers;
-                    for (int j = 0; j < numServers; j++)
-                    {
-                        if (strcmp(servers[j].name, name) == 0)
-                        {
-                            newServer = false;
-                            index = j;
-                        }
-
-                    }
-
-                    // add server info
-                    strcpy(servers[index].routes[servers[index].numRoutes], ip);
-                    servers[index].numRoutes++;
-
-
-                    if (strcmp(ip, lo) == 0)
-                    {
-                        servers[index].hasLo = true;
-                        servers[index].loIndex = index;
-                        printf("\tLO");
-                    }
-
-                    if (newServer)
-                    {
-                        strcpy(servers[index].name, name);
-                        numServers++;
-                    }
-                }
-
-                printf("\n");
-
-                //printf("Key: %s, Name: %s\n", serverKey, name);
-            }
-            else
-            {
-                printf("Rando found %s\n", ip);
-            }
-        }
-        else
-        {
-            printf("Finished\n\n");
-            waiting = false;
-        }
-    }
-*/
-
-}
 
 void printServerList(struct server *list)
 {
@@ -408,30 +307,72 @@ void getAllServers(struct server servers[])
     close(bcast_sock);
 }
 
-
-/*
-int main(void)
+void makeServerListWindow(struct server *theList)
 {
-    struct server serverList[MAXSERVERS];
+    ImGui::NewFrame();
 
-    getAllServers(serverList);
+    ImGuiWindowFlags window_flags = 0;
+    window_flags |= ImGuiWindowFlags_NoScrollbar;
+    window_flags |= ImGuiWindowFlags_NoCollapse;
+
+    ImGui::Begin("Lan View", NULL, window_flags);
+    ImGui::Text("All servers:");
+    ImGui::Text("");
+
+
 
     for (int j = 0; j < MAXSERVERS; j = j + 1)
     {
-        if (strcmp(serverList[j].name, "") != 0)
+        if (strcmp(theList[j].name, "") != 0)
         {
-            printf("For server %s\n", serverList[j].name);
+            ImGui::Text("Server %s\n", theList[j].name);
             //printf("%d  %d\n", servers[j].hasLo, servers[j].loIndex);
-            for (int q = 0; q < serverList[j].numRoutes; q++)
+            for (int q = 0; q < theList[j].numRoutes; q++)
             {
-                printf("\tFound route \"%s\"", inet_ntoa(serverList[j].routes[q].sin_addr));
-                if (serverList[j].hasLo && q == serverList[j].loIndex)
+                char txt[100];
+
+                if (theList[j].hasLo && q == theList[j].loIndex)
                 {
-                    printf("\tLO");
+                    sprintf(txt, "%-3s IP %-15s", "LO", (theList[j].routes[q]));
                 }
-                printf("\n");
+                else
+                {
+                    sprintf(txt, "%-3s IP %-15s", "", (theList[j].routes[q]));
+                }
+
+                sprintf(txt, "%s %-25s %-25s %d/%d %s", txt, theList[j].about.mapName, theList[j].about.gameType, theList[j].about.curPlayers, theList[j].about.maxPlayers, theList[j].about.isCustom ? "C" : "N");
+
+                if (ImGui::Button(txt))
+                {
+                    printf("Server %s, IP %s\n", theList[j].name, theList[j].routes[q]);
+                    if (!connectTo(theList[j].routes[q]))
+                    {
+                        printf("Failed to connect to: %s at %s\n", theList[j].name, theList[j].routes[q]);
+                    }
+                    else
+                    {
+                        setConnection(true);
+                    }
+                }
             }
         }
     }
+
+
+
+    ImGui::Text("");
+
+
+    if (ImGui::Button("Update"))
+    {
+        printf("Loading network\n");
+
+        getAllServers(theList);
+    }
+
+    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
+        1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+    ImGui::End();
+
 }
-*/

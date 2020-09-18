@@ -8,5 +8,6 @@ void getAllServers(struct server servers[]);
 void getAllServersa(struct server servers[]);
 int makeBroadcastSocket();
 void printServerList(struct server *list);
+void makeServerListWindow(struct server *theList);
 
 #endif
