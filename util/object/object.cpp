@@ -163,13 +163,13 @@ void loadModels(string jsonPath){
         top_shader[i].meshes.reserve(top_shader[i].meshCountHint); //reserve memory
     }
 
-
     //load models
     for(int i = 0; !modelJson["models"][i].is_null(); i++){ //for each moddel
 
         Model* newModel = new Model;
         top_model.push_back(newModel);
         top_model[i]->objectPath = modelJson["models"][i]["path"];
+        fprintf(stderr, "loading %s", top_model[i]->objectPath.c_str());
         top_model[i]->directory = top_model[i]->objectPath.substr(0, top_model[i]->objectPath.find_last_of('/'));
         top_model[i]->hasPhysics = modelJson["models"][i]["hasPhysics"];
         top_model[i]->useSinglePrimitive = modelJson["models"][i]["useSinglePrimitive"];
@@ -228,7 +228,9 @@ void loadModels(string jsonPath){
         }
 
         //read meshes:
+        fprintf(stderr, "with %i meshes\n", assimpModel->mNumMeshes);
         top_model[i]->meshes.reserve(assimpModel->mNumMeshes);
+
         for(uint meshCounter = 0; meshCounter < assimpModel->mNumMeshes; meshCounter++){ //for all meshes
             for(uint j = 0; j < top_shader.size(); j++){ //find the shader
                 if(modelJson["models"][i]["shaders"][meshCounter] == top_shader[j].name){
@@ -284,7 +286,6 @@ void loadModels(string jsonPath){
             int numVertices = top_model[i]->meshes[0]->vertices.size();
             btScalar * vertexBase = (btScalar*)&(top_model[i]->meshes[0]->vertices[0]);
             int vertexStride = sizeof(Vertex);
-
 
             if(modelJson["models"][i]["useSinglePrimitive"] == true){
                 string primitiveType = modelJson["models"][i]["primitiveType"];
@@ -916,7 +917,6 @@ void updateRelativeModelRotation(Model* model, glm::quat newRotation){
     model->modelMatrices[0] = glm::scale(model->modelMatrices[0], scale);
     model->modelMatrices[0] = glm::mat4_cast(rotation) * model->modelMatrices[0];
     model->modelMatrices[0] = glm::translate(model->modelMatrices[0], pos);
-
 }
 
 void updateRelativeModelRotation(Model* model, glm::vec3 newRotation){
@@ -937,7 +937,6 @@ void updateRelativeModelRotation(Model* model, glm::vec3 newRotation){
     model->modelMatrices[0] = glm::scale(model->modelMatrices[0], scale);
     model->modelMatrices[0] = glm::mat4_cast(rotation) * model->modelMatrices[0];
     model->modelMatrices[0] = glm::translate(model->modelMatrices[0], pos);
-
 }
 
 glm::vec3 getPos(Model* model){
