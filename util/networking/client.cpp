@@ -45,6 +45,16 @@ bool getConnection()
     return connected;
 }
 
+void hostnameSet()
+{
+    gethostname(hostname, 128);
+}
+
+char* hostnameGet()
+{
+    return hostname;
+}
+
 
 // set the connnection value
 void setConnection(bool newConnection)

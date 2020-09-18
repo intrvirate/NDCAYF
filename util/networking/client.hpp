@@ -28,6 +28,8 @@ void resetMoves();
 void setMove(unsigned int id);
 void setServerAddr(struct sockaddr_in newServerAddr);
 struct generalPack makeBasicPack(int ptl);
+void hostnameSet();
+char* hostnameGet();
 
 // special
 void reconcileClient(struct entities *me, struct move *server, glm::vec3 *cPos);

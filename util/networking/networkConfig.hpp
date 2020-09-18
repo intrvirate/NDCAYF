@@ -9,6 +9,7 @@
  *
  */
 #define PORT  12345
+#define PORTTCP  54321
 #define SUPERSECRETKEY_SERVER "ndcayfser"
 #define SUPERSECRETKEY_CLIENT "ndcayfcli"
 #define PONG 1
@@ -19,6 +20,14 @@
 #define MOVE 6
 #define DUMP 7
 #define INFO 8
+#define SENDINGFILE 9
+#define NEXTLINE 10
+#define ENDDOWNLOAD 11
+
+#define MAP 1
+#define GAMEMODE 2
+#define OBJ 3
+#define TEXTURE 4
 
 #define UDP_TV_SEC 0
 #define UDP_TV_USEC 100

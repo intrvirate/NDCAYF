@@ -51,6 +51,7 @@
 #include "util/networking/networkConfig.hpp"
 #include "util/networking/getLan.hpp"
 #include "util/networking/client.hpp"
+#include "util/networking/clientTCP.hpp"
 
 
 using json = nlohmann::json;
@@ -58,13 +59,15 @@ using namespace std;
 using namespace glm;
 GLFWwindow* window;
 
-bool test_nw = false;
+bool test_nw = true;
 
 
 int main()
 {
     if (test_nw)
     {
+        makeTCP();
+        tcpConnect("10.55.20.48");
 
         return 0;
     }
