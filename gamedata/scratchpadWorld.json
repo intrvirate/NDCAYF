@@ -16,8 +16,8 @@
     ],
     "models": [
         {
-            "path": "obj/objects/Sidewinder.obj",
-            "shaders": ["generic","generic","generic"],
+            "path": "obj/objects/gunV1.obj",
+            "shaders": ["generic","generic","generic","generic","generic","generic"],
             "hasPhysics": true,
             "collisionType": "player",
             "mass": 0.0,
@@ -25,7 +25,7 @@
             "friction" : 0.7,
             "rotatingfriction" : 0.7,
             "useSinglePrimitive": false,
-            "scale": 3.0,
+            "scale": 1.0,
             "isInstanced": false,
             "meshCountHint": 2,
             "pos": [0.0,-20.0,0.0],
@@ -88,7 +88,7 @@
         },
         {
             "path": "obj/objects/player_PINK.obj",
-            "shaders": ["generic","generic","generic"],
+            "shaders": ["generic","generic","generic","generic","generic","generic"],
             "hasPhysics": true,
             "collisionType": "terrain",
             "mass": 0.0,
@@ -99,7 +99,7 @@
             "primitiveType": "hull",
             "scale": 0.2,
             "isInstanced": false,
-            "meshCountHint": 2,
+            "meshCountHint": 6,
             "pos": [10.0,4.0,4.0],
             "rotquat": [0.0,0.0,0.0,1.0]
 
