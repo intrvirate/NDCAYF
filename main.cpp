@@ -291,6 +291,7 @@ int main()
         return -1;
     }
 
+
     //set up inputs
     glfwSetKeyCallback(window, key_callback);
     //TODO This is for testing purposes, we'll implement it properly in a bit.
@@ -305,12 +306,6 @@ int main()
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     glEnable(GL_CULL_FACE);
-    glClearColor(0.2f, 0.2f, 0.3f, 0.0f); // default opengl background on startup: blue
-
-    //loadModels("gamedata/world1.json");
-    loadModels("gamedata/scratchpadWorld.json");
-    //loadModels("testSaveWorld.json");
-    InitializePhysicsWorld();
 
 //=========== IMGUI =========================================================
 
@@ -324,12 +319,12 @@ int main()
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
-    bool show_demo_window = true;
-    bool show_another_window = false;
-    bool show_server_window = false;
-
-
 //=========== RENDER =========================================================
+
+    //loadModels("gamedata/world1.json");
+    loadModels("gamedata/scratchpadWorld.json");
+    //loadModels("testSaveWorld.json");
+    InitializePhysicsWorld();
 
     load3DShaders();
     load3DBuffers();
@@ -341,7 +336,6 @@ int main()
     loadTextDataSpacing();
 
     loadAutoMapGen();
-
 
 //================networking stuff====================================
     //bool connected = false;
@@ -378,6 +372,7 @@ int main()
     //updateModelRotation(testingModel, glm::quat(1,1,1,1));
     //float inc = 1;
     //uint8_t tick = 0;
+    glClearColor(0.2f, 0.2f, 0.3f, 0.0f); // default opengl background on startup: blue
 
     while( glfwWindowShouldClose(window) == 0){
 
@@ -617,7 +612,6 @@ int main()
             int display_w, display_h;
             glfwGetFramebufferSize(window, &display_w, &display_h);
             glViewport(0, 0, display_w, display_h);
-            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
             //render imgui (render this last so it's on top of other stuff)
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

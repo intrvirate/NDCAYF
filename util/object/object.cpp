@@ -8,6 +8,7 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <stb_image.h>
+#include "util/render/startupConsole.hpp"
 //gtc
 #include <glm/glm.hpp>
 #include <glm/glm.hpp>
@@ -24,7 +25,6 @@
 #include <btBulletDynamicsCommon.h>
 #include "util/bulletDebug/collisiondebugdrawer.hpp"
 #include "collisionMaskClasses.hpp"
-
 
 using namespace std;
 using json = nlohmann::json;
@@ -50,9 +50,11 @@ void loadModels(string jsonPath){
     //load json
     std::ifstream jsonModelFile(jsonPath, std::ios::in);
     if(!jsonModelFile.is_open()){
-        printf("ERROR: unable to open json Model file: [%s]\n", jsonPath.c_str());
+        //printf("ERROR: unable to open json Model file: [%s]\n", jsonPath.c_str());
+        printMessage("unable to upen JSON model file: " + jsonPath, FATALERROR);
         exit(1);
     }
+    printMessage("loading modelJson file: " + jsonPath, STATUS);
     std::stringstream jsonModelString;
     jsonModelString << jsonModelFile.rdbuf();
     jsonModelFile.close();
@@ -60,7 +62,7 @@ void loadModels(string jsonPath){
         modelJson = json::parse(jsonModelString.str());
     }
     catch(json::parse_error& e){
-        std::cout << e.what() << endl; //print error
+        printMessage("parsing json failed: " , e.what(), ERROR);
     }
 
     //count shaders
@@ -68,6 +70,7 @@ void loadModels(string jsonPath){
     top_shader.reserve(shaderCount); //reserve enough space to hold all shaders
 
     //load shaders
+    printMessage("loading shaders", STATUS);
     for(uint i = 0; !modelJson["shaders"][i].is_null(); i++){
 
         Shader newShader;
@@ -97,7 +100,7 @@ void loadModels(string jsonPath){
         }
         catch (ifstream::failure e)
         {
-            printf("ERROR: Shader code reading failed: [%s]\n", top_shader[i].name.c_str());
+            printMessage("Shader code reading failed: " , top_shader[i].name.c_str(), ERROR);
         }
 
         const char* vCodeC = vCode.c_str();
@@ -111,7 +114,7 @@ void loadModels(string jsonPath){
         glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
         if(!success){
             glGetShaderInfoLog(vertex, 1024, NULL, infoLog);
-            printf("ERROR: Vertex shader compilation failed: [%s]\n >%s\n", top_shader[i].name.c_str(), infoLog);
+            printMessage("Vertex shader compilation failed: " , top_shader[i].name.c_str(), infoLog, ERROR);
         }
         fragment = glCreateShader(GL_FRAGMENT_SHADER);
         glShaderSource(fragment, 1, &fCodeC, NULL);
@@ -119,7 +122,7 @@ void loadModels(string jsonPath){
         glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
         if(!success){
             glGetShaderInfoLog(vertex, 1024, NULL, infoLog);
-            printf("ERROR: Fragment shader compilation failed: [%s]\n >%s\n", top_shader[i].name.c_str(), infoLog);
+            printMessage("Fragment shader compilation failed:  " , top_shader[i].name.c_str(), infoLog, ERROR);
         }
         top_shader[i].ID = glCreateProgram();
         glAttachShader(top_shader[i].ID, vertex);
@@ -128,7 +131,7 @@ void loadModels(string jsonPath){
         glGetProgramiv(top_shader[i].ID, GL_LINK_STATUS, &success);
         if(!success){
             glGetProgramInfoLog(vertex, 1024, NULL, infoLog);
-            printf("ERROR: Shader linking failed: [%s]\n >%s\n", top_shader[i].name.c_str(), infoLog);
+            printMessage("Shader linking failed: " , top_shader[i].name.c_str(), infoLog, ERROR);
         }
         glDeleteShader(vertex);
         glDeleteShader(fragment);
@@ -144,6 +147,8 @@ void loadModels(string jsonPath){
         top_shader[i].texture_specular_location = glGetUniformLocation(top_shader[i].ID, "texture_specular1");
         top_shader[i].texture_normal_location = glGetUniformLocation(top_shader[i].ID, "texture_normal1");
         top_shader[i].texture_height_location = glGetUniformLocation(top_shader[i].ID, "texture_height1");
+
+        printMessage( top_shader[i].name.c_str(), " shader compiled", SUCCESS);
 
     }
 
@@ -162,6 +167,7 @@ void loadModels(string jsonPath){
         }
         top_shader[i].meshes.reserve(top_shader[i].meshCountHint); //reserve memory
     }
+    printMessage("building Model tree", STATUS);
 
     //load models
     for(int i = 0; !modelJson["models"][i].is_null(); i++){ //for each moddel
@@ -169,11 +175,12 @@ void loadModels(string jsonPath){
         Model* newModel = new Model;
         top_model.push_back(newModel);
         top_model[i]->objectPath = modelJson["models"][i]["path"];
-        fprintf(stderr, "loading %s", top_model[i]->objectPath.c_str());
         top_model[i]->directory = top_model[i]->objectPath.substr(0, top_model[i]->objectPath.find_last_of('/'));
         top_model[i]->hasPhysics = modelJson["models"][i]["hasPhysics"];
         top_model[i]->useSinglePrimitive = modelJson["models"][i]["useSinglePrimitive"];
         top_model[i]->isInstanced = modelJson["models"][i]["isInstanced"];
+
+        printMessage("loading: ", top_model[i]->objectPath.c_str(), " ", STATUS);
 
         glm::vec3 pos; //out here because the physics code uses it below
         float scale;
@@ -199,7 +206,7 @@ void loadModels(string jsonPath){
         }else{
             glm::mat4 posMatrix  = glm::mat4(1.0);
             scale = modelJson["models"][i]["scale"];
-            fprintf(stderr, "scale set: %f ", scale);
+            updateMessage("scale: " + to_string(scale));
             posMatrix = glm::scale(posMatrix, glm::vec3(scale, scale, scale));
 
             rot.x = modelJson["models"][i]["rotquat"][0];
@@ -222,18 +229,18 @@ void loadModels(string jsonPath){
         const aiScene* assimpModel = importer.ReadFile(top_model[i]->objectPath, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace | aiProcess_OptimizeGraph | aiProcess_OptimizeMeshes | aiProcess_Debone);
         if(!assimpModel || assimpModel->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !assimpModel->mRootNode) // if is Not Zero
         {
-            printf("ERROR: loading model failed: [%s]\n", top_model[i]->objectPath.c_str());
-            printf("Error log:\n> %s\n", importer.GetErrorString());
-            exit(1);
+            printMessage("loading model via assimp failed: ", top_model[i]->objectPath.c_str(), importer.GetErrorString(), FATALERROR);
         }
 
         //read meshes:
-        fprintf(stderr, "with %i meshes\n", assimpModel->mNumMeshes);
+        updateMessage(" with " + to_string(assimpModel->mNumMeshes) + " meshes");
+
         top_model[i]->meshes.reserve(assimpModel->mNumMeshes);
 
         for(uint meshCounter = 0; meshCounter < assimpModel->mNumMeshes; meshCounter++){ //for all meshes
             for(uint j = 0; j < top_shader.size(); j++){ //find the shader
                 if(modelJson["models"][i]["shaders"][meshCounter] == top_shader[j].name){
+                    printMessage("loading mesh " + to_string(meshCounter), " using shader ", top_shader[j].name.c_str(), STATUS);
 
                     Mesh *currentMesh = new Mesh;
                     top_shader[j].meshes.push_back(currentMesh);
@@ -256,6 +263,7 @@ void loadModels(string jsonPath){
                     top_model[i]->meshes.push_back(currentMesh); //push pointer to vector of pointers
 
                     //fprintf(stderr, "added mesh. pos = %f,%f,%f\n", top_model[i]->pos.x, top_model[i]->pos.y, top_model[i]->pos.z);
+                    updateMessageType(SUCCESS);
                     break; //don't add to multiple shaders, so don't need to keep scanning remaining
                 }
 
@@ -265,6 +273,7 @@ void loadModels(string jsonPath){
 
         //physics:
         //If mesh physics is enabled, the first root level mesh is the collision object.
+        printMessage("loading physics ", STATUS);
         if(modelJson["models"][i]["hasPhysics"] == true){
 
             btTransform transform;
@@ -313,7 +322,8 @@ void loadModels(string jsonPath){
                     top_model[i]->collisionShape = newShape;
 
                 }else{
-                    fprintf(stderr, "invalid primitive passed");
+                    updateMessage(" [invalid primitive passed]");
+                    updateMessageType(ERROR);
                 }
             }else{
                 //mesh primitive TODO: handle non-static meshes. At the moment, any mesh is created static.
@@ -355,6 +365,7 @@ void loadModels(string jsonPath){
             // syntax: addRigidBody( body, group, mask);
             dynamicsWorld->addRigidBody(top_model[i]->body, top_model[i]->origionalCollisionGroup, top_model[i]->origionalCollisionMask);
         }
+        updateMessageType(SUCCESS);
     }
 }
 
@@ -451,7 +462,7 @@ void processMesh(Mesh *mesh,aiMesh *impMesh, const aiScene *assimpModel, string 
     uint textureLookupID;
     //diffuse
     if(material->GetTextureCount(aiTextureType_DIFFUSE) > 0){
-        fprintf(stderr, "loaded difuse\n");
+        updateMessage("[difuse] ");
         material->GetTexture(aiTextureType_DIFFUSE, 0, &path); //get path
         textureLookupID = findTextureID(path.C_Str());
         if(textureLookupID != 0){
@@ -468,7 +479,7 @@ void processMesh(Mesh *mesh,aiMesh *impMesh, const aiScene *assimpModel, string 
 
     //specular
     if(material->GetTextureCount(aiTextureType_SPECULAR) > 0){
-        fprintf(stderr, "loaded specular\n");
+        updateMessage("[specular] ");
         material->GetTexture(aiTextureType_SPECULAR, 0, &path); //get path
         textureLookupID = findTextureID(path.C_Str());
         if(textureLookupID != 0){
@@ -484,7 +495,7 @@ void processMesh(Mesh *mesh,aiMesh *impMesh, const aiScene *assimpModel, string 
         texture.specularID = 0; //0 = no texture
     //normal
     if(material->GetTextureCount(aiTextureType_HEIGHT) > 0){
-        fprintf(stderr, "loaded normal (height)\n");
+        updateMessage("[normal/height] ");
         material->GetTexture(aiTextureType_HEIGHT, 0, &path); //get path
         textureLookupID = findTextureID(path.C_Str());
         if(textureLookupID != 0){
@@ -500,7 +511,7 @@ void processMesh(Mesh *mesh,aiMesh *impMesh, const aiScene *assimpModel, string 
         texture.normalID = 0; //0 = no texture
     //ambient/height?   Usualy not used...
     if(material->GetTextureCount(aiTextureType_AMBIENT) > 0){
-        fprintf(stderr, "loaded height (ambient)\n");
+        updateMessage("[height/ambient] ");
         material->GetTexture(aiTextureType_AMBIENT, 0, &path); //get path
         textureLookupID = findTextureID(path.C_Str());
         if(textureLookupID != 0){

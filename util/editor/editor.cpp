@@ -203,8 +203,7 @@ void drawEditor()
             windowSize = ImVec2(ImGui::GetFontSize() * 20.0f, 0);
         }
         ImGui::SetNextWindowSize(windowSize);
-        ImVec2 windowPos = ImVec2(25.0f, 25.0f);
-        ImGui::SetNextWindowPos(windowPos);
+        ImGui::SetNextWindowPos(ImVec2(25.0f, 25.0f));
 
         string scrollModeText;
         switch (scrollMode)

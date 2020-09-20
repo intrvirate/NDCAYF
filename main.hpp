@@ -1,6 +1,7 @@
 #ifndef MAIN_HPP
 #define MAIN_HPP
 
+extern GLFWwindow* window;
 
 void enterMenu();
 void enterNetwork();
