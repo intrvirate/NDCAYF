@@ -12,10 +12,10 @@ void drawProgress(double percent, int width);
 struct generalTCP
 {
     char name[10];
-    unsigned short int protocol;
-    unsigned short int numObjects;
+    int protocol;
+    int numObjects;
     struct timeval time;
-    char data[1000];
+    char data[60000];
 };
 
 struct aboutFile

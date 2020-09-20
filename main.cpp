@@ -67,8 +67,8 @@ int main()
     if (test_nw)
     {
         makeTCP();
-        //tcpConnect("10.55.20.48");
-        tcpConnect("169.254.35.35");
+        tcpConnect("10.55.20.48");
+        //tcpConnect("169.254.35.35");
 
         return 0;
     }

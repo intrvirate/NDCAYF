@@ -109,11 +109,17 @@ bool tcpConnect(char ip[])
     // info about the file
     struct lines bunch;
     struct aboutFile stuff;
-    string fileName = "terrain00.obj";
+    string fileName = "terrain04.obj";
+    //string fileName = "twothousandlines.txt";
     string dir = "obj/objects/";
     dir += fileName;
     long totalLine = getLines(dir);
-    stuff.lines = totalLine;
+
+    ifstream in_file(dir, ios::binary);
+    in_file.seekg(0, ios::end);
+    int fileSize = in_file.tellg();
+
+    stuff.lines = fileSize;
     strcpy(stuff.name, fileName.c_str());
     stuff.type = MAP;
 
@@ -131,7 +137,9 @@ bool tcpConnect(char ip[])
 
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    int barWidth = w.ws_col - 7;
+    int barWidth = w.ws_col - 8;
+
+    int charsRead = 0;
 
     long count = 0;
     int peek;
@@ -139,6 +147,7 @@ bool tcpConnect(char ip[])
     bool gotKey = false;
     bool  prepFile = false;
     bool sendingFile = false;
+    bool waitingForTime = false;
     char buff[2048];
     char out[200];
     int len;
@@ -205,45 +214,77 @@ bool tcpConnect(char ip[])
                 }
                 else
                 {
-                    len = recv(sockTCP, &bufT, bufTSize, 0);
+                    if (peek < sizeof(bufT))
+                    {
+                        //printf("waiting for it all\n");
+                        bufT.protocol = -1;
+                    }
+                    else
+                    {
+                        len = recv(sockTCP, &bufT, bufTSize, 0);
+                    }
                 }
 
 
                 // check that we are sending a file and that they want the next line
                 if (sendingFile && (bufT.protocol == NEXTLINE))
                 {
-                    if (getline(myfile, line))
+                    // fillup the buffer with info from the file
+                    if (myfile.read(toSend.data, sizeof(toSend.data)))
                     {
+                        // it filled up correctly
+                        charsRead = myfile.gcount(); // should be 1000
+                        count += charsRead;
+                        toSend.numObjects = charsRead;
+                        drawProgress((double)count / (double)fileSize, barWidth);
 
-                        drawProgress((double)count / (double)totalLine, barWidth);
-                        count++;
                         // add the \n and copy to the struct then to the pack struct
                         //sprintf(out, "%s\n", line.c_str());
-                        strcpy(bunch.aLine, line.c_str());
-                        memcpy(&toSend.data, &bunch, sizeof(struct lines));
+                        //strcpy(bunch.aLine, line.c_str());
+                        //memcpy(&toSend.data, &bunch, sizeof(struct lines));
 
                         // send
-                        send(sockTCP, (const void*)&toSend, sizeof(struct generalTCP), 0);
-                        //printf("%d:::::%s", count++, line.c_str());
+                        if (send(sockTCP, (const void*)&toSend, sizeof(struct generalTCP), 0) < 0)
+                        {
+                            perror("send wackiness");
+                        }
                     }
                     else
                     {
-                        // probs done with the file
-                        gettimeofday(&after, NULL);
-                        timersub(&after, &before, &diff);
+                        // the buffer did not fully fill, at the end
 
-                        printf("\nSent all %d lines in", count);
+                        // should be <1000
+                        charsRead = myfile.gcount();
+                        count += charsRead;
+                        toSend.numObjects = charsRead;
+
+                        drawProgress(1.0f, barWidth);
+
                         //printf(" %lu%03lu.%03lu milliseconds \n", diff.tv_sec, diff.tv_usec / 1000 , diff.tv_usec % 1000);
-                        printf(" %lu.%06lu seconds \n", diff.tv_sec, diff.tv_usec);
 
                         toSend.protocol = ENDDOWNLOAD;
                         send(sockTCP, (const void*)&toSend, sizeof(struct generalTCP), 0);
 
+                        gettimeofday(&after, NULL);
+                        timersub(&after, &before, &diff);
+
+                        printf("\nSent all %d byes in", count);
+                        printf(" %lu.%06lu seconds \n", diff.tv_sec, diff.tv_usec);
+
                         myfile.close();
-                        close(sockTCP);
-                        printf("exit\n");
-                        done = true;
+
+                        waitingForTime = true;
+                        sendingFile = false;
                     }
+                }
+                else if (waitingForTime && (bufT.protocol == ENDDOWNLOAD))
+                {
+                    timersub(&bufT.time, &before, &diff);
+                    printf("Server took %lu.%06lu seconds to finish\n", diff.tv_sec, diff.tv_usec);
+
+                    done = true;
+                    printf("exit\n");
+                    close(sockTCP);
                 }
 
 
