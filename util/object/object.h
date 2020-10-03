@@ -179,8 +179,13 @@ void makeDynamic(Model* model);
 void updateModelRotation(Model* model, glm::quat rotation);
 void updateRelativeModelRotation(Model* model, glm::quat rotation);
 void updateRelativeModelRotation(Model* model, glm::vec3 rotation);
+glm::vec3 getPos(Model* model);
+glm::vec3 getPosInstanced(Model* model, int instance);
+glm::vec3 getScale(Model* model);
+glm::vec3 getScaleInstanced(Model* model, int instance);
+glm::quat getRot(Model* model);
+glm::quat getRotInstanced(Model* model, int instance);
 void updateScale(Model* model, glm::vec3 scale);
 void updateRelativeScale(Model* model, glm::vec3 scale);
-void syncMeshMatrices(Model* model);
 
 #endif // OBJECT_H

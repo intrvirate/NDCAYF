@@ -322,8 +322,8 @@ int main()
 //=========== RENDER =========================================================
 
     //loadModels("gamedata/world1.json");
-    loadModels("gamedata/scratchpadWorld.json");
-    //loadModels("testSaveWorld.json");
+    //loadModels("gamedata/scratchpadWorld.json");
+    loadModels("testSaveWorld.json");
     InitializePhysicsWorld();
 
     load3DShaders();
@@ -773,7 +773,7 @@ void enterPlay(){
 }
 void enterLegacy(){
     fprintf(stderr, "entered legacy\n");
-    //saveJson("testSaveWorld.json");
+    saveJson("testSaveWorld.json");
 
 }
 

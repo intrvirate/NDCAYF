@@ -12,7 +12,7 @@
 using namespace std;
 
 //global message array
-#define MESSAGE_LENGTH 30
+#define MESSAGE_LENGTH 40
 message messageList[MESSAGE_LENGTH];
 uint messageIndex = 0; //points to current top message;
 uint numMesages = 0;   //number of messages so far printed, maxes out at MESSAGE_LENGTH
@@ -36,7 +36,6 @@ void updateStartupConsole(){
     ImGui::SetNextWindowPos(ImVec2(0.0f,0.0f));
 
     ImGuiWindowFlags window_flags = 0;
-    window_flags |= ImGuiWindowFlags_NoScrollbar;
     window_flags |= ImGuiWindowFlags_NoCollapse;
     window_flags |= ImGuiWindowFlags_NoTitleBar;
     window_flags |= ImGuiWindowFlags_NoBackground;
