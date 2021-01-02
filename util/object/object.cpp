@@ -65,19 +65,43 @@ void loadModels(string jsonPath){
         printMessage("parsing json failed: " , e.what(), ERROR);
     }
 
+    //count model
+    int modelCount;
+    try{
+        modelCount = modelJson["models"].size();
+    }catch(json::parse_error& e){
+        printMessage("models array may not exist (size method failed)", FATALERROR);
+    }
+    top_model.reserve(modelCount);
+
+
     //count shaders
-    int shaderCount = modelJson["shaders"].size();
+    int shaderCount;
+    try{
+        shaderCount = modelJson["shaders"].size();
+    }catch(json::parse_error& e){
+        printMessage("shaders array may not exist (size method failed)", FATALERROR);
+    }
+
     top_shader.reserve(shaderCount); //reserve enough space to hold all shaders
+
 
     //load shaders
     printMessage("loading shaders", STATUS);
+
     for(uint i = 0; !modelJson["shaders"][i].is_null(); i++){
 
         Shader newShader;
         top_shader.push_back(newShader);
-        top_shader[i].name = modelJson["shaders"][i]["name"];
-        top_shader[i].vPath = modelJson["shaders"][i]["vPath"];
-        top_shader[i].fPath = modelJson["shaders"][i]["fPath"];
+        try{
+            top_shader[i].name = modelJson["shaders"][i]["name"];
+            top_shader[i].vPath = modelJson["shaders"][i]["vPath"];
+            top_shader[i].fPath = modelJson["shaders"][i]["fPath"];
+        }
+        catch(json::type_error& e){
+            printMessage("loading shader paths failed: ", e.what() , FATALERROR);
+        }
+
         //TODO: fix
         //top_shader[i].CullFaceState = (modelJson["shaders"][i]["CullFace"] == "front") ?  GL_FRONT : ((modelJson["shaders"][i]["CullFace"] == "back") ? GL_BACK: GL_NONE);
 
@@ -152,21 +176,28 @@ void loadModels(string jsonPath){
 
     }
 
-    //count model
-    int modelCount = modelJson["models"].size();
-    top_model.reserve(modelCount);
-
     //count meshes per shader:
-    for(int i = 0; !modelJson["shaders"][i].is_null(); i++){
-        top_shader[i].meshCountHint = 0;
-        for(int j = 0; !modelJson["models"][j].is_null(); j++){
-            if(modelJson["models"][j]["shader"] == modelJson["shaders"][i]["name"]){
-                int meshCountHint = modelJson["models"][j]["meshCountHint"];
-                top_shader[i].meshCountHint += meshCountHint;
+    try{
+        for(int i = 0; !modelJson["shaders"][i].is_null(); i++){
+            top_shader[i].meshCountHint = 0;
+            for(int j = 0; !modelJson["models"][j].is_null(); j++){
+                if(modelJson["models"][j]["shader"] == modelJson["shaders"][i]["name"]){
+                    int meshCountHint;
+                    try{
+                        meshCountHint = modelJson["models"][j]["meshCountHint"];
+                    }catch(json::type_error& e){
+                        printMessage( "meshCountHint field missing in model, not optimizing shader vector memory usage", WARNING);
+                        meshCountHint = 0;
+                    }
+                    top_shader[i].meshCountHint += meshCountHint;
+                }
             }
+            top_shader[i].meshes.reserve(top_shader[i].meshCountHint); //reserve memory
         }
-        top_shader[i].meshes.reserve(top_shader[i].meshCountHint); //reserve memory
+    }catch(json::type_error& e){
+        printMessage("counting meshes failed", e.what() , FATALERROR);
     }
+
     printMessage("building Model tree", STATUS);
 
     //load models
@@ -174,13 +205,34 @@ void loadModels(string jsonPath){
 
         Model* newModel = new Model;
         top_model.push_back(newModel);
-        top_model[i]->objectPath = modelJson["models"][i]["path"];
-        top_model[i]->directory = top_model[i]->objectPath.substr(0, top_model[i]->objectPath.find_last_of('/'));
-        top_model[i]->hasPhysics = modelJson["models"][i]["hasPhysics"];
-        top_model[i]->useSinglePrimitive = modelJson["models"][i]["useSinglePrimitive"];
-        top_model[i]->isInstanced = modelJson["models"][i]["isInstanced"];
+
+        //path field
+        try{
+            top_model[i]->objectPath = modelJson["models"][i]["path"];
+        }catch(json::type_error& e){
+            printMessage("path value missing for model " + to_string(i) , FATALERROR);
+        }
 
         printMessage("loading: ", top_model[i]->objectPath.c_str(), " ", STATUS);
+
+        //directory field
+        top_model[i]->directory = top_model[i]->objectPath.substr(0, top_model[i]->objectPath.find_last_of('/'));
+
+        //hasPhysics field
+        try{
+            top_model[i]->hasPhysics = modelJson["models"][i]["hasPhysics"];
+        }catch(json::type_error& e){
+            printMessage("hasPhysics field missing, setting to default (no) ", e.what() , WARNING);
+            top_model[i]->hasPhysics = false;
+        }
+
+        //isInstanced field
+        try{
+            top_model[i]->isInstanced = modelJson["models"][i]["isInstanced"];
+        }catch(json::type_error& e){
+            printMessage("isInstanced field missing, setting to default (no) ", e.what() , WARNING);
+            top_model[i]->isInstanced = false;
+        }
 
         glm::vec3 pos; //out here because the physics code uses it below
         float scale;
@@ -188,37 +240,52 @@ void loadModels(string jsonPath){
 
         if(top_model[i]->isInstanced){
             //load the modelMatrices vector here
-            top_model[i]->modelPositions.reserve(modelJson["models"][i]["pos"].size());
-            top_model[i]->modelMatrices.reserve(modelJson["models"][i]["pos"].size());
-
-            top_model[i]->instanceCount = modelJson["models"][i]["pos"].size()/3;
-            for(uint instanceCounter = 0; !modelJson["models"][i]["pos"][instanceCounter].is_null(); instanceCounter = instanceCounter + 3){
-                glm::vec3 instancePos;
-                instancePos.x = modelJson["models"][i]["pos"][instanceCounter+0];
-                instancePos.y = modelJson["models"][i]["pos"][instanceCounter+1];
-                instancePos.z = modelJson["models"][i]["pos"][instanceCounter+2];
-                glm::mat4 posMatrix  = glm::mat4(1.0);
-                posMatrix = glm::translate(posMatrix, instancePos);
-                //todo: add scaling and rotation
-                top_model[i]->modelPositions.push_back(instancePos);
-                top_model[i]->modelMatrices.push_back(posMatrix);
+            try{
+                top_model[i]->modelPositions.reserve(modelJson["models"][i]["pos"].size());
+                top_model[i]->modelMatrices.reserve(modelJson["models"][i]["pos"].size());
+            }catch(json::type_error& e){
+                printMessage("pos field missing, unable to set size. ", e.what() , ERROR);
+            }
+            try{
+                top_model[i]->instanceCount = modelJson["models"][i]["pos"].size()/3;
+                for(uint instanceCounter = 0; !modelJson["models"][i]["pos"][instanceCounter].is_null(); instanceCounter = instanceCounter + 3){
+                    glm::vec3 instancePos;
+                    instancePos.x = modelJson["models"][i]["pos"][instanceCounter+0];
+                    instancePos.y = modelJson["models"][i]["pos"][instanceCounter+1];
+                    instancePos.z = modelJson["models"][i]["pos"][instanceCounter+2];
+                    glm::mat4 posMatrix  = glm::mat4(1.0);
+                    posMatrix = glm::translate(posMatrix, instancePos);
+                    //todo: add scaling and rotation
+                    top_model[i]->modelPositions.push_back(instancePos);
+                    top_model[i]->modelMatrices.push_back(posMatrix);
+                }
+            }catch(json::type_error& e){
+                printMessage("unable to process instanced position data: " + top_model[i]->objectPath, " ", e.what() , ERROR);
             }
         }else{
             glm::mat4 posMatrix  = glm::mat4(1.0);
-            scale = modelJson["models"][i]["scale"];
-            updateMessage("scale: " + to_string(scale));
+            try{
+                scale = modelJson["models"][i]["scale"];
+                updateMessage("scale: " + to_string(scale));
+
+                rot.x = modelJson["models"][i]["rotquat"][0];
+                rot.y = modelJson["models"][i]["rotquat"][1];
+                rot.z = modelJson["models"][i]["rotquat"][2];
+                rot.w = modelJson["models"][i]["rotquat"][3];
+
+                //pos is declared higher up
+                pos.x = modelJson["models"][i]["pos"][0];
+                pos.y = modelJson["models"][i]["pos"][1];
+                pos.z = modelJson["models"][i]["pos"][2];
+
+            } catch(json::type_error& e){
+                printMessage("position / rotation / scale data missing, using default values (0,0,0) ", e.what() , WARNING);
+                scale = 1;
+                rot = glm::quat(1,0,0,0);
+                pos = glm::vec3(0,0,0);
+            }
             posMatrix = glm::scale(posMatrix, glm::vec3(scale, scale, scale));
-
-            rot.x = modelJson["models"][i]["rotquat"][0];
-            rot.y = modelJson["models"][i]["rotquat"][1];
-            rot.z = modelJson["models"][i]["rotquat"][2];
-            rot.w = modelJson["models"][i]["rotquat"][3];
             posMatrix = glm::mat4_cast(rot) * posMatrix;
-
-            //pos is declared higher up
-            pos.x = modelJson["models"][i]["pos"][0];
-            pos.y = modelJson["models"][i]["pos"][1];
-            pos.z = modelJson["models"][i]["pos"][2];
             posMatrix = glm::translate(posMatrix, pos);
 
             top_model[i]->modelMatrices.push_back(posMatrix);
@@ -246,8 +313,13 @@ void loadModels(string jsonPath){
                     top_shader[j].meshes.push_back(currentMesh);
                     currentMesh->parentModel = top_model[i];
                     currentMesh->parentShader = &top_shader[j];
+                    try{
+                        currentMesh->isInstanced = modelJson["models"][i]["isInstanced"];
+                    }catch(json::type_error& e){
+                        printMessage("isInstanced field missing, assuming (false) ", e.what() , WARNING);
+                        currentMesh->isInstanced = false;
+                    }
 
-                    currentMesh->isInstanced = modelJson["models"][i]["isInstanced"];
                     if(currentMesh->isInstanced){
                         currentMesh->instanceCount = top_model[i]->instanceCount;
                     }
@@ -273,20 +345,34 @@ void loadModels(string jsonPath){
 
         //physics:
         //If mesh physics is enabled, the first root level mesh is the collision object.
-        printMessage("loading physics ", STATUS);
-        if(modelJson["models"][i]["hasPhysics"] == true){
-
+        if(top_model[i]->hasPhysics == true){
+            printMessage("loading physics ", STATUS);
             btTransform transform;
             transform.setIdentity();
             transform.setOrigin(btVector3(pos.x, pos.y, pos.z));
             transform.setRotation(tobt(rot));
-            float mass = modelJson["models"][i]["mass"]; //NOTE: to make an object static, mass and inerta must be set to 0
+
+            //mass field
+            float mass;
+            try{
+                mass = modelJson["models"][i]["mass"]; //NOTE: to make an object static, mass and inerta must be set to 0
+            }catch(json::type_error& e){
+                printMessage("mass field missing, setting to default (0) ", e.what() , WARNING);
+                mass = 0;
+            }
             top_model[i]->mass = mass;
             if(mass != 0)
                  top_model[i]->isDynamic = true;
 
-            float friction = modelJson["models"][i]["friction"];
-            float rotatingFriction = modelJson["models"][i]["rotatingfriction"];
+            float friction, rotatingFriction;
+            try{
+                friction = modelJson["models"][i]["friction"];
+                rotatingFriction = modelJson["models"][i]["rotatingfriction"];
+            }catch(json::type_error& e){
+                printMessage("friction fields missing, setting to default (0) ", e.what() , WARNING);
+                friction = 0;
+                rotatingFriction = 0;
+            }
 
             int numTriangles = top_model[i]->meshes[0]->indices.size() / 3 ;
             uint* triangleIndexBase = &(top_model[i]->meshes[0]->indices[0]);
@@ -296,7 +382,14 @@ void loadModels(string jsonPath){
             btScalar * vertexBase = (btScalar*)&(top_model[i]->meshes[0]->vertices[0]);
             int vertexStride = sizeof(Vertex);
 
-            if(modelJson["models"][i]["useSinglePrimitive"] == true){
+            try{
+                top_model[i]->useSinglePrimitive = modelJson["models"][i]["useSinglePrimitive"];
+            } catch(json::type_error& e){
+                printMessage("useSinglePrimitive field missing, setting to default (false) ", e.what() , WARNING);
+                top_model[i]->useSinglePrimitive = false;
+            }
+
+            if(top_model[i]->useSinglePrimitive == true){
                 string primitiveType = modelJson["models"][i]["primitiveType"];
                 top_model[i]->primitiveType = primitiveType;
 
@@ -325,6 +418,7 @@ void loadModels(string jsonPath){
                     updateMessage(" [invalid primitive passed]");
                     updateMessageType(ERROR);
                 }
+
             }else{
                 //mesh primitive TODO: handle non-static meshes. At the moment, any mesh is created static.
 
@@ -334,6 +428,7 @@ void loadModels(string jsonPath){
                 top_model[i]->collisionShape = new btBvhTriangleMeshShape(indexVertexArrays, useQuantizedAabbCompression);
 
             }
+
 
             top_model[i]->collisionShape->setUserPointer(top_model[i]);
             top_model[i]->collisionShape->setLocalScaling(btVector3(scale, scale, scale));
@@ -580,8 +675,9 @@ void processMesh(Mesh *mesh,aiMesh *impMesh, const aiScene *assimpModel, string 
 
     glBindVertexArray(0);
 }
-/*
+
 //returns -1 if fails, returns 1 if sucussfull
+
 int saveJson(string jsonPath){
     json exportJson;
     //shaders:
@@ -594,7 +690,7 @@ int saveJson(string jsonPath){
     //models:
     for(uint i = 0; i < top_model.size(); i++){
         exportJson["models"][i]["path"] = top_model[i]->objectPath;
-        exportJson["models"][i]["scale"] = top_model[i]->scale.x;
+        exportJson["models"][i]["scale"] = getScale(top_model[i]).x;
         exportJson["models"][i]["isInstanced"] = top_model[i]->isInstanced;
         exportJson["models"][i]["meshCountHint"] = top_model[i]->meshes.size();
 
@@ -611,7 +707,7 @@ int saveJson(string jsonPath){
             exportJson["models"][i]["useSinglePrimitive"] = top_model[i]->useSinglePrimitive;
             if(top_model[i]->useSinglePrimitive){
                 if(top_model[i]->primitiveType == "sphere"){
-                    exportJson["models"][i]["primitiveSize"] = top_model[i]->scale.x;
+                    exportJson["models"][i]["primitiveSize"] = getScale(top_model[i]).x;
                 }else if(top_model[i]->primitiveType == "cylinder"){
                     fprintf(stderr, "\n\n>>>>NEED TO ADD SUPPORT FOR THIS\n\n");
                 }
@@ -622,17 +718,36 @@ int saveJson(string jsonPath){
         for(uint j = 0; j < top_model[i]->meshes.size(); j++){
             exportJson["models"][i]["shaders"][j] = top_model[i]->meshes[j]->parentShader->name;
         }
-
         //instancing fields
         if(!top_model[i]->isInstanced){
-            exportJson["models"][i]["pos"][0] = top_model[i]->pos.x;
-            exportJson["models"][i]["pos"][1] = top_model[i]->pos.y;
-            exportJson["models"][i]["pos"][2] = top_model[i]->pos.z;
+            glm::vec3 pos = getPos(top_model[i]);
+            exportJson["models"][i]["pos"][0] = pos.x;
+            exportJson["models"][i]["pos"][1] = pos.y;
+            exportJson["models"][i]["pos"][2] = pos.z;
+
+            float scale = getScale(top_model[i]).x;
+            exportJson["models"][i]["scale"] = scale;
+
+            glm::quat rot = getRot(top_model[i]);
+            exportJson["models"][i]["rotquat"][0] = rot.x;
+            exportJson["models"][i]["rotquat"][1] = rot.y;
+            exportJson["models"][i]["rotquat"][2] = rot.z;
+            exportJson["models"][i]["rotquat"][3] = rot.w;
         }else{
             for(uint j = 0; j < top_model[i]->modelMatrices.size(); j++){
-                exportJson["models"][i]["pos"][3*j + 0] = top_model[i]->modelPositions[j].x;
-                exportJson["models"][i]["pos"][3*j + 1] = top_model[i]->modelPositions[j].y;
-                exportJson["models"][i]["pos"][3*j + 2] = top_model[i]->modelPositions[j].z;
+                glm::vec3 pos = getPosInstanced(top_model[i], j);
+                exportJson["models"][i]["pos"][3*j + 0] = pos.x;
+                exportJson["models"][i]["pos"][3*j + 1] = pos.y;
+                exportJson["models"][i]["pos"][3*j + 2] = pos.z;
+
+                glm::vec3 scale = getScaleInstanced(top_model[i], j);
+                exportJson["models"][i]["scale"][3*j + 0] = scale.x;
+
+                glm::quat rot = getRotInstanced(top_model[i], j);
+                exportJson["models"][i]["rotquat"][3*j + 0] = rot.x;
+                exportJson["models"][i]["rotquat"][3*j + 1] = rot.y;
+                exportJson["models"][i]["rotquat"][3*j + 2] = rot.z;
+                exportJson["models"][i]["rotquat"][3*j + 3] = rot.w;
             }
         }
     }
@@ -645,7 +760,7 @@ int saveJson(string jsonPath){
     return 0;
 }
 
-*/
+
 unsigned int findTextureID(const char* path){
     for(uint i = 0; i < top_texture.size(); i++){
         if(std::strcmp(top_texture[i].path.c_str(), path) == 0){
@@ -958,7 +1073,26 @@ glm::vec3 getPos(Model* model){
     glm::vec4 perspective;
     glm::decompose(model->modelMatrices[0], scale, rotation, pos, skew, perspective);
     return pos;
+}
 
+glm::vec3 getPosInstanced(Model* model, int instance){
+    glm::vec3 scale;
+    glm::quat rotation;
+    glm::vec3 pos;
+    glm::vec3 skew;
+    glm::vec4 perspective;
+    glm::decompose(model->modelMatrices[instance], scale, rotation, pos, skew, perspective);
+    return pos;
+}
+
+glm::vec3 getScaleInstanced(Model* model, int instance){
+    glm::vec3 scale;
+    glm::quat rotation;
+    glm::vec3 pos;
+    glm::vec3 skew;
+    glm::vec4 perspective;
+    glm::decompose(model->modelMatrices[instance], scale, rotation, pos, skew, perspective);
+    return scale;
 }
 
 glm::vec3 getScale(Model* model){
@@ -978,7 +1112,17 @@ glm::quat getRot(Model* model){
     glm::vec3 skew;
     glm::vec4 perspective;
     glm::decompose(model->modelMatrices[0], scale, rotation, pos, skew, perspective);
-    return scale;
+    return rotation;
+}
+
+glm::quat getRotInstanced(Model* model, int instance){
+    glm::vec3 scale;
+    glm::quat rotation;
+    glm::vec3 pos;
+    glm::vec3 skew;
+    glm::vec4 perspective;
+    glm::decompose(model->modelMatrices[instance], scale, rotation, pos, skew, perspective);
+    return rotation;
 }
 
 void updateScale(Model* model, glm::vec3 newScale){
