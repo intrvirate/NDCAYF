@@ -11,11 +11,14 @@
 #include <sys/time.h>
 #include "util/imgui/imgui.h"
 
+#include <sys/ioctl.h>
+#include <linux/wireless.h>
+
 #include "networkConfig.hpp"
 #include "getLan.hpp"
 #include "client.hpp"
 
-char lo[128];
+struct sockaddr_in lo;
 int DELAY_SECS = 1;
 int DELAY_USECS = 0;
 struct generalPack infoPack = makeBasicPack(INFO);
@@ -30,43 +33,133 @@ struct pingPack
     char data[1000];
 };
 
+//https://gist.github.com/edufelipe/6108057
+int check_wireless(const char* ifname, char* protocol) {
+  int sock = -1;
+  struct iwreq pwrq;
+  memset(&pwrq, 0, sizeof(pwrq));
+  strncpy(pwrq.ifr_name, ifname, IFNAMSIZ);
+
+  if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+    perror("socket");
+    return 0;
+  }
+
+  if (ioctl(sock, SIOCGIWNAME, &pwrq) != -1) {
+    if (protocol) strncpy(protocol, pwrq.u.name, IFNAMSIZ);
+    close(sock);
+    return 1;
+  }
+
+  close(sock);
+  return 0;
+}
+
+
+void getBroadCast(struct sockaddr_in ip, struct in_addr subnet, struct in_addr *broadcastOut)
+{
+    // the only necessary part
+    broadcastOut->s_addr = ip.sin_addr.s_addr | ~subnet.s_addr;
+
+    // for printing
+    char broadcast_address[INET_ADDRSTRLEN];
+
+    char bd[128];
+    strcpy(bd, inet_ntoa(*broadcastOut));
+
+    char ipp[128];
+    strcpy(ipp, inet_ntoa(ip.sin_addr));
+
+    char sb[128];
+    strcpy(sb, inet_ntoa(subnet));
+
+    /*
+    if (inet_ntop(AF_INET, broadcastOut, broadcast_address, INET_ADDRSTRLEN) != NULL) {
+        //printf("Broadcast address of %s with netmask %s is %s\n", ipp, sb, broadcast_address);
+    }
+    else {
+        fprintf(stderr, "Failed converting number to string\n");
+    }
+    */
+
+    //printf("Broadcast address of %s with netmask %s is %s\n", ipp, sb, bd);
+
+}
+
 
 void getInterfaces(struct ifa interfaces[], int *numFaces)
 {
     struct ifaddrs *ifaddr;
     int family, s;
     char host[NI_MAXHOST];
+    bool isLo;
 
     getifaddrs(&ifaddr);
 
     // loops through each element in ifaddr
     while (ifaddr)
     {
+        isLo = false;
         family = ifaddr->ifa_addr->sa_family;
 
 
         // checks if it is the right kind
         if (family == AF_INET) {
-            s = getnameinfo(ifaddr->ifa_ifu.ifu_broadaddr, sizeof(struct sockaddr_in), host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
 
-            if (s != 0) {
-                printf("getnameinfo() failed: %s\n", gai_strerror(s));
-                exit(EXIT_FAILURE);
-            }
+            struct sockaddr_in *ip_raw = (struct sockaddr_in *) ifaddr->ifa_addr;
+            struct sockaddr_in *sub_raw = (struct sockaddr_in *) ifaddr->ifa_netmask;
+
+            // get our ip on this interface
+            char ip[128];
+            strcpy(ip, inet_ntoa(ip_raw->sin_addr));
+            interfaces[*numFaces].ip = ip_raw->sin_addr;
+
+            // get subnet
+            char subnet[128];
+            strcpy(subnet, inet_ntoa(sub_raw->sin_addr));
+            interfaces[*numFaces].subnet = sub_raw->sin_addr;
 
             // checks if lo
-            if (strcmp(ifaddr->ifa_name, "lo") == 0)
-            {
-                strcpy(lo, host);
+            if (strcmp(ifaddr->ifa_name, "lo") == 0) {
+                lo = *ip_raw;
+                isLo = true;
+                interfaces[*numFaces].isLo = true;
+                //printf("lo %s %d\n", ip, *numFaces);
             }
 
-            // adds to the array"before %s
+            // if lo then don't worry about broadcast
+            if (isLo) {
+                interfaces[*numFaces].broadcast = ip_raw->sin_addr;
+
+            }
+            else {
+                getBroadCast(*ip_raw, interfaces[*numFaces].subnet, &interfaces[*numFaces].broadcast);
+
+            }
+
+            char broad[128];
+            strcpy(broad, inet_ntoa(interfaces[*numFaces].broadcast));
+            /*
+            printf("broadcast: %s\n", broad);
+            printf("ip: %s\n", inet_ntoa(interfaces[*numFaces].ip));
+            printf("subnet: %s\n", inet_ntoa(interfaces[*numFaces].subnet));
+            */
+
+            char protocol[IFNAMSIZ]  = {0};
+            if (check_wireless(ifaddr->ifa_name, protocol)) {
+              interfaces[*numFaces].isWifi = true;
+              //printf("interface %s is wireless: %s\n", ifaddr->ifa_name, protocol);
+            }
+            else {
+              interfaces[*numFaces].isWifi = false;
+              //printf("interface %s is not wireless\n", ifaddr->ifa_name);
+            }
+
 
             strcpy(interfaces[*numFaces].name, ifaddr->ifa_name);
-            strcpy(interfaces[*numFaces].ip, host);
             (*numFaces)++;
 
-            //printf("Interface: %-20sBroadcast: %s\n", ifaddr->ifa_name, host);
+            printf("Interface: %s\n\tBroadcast: %s\n\tIP: %s\n\tSubnet: %s\n", ifaddr->ifa_name, broad, ip, subnet);
 
        }
 
@@ -76,6 +169,7 @@ void getInterfaces(struct ifa interfaces[], int *numFaces)
     // free up the space, and return the amount of elements in the array
     freeifaddrs(ifaddr);
 }
+
 
 void broadcastAllInterfaces(int sock, struct ifa interfaces[], int elements, char name[])
 {
@@ -101,9 +195,9 @@ void broadcastAllInterfaces(int sock, struct ifa interfaces[], int elements, cha
 
     for (int i = 0; i < elements; i++)
     {
-        broadcast_addr.sin_addr.s_addr = inet_addr(interfaces[i].ip);
+        broadcast_addr.sin_addr.s_addr = interfaces[i].broadcast.s_addr;
 
-        printf("Broadcast to %-15s %s\n", interfaces[i].name, interfaces[i].ip);
+        printf("Broadcast to %-15s %s\n", interfaces[i].name, inet_ntoa(interfaces[i].broadcast));
 
         // send broadcast
         if (sendto(sock, (const void*)&ping, sizeof(pingPack), 0, (struct sockaddr *)&broadcast_addr, addrlen) < 0)
@@ -114,15 +208,18 @@ void broadcastAllInterfaces(int sock, struct ifa interfaces[], int elements, cha
     printf("\n");
 }
 
-void getResponses(int sock, struct server servers[])
+
+
+void getResponses(int sock, struct server servers[], struct ifa interfaces[], int numFaces)
 {
     int numServers = 0;
     bool waiting = true;
+    bool hasLo;
 
 
     int recvlen;
-    struct sockaddr_in in_addr;
-    socklen_t addrlen = sizeof(in_addr);
+    struct sockaddr_in rec_addr;
+    socklen_t addrlen = sizeof(rec_addr);
 
     struct pingPack buf;
 
@@ -131,19 +228,20 @@ void getResponses(int sock, struct server servers[])
     printf("Going through sock queue...\n");
     while (waiting)
     {
-        recvlen = recvfrom(sock, &buf, sizeof(pingPack), 0, (struct sockaddr *)&in_addr, &addrlen);
+        recvlen = recvfrom(sock, &buf, sizeof(pingPack), 0, (struct sockaddr *)&rec_addr, &addrlen);
+        hasLo = false;
 
 
         // check if we got anything, if not then probably a timeout
         if (recvlen > 0)
         {
             //printf("%s, %s, %d, %ld, %ld\n", buf.key, buf.name, buf.protocol, buf.time.tv_sec, buf.time.tv_usec);
-            char *ip = inet_ntoa(in_addr.sin_addr);
 
             // validate that this is a server
             if(strcmp(buf.key, SUPERSECRETKEY_SERVER) == 0)
             {
-                printf("IP of %s \"%-10s\"", buf.name, ip);
+                printf("IP of %s \"%-10s\"", buf.name, inet_ntoa(rec_addr.sin_addr));
+                //printf("\n ip vs lo %s %s\n", inet_ntoa(rec_addr.sin_addr), inet_ntoa(lo.sin_addr));
 
                 if (numServers != MAXSERVERS)
                 {
@@ -161,18 +259,45 @@ void getResponses(int sock, struct server servers[])
 
                     }
 
-                    // add server info
-                    strcpy(servers[index].routes[servers[index].numRoutes], ip);
-                    memcpy(&servers[index].about, &buf.data, sizeof(struct infoStruct));
-                    servers[index].numRoutes++;
-
-
-                    if (strcmp(ip, lo) == 0)
+                    int ifaIndex = -1;
+                    // if lo then just find the interface that is lo
+                    if (lo.sin_addr.s_addr == rec_addr.sin_addr.s_addr)
                     {
                         servers[index].hasLo = true;
                         servers[index].loIndex = index;
                         printf("\tLO");
+
+                        for (int i = 0; i < numFaces; i++)
+                        {
+                            // weird bug that makes the next interface be lo too
+                            if (interfaces[i].isLo && ifaIndex == -1)
+                            {
+                                ifaIndex = i;
+                                //printf("gt lo %d %s %s\n", i, inet_ntoa(interfaces[i].ip), interfaces[i].isLo ? "t" : "f");
+                            }
+                        }
                     }
+                    else {
+                        // make the broadcast using the subnet of each and see which interface has the same broadcast addr
+                        struct in_addr broadCast;
+                        for (int i = 0; i < numFaces; i++) {
+                            getBroadCast(rec_addr, interfaces[i].subnet, &broadCast);
+                            if (broadCast.s_addr == interfaces[i].broadcast.s_addr) {
+                                //printf("got one\n");
+                                ifaIndex = i;
+
+                            }
+                        }
+                    }
+
+                    if (ifaIndex == -1) {
+                        printf("We have an issue");
+                    }
+
+                    // add server info
+                    servers[index].routes[servers[index].numRoutes] = interfaces[ifaIndex];
+                    memcpy(&servers[index].about, &buf.data, sizeof(struct infoStruct));
+                    servers[index].numRoutes++;
 
                     if (newServer)
                     {
@@ -187,7 +312,7 @@ void getResponses(int sock, struct server servers[])
             }
             else
             {
-                printf("Rando found %s\n", ip);
+                printf("Rando found %s\n", inet_ntoa(rec_addr.sin_addr));
             }
         }
         else
@@ -211,7 +336,7 @@ void printServerList(struct server *list)
             //printf("%d  %d\n", servers[j].hasLo, servers[j].loIndex);
             for (int q = 0; q < list[j].numRoutes; q++)
             {
-                printf("\tFound route \"%s\"", (list[j].routes[q]));
+                printf("\tFound route \"%s\"", inet_ntoa(list[j].routes[q].ip));
                 if (list[j].hasLo && q == list[j].loIndex)
                 {
                     printf("\tLO");
@@ -280,7 +405,7 @@ void getAllServers(struct server servers[])
 
     broadcastAllInterfaces(bcast_sock, interfaces, numFaces, hostname);
 
-    getResponses(bcast_sock, servers);
+    getResponses(bcast_sock, servers, interfaces, numFaces);
 
 
     /*
@@ -317,7 +442,7 @@ void makeServerListWindow(struct server *theList)
 
     ImGui::Begin("Lan View", NULL, window_flags);
     ImGui::Text("All servers:");
-    ImGui::Text("");
+    ImGui::Text(" ");
 
 
 
@@ -330,24 +455,43 @@ void makeServerListWindow(struct server *theList)
             for (int q = 0; q < theList[j].numRoutes; q++)
             {
                 char txt[100];
+                char matchType[2];
+                char connectionType[10];
+
+                char *ip = inet_ntoa(theList[j].routes[q].ip);
 
                 if (theList[j].hasLo && q == theList[j].loIndex)
                 {
-                    sprintf(txt, "%-3s IP %-15s", "LO", (theList[j].routes[q]));
+                    sprintf(txt, "%-3s IP %-15s", "LO", ip);
+                    strcpy(connectionType, "LO   ");
                 }
                 else
                 {
-                    sprintf(txt, "%-3s IP %-15s", "", (theList[j].routes[q]));
+                    sprintf(txt, "%-3s IP %-15s", "", ip);
+
+                    if (theList[j].routes[q].isWifi) {
+                        strcpy(connectionType, "Wifi ");
+                    }
+                    else {
+                        strcpy(connectionType, "Ether");
+                    }
                 }
 
-                sprintf(txt, "%s %-25s %-25s %d/%d %s", txt, theList[j].about.mapName, theList[j].about.gameType, theList[j].about.curPlayers, theList[j].about.maxPlayers, theList[j].about.isCustom ? "C" : "N");
+                if (theList[j].about.isCustom) {
+                    strcpy(matchType, "C");
+                }
+                else {
+                    strcpy(matchType, "N");
+                }
+
+                sprintf(txt, "%s %-25s %-25s %d/%d %s %s", txt, theList[j].about.mapName, theList[j].about.gameType, theList[j].about.curPlayers, theList[j].about.maxPlayers, matchType, connectionType);
 
                 if (ImGui::Button(txt))
                 {
-                    printf("Server %s, IP %s\n", theList[j].name, theList[j].routes[q]);
-                    if (!connectTo(theList[j].routes[q]))
+                    printf("Server %s, IP %s\n", theList[j].name, ip);
+                    if (!connectTo(ip))
                     {
-                        printf("Failed to connect to: %s at %s\n", theList[j].name, theList[j].routes[q]);
+                        printf("Failed to connect to: %s at %s\n", theList[j].name, ip);
                     }
                     else
                     {
@@ -360,7 +504,7 @@ void makeServerListWindow(struct server *theList)
 
 
 
-    ImGui::Text("");
+    ImGui::Text(" ");
 
 
     if (ImGui::Button("Update"))
