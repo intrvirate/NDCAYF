@@ -23,6 +23,10 @@ using namespace std;
 #include "client.hpp"
 #include "clientTCPOOP.hpp"
 
+/**
+ * makes a tcp socket
+ * @return success or not
+ */
 int TCP::makeTCP()
 {
     int success = 0;
@@ -35,6 +39,13 @@ int TCP::makeTCP()
     return success;
 }
 
+/**
+ * the constructor for the tcp thing
+ * @param ip server ip
+ * @param type what we are doing with the tcp socket
+ * @param file filename for uploading
+ * TODO separate the construction from the running of the program
+ */
 TCP::TCP(char* ip, int type, string file)
 {
     addrlen = sizeof(tcpServer);
@@ -205,9 +216,9 @@ bool TCP::waitForKey()
 }
 
 /**
- *
- * @param myfile
- * @return
+ * opens the file and gets the proper info
+ * then makes aboutfile struct and sends it to server
+ * @param myfile the file stream we are working with
  */
 void TCP::sendFileInfo(ifstream &myfile)
 {
@@ -279,7 +290,7 @@ bool TCP::sendNextLine(ifstream &myfile)
  * main loop for sending files
  * assumes the key has been got
  * preps file and sends the first line before entering
- * @return
+ * @return honestly not necessary
  */
 bool TCP::fileSendMain()
 {
@@ -323,7 +334,12 @@ bool TCP::fileSendMain()
 }
 
 
-// makes a packet and fills in most of the data
+/**
+ * makes a tcp struct with the hostname and ptl
+ * and returns, for ease of use
+ * @param ptl what protocol this packet is
+ * @return a struct with its header filled, mostly
+ */
 struct generalTCP TCP::makeBasicTCPPack(int ptl)
 {
     struct generalTCP pack;
@@ -335,6 +351,11 @@ struct generalTCP TCP::makeBasicTCPPack(int ptl)
 }
 
 
+/**
+ * gets the lines of a file by brute force
+ * @param file file we are opening
+ * @return the number of lines in file
+ */
 int TCP::getLines(string file)
 {
     ifstream fileToCount;
@@ -353,6 +374,12 @@ int TCP::getLines(string file)
     return count;
 }
 
+/**
+ * makes the pretty progress bar
+ * stolen from stack overflow btw
+ * @param percent how far along we want this
+ * @param width the max width
+ */
 void TCP::drawProgress(double percent, int width)
 {
     cout << "[";
