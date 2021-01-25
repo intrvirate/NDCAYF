@@ -22,8 +22,10 @@ add_executable(NDCAYF
                 util/networking/getLan.cpp
                 util/networking/client.cpp
                 util/networking/client.hpp
-                util/networking/clientTCP.cpp
-                util/networking/clientTCP.hpp
+                #util/networking/clientTCP.cpp
+                #util/networking/clientTCP.hpp
+                util/networking/clientTCPOOP.cpp
+                util/networking/clientTCPOOP.hpp
                 util/json.hpp
                 util/loadMenu.cpp
                 util/loadMenu.hpp

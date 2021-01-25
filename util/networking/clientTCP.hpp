@@ -3,6 +3,7 @@
 #include <string>
 
 int makeTCP();
+bool tcpMain(char ip[]);
 bool tcpConnect(char ip[]);
 struct generalTCP makeBasicTCPPack(int ptl);
 int getLines(std::string file);

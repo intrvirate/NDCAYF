@@ -51,7 +51,8 @@
 #include "util/networking/networkConfig.hpp"
 #include "util/networking/getLan.hpp"
 #include "util/networking/client.hpp"
-#include "util/networking/clientTCP.hpp"
+//#include "util/networking/clientTCP.hpp"
+#include "util/networking/clientTCPOOP.hpp"
 
 
 using json = nlohmann::json;
@@ -66,9 +67,11 @@ int main()
 {
     if (test_nw)
     {
-        makeTCP();
-        tcpConnect("10.55.20.48");
-        //tcpConnect("169.254.35.35");
+        //makeTCP();
+        //tcpConnect("10.55.20.48");
+        //tcpMain("10.55.22.125");
+        string filename("terrain04.obj");
+        TCP doThing("10.55.22.125", UPLOADFILE, filename);
 
         return 0;
     }

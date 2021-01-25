@@ -24,6 +24,15 @@
 #define NEXTLINE 10
 #define ENDDOWNLOAD 11
 
+#define UPLOADFILE 1
+#define DOWNLOADFILE 2
+#define STREAMMUSIC 3
+#define STREAMVOICE 4
+
+#define POLLOK 0
+#define POLLHUNGUP 1
+#define POLLBAD -1
+
 #define MAP 1
 #define GAMEMODE 2
 #define OBJ 3

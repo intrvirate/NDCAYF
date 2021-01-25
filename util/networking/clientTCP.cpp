@@ -19,7 +19,7 @@
 
 #include "networkConfig.hpp"
 #include "client.hpp"
-#include "clientTCP.hpp"
+#include "clientTCPOOP.hpp"
 
 using namespace std;
 
@@ -87,8 +87,39 @@ void drawProgress(double percent, int width)
 }
 
 
+/**
+ *
+ * @param ip
+ * @return
+ */
 bool tcpConnect(char ip[])
 {
+    hostnameSet();
+    bool success = true;
+    memset(&tcpServer, 0, sizeof(tcpServer));
+    tcpServer.sin_family = AF_INET;
+    tcpServer.sin_addr.s_addr= inet_addr(ip);
+    tcpServer.sin_port =  htons(PORTTCP);
+    makeTCP();
+
+    // try to connect, if yes then send the key
+    if (connect(sockTCP, (struct sockaddr*)&tcpServer, addrlen) < 0)
+    {
+        perror("Connect problems\n");
+        success = false;
+    }
+    else
+    {
+        send(sockTCP, SUPERSECRETKEY_CLIENT, sizeof(SUPERSECRETKEY_CLIENT), 0);
+    }
+
+    return success;
+}
+
+
+bool tcpMain(char ip[])
+{
+    /*
     hostnameSet();
     bool success = true;
     memset(&tcpServer, 0, sizeof(tcpServer));
@@ -102,7 +133,16 @@ bool tcpConnect(char ip[])
         success = false;
     }
 
+
     send(sockTCP, SUPERSECRETKEY_CLIENT, sizeof(SUPERSECRETKEY_CLIENT), 0);
+    */
+    if (!tcpConnect(ip))
+    {
+        printf("tcpError!\n");
+        return false;
+    }
+
+    // init our packet
     struct generalTCP toSend = makeBasicTCPPack(SENDINGFILE);
 
 
@@ -125,33 +165,41 @@ bool tcpConnect(char ip[])
 
     printf("name %s lines %d\n", stuff.name, totalLine);
 
+    // measure the length in time
     struct timeval before;
     struct timeval after;
     struct timeval diff;
     gettimeofday(&before, NULL);
 
+    // for the poll
     struct pollfd pfd;
     pfd.fd = sockTCP;
     pfd.events = POLLIN | POLLHUP;
     pfd.revents = 0;
 
+    // for the progress bar
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
     int barWidth = w.ws_col - 8;
 
     int charsRead = 0;
 
+    // universal
     long count = 0;
     int peek;
     bool done = false;
     bool gotKey = false;
+    int len;
+    // for key
+    char buff[2048];
+
+    // file send specific
     bool  prepFile = false;
     bool sendingFile = false;
     bool waitingForTime = false;
-    char buff[2048];
-    char out[200];
-    int len;
-    string line;
+
+    //string line;
+    //char out[200];
     ifstream myfile;
     while (!done)
     {//(pfd.revents == 0)
