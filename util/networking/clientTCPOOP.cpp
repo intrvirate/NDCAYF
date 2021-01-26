@@ -22,6 +22,7 @@ using namespace std;
 #include "networkConfig.hpp"
 #include "client.hpp"
 #include "clientTCPOOP.hpp"
+#include "songBuffer.hpp"
 
 /**
  * makes a tcp socket
@@ -56,7 +57,7 @@ TCP::TCP(char* ip, int type, string file)
     makeTCP();
 
     // try and connnect to the server
-    if (!tcpConnect(ip))
+    if (!tcpConnect(ip, type))
     {
         printf("tcpError!\n");
         exit(EXIT_FAILURE);
@@ -109,6 +110,7 @@ TCP::TCP(char* ip, int type, string file)
         exit(EXIT_FAILURE);
     }
 }
+
 
 /**
  * inits file send specific vars and such
@@ -374,6 +376,7 @@ int TCP::getLines(string file)
     return count;
 }
 
+
 /**
  * makes the pretty progress bar
  * stolen from stack overflow btw
@@ -399,14 +402,34 @@ void TCP::drawProgress(double percent, int width)
  * @param ip the server ip
  * @return if we did it
  */
-bool TCP::tcpConnect(char ip[])
+bool TCP::tcpConnect(char ip[], int type)
 {
+
+    int port = -1;
+    if (type == UPLOADFILE)
+    {
+        port = PORTTCP_UPLOAD;
+    }
+    else if (type == DOWNLOADFILE)
+    {
+        port = PORTTCP_DOWNLOAD;
+    }
+    else if (type == STREAMMUSIC)
+    {
+        port = PORTTCP_MUSIC;
+    }
+    else if (type == STREAMVOICE)
+    {
+        port = PORTTCP_VOICE;
+    }
+
+
     hostnameSet();
     bool success = true;
     memset(&tcpServer, 0, sizeof(tcpServer));
     tcpServer.sin_family = AF_INET;
     tcpServer.sin_addr.s_addr= inet_addr(ip);
-    tcpServer.sin_port =  htons(PORTTCP);
+    tcpServer.sin_port =  htons(port);
 
     // try to connect, if yes then send the key
     if (connect(sockTCP, (struct sockaddr*)&tcpServer, addrlen) < 0)

@@ -9,7 +9,10 @@
  *
  */
 #define PORT  12345
-#define PORTTCP  54321
+#define PORTTCP_UPLOAD  54321
+#define PORTTCP_DOWNLOAD  54322
+#define PORTTCP_MUSIC  54323
+#define PORTTCP_VOICE  54324
 #define SUPERSECRETKEY_SERVER "ndcayfser"
 #define SUPERSECRETKEY_CLIENT "ndcayfcli"
 #define PONG 1
@@ -23,11 +26,15 @@
 #define SENDINGFILE 9
 #define NEXTLINE 10
 #define ENDDOWNLOAD 11
+#define MORESONG 12
 
 #define UPLOADFILE 1
 #define DOWNLOADFILE 2
 #define STREAMMUSIC 3
 #define STREAMVOICE 4
+
+#define NUM_BUFFERS 32
+#define BUFFER_SIZE 66000
 
 #define POLLOK 0
 #define POLLHUNGUP 1

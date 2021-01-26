@@ -37,7 +37,7 @@ class TCP {
     size_t bufTSize;
 
     int makeTCP();
-    bool tcpConnect(char ip[]);
+    bool tcpConnect(char ip[], int type);
     struct generalTCP makeBasicTCPPack(int ptl);
     int getLines(std::string file);
     void drawProgress(double percent, int width);
