@@ -3,15 +3,32 @@
 #include <string>
 #include <poll.h>
 #include <sys/ioctl.h>
+#include <sys/socket.h>
+
+#include <AL/al.h>
+#include <AL/alc.h>
+#include <AL/alext.h>
+#include <AL/alut.h>
 
 struct generalTCP
 {
     char name[10];
     int protocol;
     int numObjects;
+    size_t dataSize;
     struct timeval time;
     char data[60000];
 };
+
+/*
+struct musicHeader
+{
+    uint8_t channels;
+    int32_t sampleRate;
+    uint8_t bitsPerSample;
+    ALsizei dataSize;
+};
+*/
 
 struct aboutFile
 {
@@ -47,6 +64,9 @@ class TCP {
     void sendFileInfo(std::ifstream &myfile);
     bool sendNextLine(std::ifstream &myfile);
     bool fileSendMain();
+    void musicInit();
+    bool musicGet();
+    void sendPTL(int protocol, int size);
 
 
     // packet we send
@@ -86,6 +106,8 @@ class TCP {
     // file send specific
     bool sendingFile;
     bool waitingForTime;
+
+    // for music streaming
 
 
 };

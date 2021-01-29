@@ -3,32 +3,44 @@
 #include <queue>
 #include "networkConfig.hpp"
 
+
+class Buffer {
+    public:
+        Buffer();
+        int add(char* data, int amount);
+        char* getData();
+        int getSize();
+        bool isFull();
+        void destroy();
+    private:
+        char* buf;
+        int numData;
+        int checkSize(int amount);
+};
+
 // interfaces with others, manages buffers
 class BufferManager {
 
   public:
     BufferManager();
-    int add(void *data, int amount);
-    char* popBuffer();
+    int add(char *data, int amount);
     bool canAddMore();
-    bool isNextFull();
+    bool needMore();
+    bool clearing();
+    bool isNextReady();
     bool isFull();
+    char* getData();
+    int getSize();
+    void noMore();
+    int qSize();
+
+
   private:
-    std::queue<Buffer> bufs;
 
     // manages the data
-    class Buffer {
-        public:
-            Buffer();
-            int add(void* data);
-            char* getData();
-            bool isFull();
-        private:
-            char buf[BUFFER_SIZE];
-            int numData;
-            int checkSize(void* data);
-    };
 
+    std::queue<Buffer> bufs;
+    bool clear;
 };
 
 

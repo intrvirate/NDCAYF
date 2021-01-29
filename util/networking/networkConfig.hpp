@@ -1,6 +1,10 @@
 #ifndef NETWORK_H
 #define NETWORK_H
 #include <glm/glm.hpp>
+#include <AL/al.h>
+#include <AL/alc.h>
+#include <AL/alext.h>
+#include <AL/alut.h>
 
 /*
  * store all network constants here,
@@ -26,7 +30,10 @@
 #define SENDINGFILE 9
 #define NEXTLINE 10
 #define ENDDOWNLOAD 11
-#define MORESONG 12
+#define STARTSTREAM 12
+#define MORESONG 13
+#define SONGHEADER 14
+#define ENDSONG 15
 
 #define UPLOADFILE 1
 #define DOWNLOADFILE 2
@@ -34,6 +41,7 @@
 #define STREAMVOICE 4
 
 #define NUM_BUFFERS 32
+#define MUSIC_BUFFERS 8
 #define BUFFER_SIZE 66000
 
 #define POLLOK 0
@@ -99,4 +107,12 @@ struct server {
     struct infoStruct about;
 };
 
+struct musicHeader
+{
+    uint8_t channels;
+    int32_t sampleRate;
+    uint8_t bitsPerSample;
+    ALsizei dataSize;
+    ALenum format;
+};
 #endif

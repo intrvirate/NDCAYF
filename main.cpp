@@ -71,7 +71,8 @@ int main()
         //tcpConnect("10.55.20.48");
         //tcpMain("10.55.22.125");
         string filename("terrain04.obj");
-        TCP doThing("10.55.22.125", UPLOADFILE, filename);
+        TCP doThing("10.55.22.125", STREAMMUSIC, filename);
+        //TCP doThing("127.0.0.1", STREAMMUSIC, filename);
 
         return 0;
     }

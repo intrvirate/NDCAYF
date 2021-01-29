@@ -2,7 +2,7 @@
 
 cmake_minimum_required(VERSION 3.5)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(OpenGL_GL_PREFERENCE GLVND) #GLVND
 
@@ -13,6 +13,8 @@ find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(assimp REQUIRED)
 find_package(Bullet REQUIRED)
+
+find_package(OpenAL REQUIRED)
 
 
 add_executable(NDCAYF
@@ -26,6 +28,10 @@ add_executable(NDCAYF
                 #util/networking/clientTCP.hpp
                 util/networking/clientTCPOOP.cpp
                 util/networking/clientTCPOOP.hpp
+                util/networking/songBuffer.cpp
+                util/networking/songBuffer.hpp
+                util/networking/stream.hpp
+                util/networking/stream.cpp
                 util/json.hpp
                 util/loadMenu.cpp
                 util/loadMenu.hpp
@@ -100,3 +106,7 @@ target_include_directories(NDCAYF PRIVATE
                           "${PROJECT_BINARY_DIR}"
                           "${PROJECT_SOURCE_DIR}/util"
                           )
+
+
+target_include_directories(NDCAYF PUBLIC ${OpenAL_INCLUDE_DIR})
+target_link_libraries(NDCAYF ${OPENAL_LIBRARY})

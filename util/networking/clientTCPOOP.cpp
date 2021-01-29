@@ -23,6 +23,7 @@ using namespace std;
 #include "client.hpp"
 #include "clientTCPOOP.hpp"
 #include "songBuffer.hpp"
+#include "stream.hpp"
 
 /**
  * makes a tcp socket
@@ -79,7 +80,52 @@ TCP::TCP(char* ip, int type, string file)
     done = false;
 
     bufTSize = sizeof(struct generalTCP);
+    /*
+    ifstream in("main.cpp", std::ios::binary);
 
+
+    printf("start buf tests\n");
+
+    BufferManager man;
+    printf("init\n");
+    char *data1 = new char[6000];
+
+    for (int i = 0; i < 6000; i++)
+    {
+        data1[i] = 'a';
+    }
+
+    for (int i = 0; i < 6000; i++)
+    {
+        cout << data1[i];
+    }
+    cout << endl;
+
+
+    ofstream out2("fakefile2", std::ios::binary);
+    for (int i = 0; i < 11; i++)
+    {
+        if (!in.read(data1, 6000))
+        {
+            perror("uh oh\n");
+        }
+        out2.write(data1, 6000);
+        man.add(data1, 6000);
+    }
+    out2.close();
+    in.close();
+    ofstream out("fakefile", std::ios::binary);
+    printf("added\n");
+    printf("Status: %s %s %s\n", man.canAddMore() ? "true" : "false", man.isNextReady() ? "true" : "false", man.isFull() ? "true" : "false");
+
+    char* datas = man.getData();
+    out.write(datas, 66000);
+    out.close();
+
+
+    printf("end buf tests\n");
+    exit(EXIT_FAILURE);
+    */
 
     // verify they are server
     if (!TCP::waitForKey())
@@ -102,7 +148,9 @@ TCP::TCP(char* ip, int type, string file)
     }
     else if (type == STREAMMUSIC)
     {
+        musicInit();
         printf("Streaming music\n");
+        musicGet();
     }
     else if (type == STREAMVOICE)
     {
@@ -144,6 +192,16 @@ void TCP::fileSendInit()
     waitingForTime = false;
 }
 
+
+/**
+ * stuff thats needed
+ * @return
+ */
+void TCP::musicInit()
+{
+
+}
+
 /**
  * waits for poll to trigger, then error checks, and sets the buf packet
  * 0 for fine, 1 for hung up and -1 for bad
@@ -162,6 +220,7 @@ int TCP::getFromPoll(bool waitForFill)
         if (peek == 0)
         {
             printf("they hung up\n");
+            //exit(EXIT_FAILURE);
             return POLLHUNGUP;
         }
 
@@ -199,6 +258,8 @@ bool TCP::waitForKey()
     bool waiting = true;
     bool success = false;
     char buff[2048];
+    int tries = 10000;
+    printf("waiting for key\n");
     while (waiting)
     {
         if (getFromPoll(false) == 0)
@@ -210,6 +271,12 @@ bool TCP::waitForKey()
                 waiting = false;
                 printf("Got the key\n");
             }
+        }
+        //tries--;
+        if (tries == 0)
+        {
+            send(sockTCP, SUPERSECRETKEY_CLIENT, sizeof(SUPERSECRETKEY_CLIENT), 0);
+            tries = 10000;
         }
     }
 
@@ -288,6 +355,7 @@ bool TCP::sendNextLine(ifstream &myfile)
     }
 }
 
+
 /**
  * main loop for sending files
  * assumes the key has been got
@@ -333,6 +401,172 @@ bool TCP::fileSendMain()
     }
 
     return true;
+}
+
+
+/**
+ * main loop for sending files
+ * assumes the key has been got
+ * preps file and sends the first line before entering
+ * @return honestly not necessary
+ */
+bool TCP::musicGet()
+{
+    ofstream myfile;
+    ofstream myfile2;
+    string thing2("out2.wav");
+    myfile2.open(thing2, ios::binary);
+    twitchStreamer* player;
+
+    bool done = false;
+    queue<BufferManager> bufs;
+    struct musicHeader header;
+    size_t cursor = 0;
+
+    sendPTL(STARTSTREAM, 0);
+    bool firstSong = true;
+    sendingFile = true;
+    bool requested = false;
+    bool havePlayer = false;
+
+    printf("starting\n");
+    while (!done)
+    {
+        if (getFromPoll(true) == 0)
+        {
+            if (bufT.protocol == SONGHEADER)
+            {
+                // make audio player
+                if (firstSong)
+                {
+                    bufs.emplace();
+
+
+                    char temp[bufT.dataSize];
+                    firstSong = false;
+                    memcpy(&header, &bufT.data, sizeof(struct musicHeader));
+                    memcpy(&temp, &bufT.data[sizeof(struct musicHeader)], bufT.dataSize);
+                    myfile2.write(temp, bufT.dataSize);
+                    printf("channels %d, sampleRate %d, bps %d, size %d\n", header.channels, header.sampleRate, header.bitsPerSample, header.dataSize);
+
+                    /*
+                    header.channels = 2;
+                    header.sampleRate = 44100;
+                    header.bitsPerSample = 16;
+                    header.dataSize = 39358464;
+                    header.format = AL_FORMAT_STEREO16;
+                    */
+                }
+                else
+                {
+                    // add buf to end
+                    bufs.emplace();
+                }
+                requested = false;
+                // do stuff
+            }
+            else if (bufT.protocol == MORESONG)
+            {
+                // check that we are sending a file and that they want the next line
+                cursor += bufT.dataSize;
+                myfile2.write(bufT.data, bufT.dataSize);
+                myfile2.flush();
+                bufs.back().add(bufT.data, bufT.dataSize);
+                //printf("in size %d\n", bufT.dataSize);
+
+                if (bufs.back().needMore())
+                {
+                    sendPTL(MORESONG, cursor);
+                    //printf("request\n");
+                    requested = true;
+                }
+                else
+                {
+                    // we will request more later
+                    requested = false;
+                }
+
+            }
+            else if (bufT.protocol == ENDSONG)
+            {
+                printf("in size %d\n", bufT.dataSize);
+                myfile2.write(bufT.data, bufT.dataSize);
+                myfile2.flush();
+                cursor += bufT.dataSize;
+                bufs.back().add(bufT.data, bufT.dataSize);
+                bufs.back().noMore();
+                sendPTL(ENDSONG, 0);
+            }
+        }
+        // do music code
+
+        // request more if we haven't,
+        // once song finishes we won't recieve anymore for this song so this wont get called
+        if (bufs.front().needMore() && !requested)
+        {
+            sendPTL(MORESONG, cursor);
+            //printf("request\n");
+            requested = true;
+        }
+
+        if (bufs.front().qSize() > 10 && !havePlayer)
+        {
+            player = new twitchStreamer(header, &bufs.front());
+            havePlayer = true;
+            printf("asdf\n");
+        }
+
+        // and we need more
+        /*
+        printf("num: %d, q: %d\n", cursor);
+        if (!firstSong && bufs.front().isNextReady())
+        {
+            printf("num: %d, q: %d\n", cursor, bufs.front().qSize());
+            //int size = bufs.front().getSize();
+            //char* theData = bufs.front().getData();
+            //myfile2.write(theData, size);
+        }
+        */
+
+        if (havePlayer)
+        {
+            if (player->playLoop())
+            {
+                //it work
+            }
+            else
+            {
+                printf("done");
+                done = true;
+                // remove the first element, so the next in line becomes cur
+                bufs.pop();
+
+                // destroy, then replace
+                player->destroy();
+                //player = new twitchStreamer(header, &bufs.front());
+            }
+        }
+    }
+    myfile2.close();
+
+    delete player;
+
+    printf("exit\n");
+    close(sockTCP);
+    return true;
+}
+
+
+void TCP::sendPTL(int protocol, int size)
+{
+    toSend.protocol = protocol;
+    toSend.dataSize = size;
+
+    // send
+    if (send(sockTCP, (const void*)&toSend, sizeof(struct generalTCP), 0) < 0)
+    {
+        perror("send wackiness");
+    }
 }
 
 
@@ -439,6 +673,7 @@ bool TCP::tcpConnect(char ip[], int type)
     }
     else
     {
+        printf("sending key\n");
         send(sockTCP, SUPERSECRETKEY_CLIENT, sizeof(SUPERSECRETKEY_CLIENT), 0);
     }
 
