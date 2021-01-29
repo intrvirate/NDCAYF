@@ -68,8 +68,11 @@ add_executable(NDCAYF
                 util/editor/browser.hpp
                 util/render/skybox.cpp
                 util/render/skybox.hpp
+                util/CircBuffer/CircBuffer.hpp
+                util/CircBuffer/CircBuffer.cpp
 
-#IMGUI files. There is certainly a better way to do this than listing them *all* here, but it works.
+# IMGUI files. There is certainly a better way to do this than listing them
+# *all* here, but it works.
                 util/imgui/imgui.h
                 util/imgui/imgui.cpp
                 util/imgui/imconfig.h
