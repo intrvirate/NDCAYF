@@ -42,6 +42,7 @@
 
 #define NUM_BUFFERS 32
 #define MUSIC_BUFFERS 8
+#define PACKET_DATA 6000
 #define BUFFER_SIZE 66000
 
 #define POLLOK 0

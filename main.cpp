@@ -33,6 +33,8 @@
 #include "util/object/object.h"
 #include "util/editor/editor.hpp"
 
+#include "util/CircBuffer/CircBuffer.hpp"
+
 #include "util/bulletDebug/collisiondebugdrawer.hpp"
 #include "BulletCollision/NarrowPhaseCollision/btRaycastCallback.h"
 
@@ -70,9 +72,19 @@ int main()
         //makeTCP();
         //tcpConnect("10.55.20.48");
         //tcpMain("10.55.22.125");
-        string filename("terrain04.obj");
-        TCP doThing("10.55.22.125", STREAMMUSIC, filename);
+        //string filename("terrain04.obj");
+        //TCP doThing("10.55.22.125", STREAMMUSIC, filename);
         //TCP doThing("127.0.0.1", STREAMMUSIC, filename);
+
+        CircBuffer buf(6000, 32, 66000);
+        char* cow = new char[6000];
+        memset(cow, 1, 6000);
+        cow[5999] = '\0';
+        buf.add(cow);
+        buf.add(cow);
+        cout << "[" << buf.getData() << "]" << endl;
+        printf("len %d\n", strlen(buf.getData()));
+
 
         return 0;
     }

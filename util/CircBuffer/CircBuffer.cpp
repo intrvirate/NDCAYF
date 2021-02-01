@@ -18,20 +18,34 @@ CircBuffer::CircBuffer(int packet_size, int packet_count, int fetch_size)
     _buffer_size = packet_size * packet_count;
 }
 
+
 /**
  * Adds data to the revolving buffer
  * @param data the pointer of the start of the packet to add
+ * @param data_size the amount of data we are adding
  */
-int CircBuffer::add(char* data)
+void CircBuffer::add(char* data, int data_size)
 {
-    uintptr_t index = (uintptr_t) _buffer + _add_position * _packet_size;
-    memcpy(&_buffer[index], data, _packet_size);
+    int index = _add_position * data_size;
+    memcpy(&_buffer[index], data, data_size);
+
+    if (data_size != _packet_size)
+        memset(&_buffer[index + data_size], 0, _packet_size - data_size);
+
 
     if (++_add_position >= _packet_count)
     {
         _add_position = 0;
     }
-    return 0;
+}
+
+/**
+ * Adds data to the revolving buffer, assumes adds normal amount
+ * @param data the pointer of the start of the packet to add
+ */
+void CircBuffer::add(char* data)
+{
+    add(data, _packet_size);
 }
 
 /**

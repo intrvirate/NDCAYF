@@ -30,6 +30,8 @@ add_executable(NDCAYF
                 util/networking/clientTCPOOP.hpp
                 util/networking/songBuffer.cpp
                 util/networking/songBuffer.hpp
+                util/CircBuffer/CircBuffer.hpp
+                util/CircBuffer/CircBuffer.cpp
                 util/networking/stream.hpp
                 util/networking/stream.cpp
                 util/json.hpp
