@@ -252,11 +252,10 @@ int main()
 
     (char)number;
 
-    int GLFWinitValue = glfwInit();
-    if( !GLFWinitValue )
+    glfwSetErrorCallback(glfw_error_callback);
+    if( !glfwInit() )
     {
-        fprintf( stderr, "Failed to initialize GLFW. \nglfwInit()error # =" );
-        fprintf(stderr, "%i", GLFWinitValue);
+        fprintf( stderr, "Failed to initialize GLFW.");
         getchar();
         return -1;
     };
@@ -854,3 +853,7 @@ void runTransitionFunctions(){
     }
 }
 
+void glfw_error_callback(int error, const char* description)
+{
+    fprintf(stderr, "GLFW Error: %s\n", description);
+}
