@@ -164,6 +164,7 @@ struct Model {
 
 void loadModels(string jsonPath); //loads models from a json file
 void unloadModels();
+void clearWorldPointers();
 collisionMasks getCollisionGroupByString(string str);
 collisionGroups getCollisionMaskByString(string str);
 void processMesh(Mesh *mesh, aiMesh *impMesh, const aiScene *assimpModel, string directory);

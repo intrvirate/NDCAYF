@@ -19,6 +19,7 @@
 #include "util/object/object.h"
 #include "util/editor/browser.hpp"
 
+void clearEditorPointers();
 void editorTranslateY(int direction);
 void editorRotateY(int direction);
 void editorScale(int direction);

@@ -326,7 +326,6 @@ int main()
     loadModels("gamedata/world1.json");
     //loadModels("gamedata/scratchpadWorld.json");
     //loadModels("testSaveWorld.json");
-    InitializePhysicsWorld();
 
     load3DShaders();
     load3DBuffers();
@@ -604,8 +603,9 @@ int main()
             ImGui::NewFrame();
 
             //Properties edit window
+fprintf(stderr, "got to drawEditor");
             drawEditor();
-
+fprintf(stderr, "got past drawEditor");
             drawObjects();
             debugDraw.draw();
             renderSkybox();
@@ -797,7 +797,6 @@ void leavePlay(){
 void leaveLegacy(){
     fprintf(stderr, "left legacy\n");
     loadModels("gamedata/scratchpadWorld.json");
-
 
 
 }

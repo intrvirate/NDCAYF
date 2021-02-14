@@ -37,6 +37,18 @@ float scaleIncrement = 0.01;
 bool needSave = false;
 bool needOpen = false;
 
+//clears pickedModel and cursoredModel.
+//ueed when the engine switches worlds,
+//causing these pointers to become invalid.
+void clearEditorPointers(){
+    pickedModel = NULL;
+    cursoredModel = NULL;
+    needSave = false;
+    needOpen = false;
+    modelName = "";
+    cursoredModelName = "";
+}
+
 void editorTranslateY(int direction)
 {
     if (pickedModel != NULL)
@@ -91,15 +103,20 @@ void draw3dCursor()
     cameraPos.y+cameraFront.y*100, cameraPos.z+cameraFront.z*100);
 
     btVector3 blue(0.1, 0.3, 0.9);
-
+fprintf(stderr, "1");
     //at origin
     dynamicsWorld->getDebugDrawer()->drawSphere(btVector3(0,0,0), 0.5, blue);
+    fprintf(stderr, "2");
     btCollisionWorld::ClosestRayResultCallback closestResults(from, to);
+    fprintf(stderr, "3");
     closestResults.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
+    fprintf(stderr, "4");
     closestResults.m_collisionFilterGroup = COL_SELECTER;
+    fprintf(stderr, "5");
     closestResults.m_collisionFilterMask = COL_SELECT_RAY_COLLIDES_WITH;
 
     dynamicsWorld->rayTest(from, to, closestResults);
+
     if (closestResults.hasHit() && !isMouseVisable())
     {
         cursoredModel = ((Model *)closestResults.m_collisionObject->\

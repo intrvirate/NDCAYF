@@ -23,6 +23,9 @@
 #include "collisionMaskClasses.hpp"
 #include "object_gl.h"
 
+//files with clearPointers functions that need to be called by unloadWorld:
+#include "util/editor/editor.hpp"
+
 using namespace std;
 using json = nlohmann::json;
 
@@ -386,6 +389,7 @@ void loadModels(string jsonPath){
             dynamicsWorld->addRigidBody(top_model[i]->body, top_model[i]->origionalCollisionGroup, top_model[i]->origionalCollisionMask);
         }
         updateMessageType(SUCCESS);
+        InitializePhysicsWorld(); //gravity, debugDrawer, and such
     }
 }
 
@@ -461,7 +465,15 @@ void unloadModels(){
     solver = new btSequentialImpulseConstraintSolver;
     dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
 
+    clearWorldPointers(); //set any pointers used by higher level code that
+                          //refer to parts of the render tree to NULL, avoiding crashes
 
+
+}
+
+void clearWorldPointers(){
+
+    clearEditorPointers();
 }
 
 //groups
