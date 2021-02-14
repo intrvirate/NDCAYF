@@ -30,6 +30,7 @@ Lightweight first person shooter focused on multiplayer LAN-based gameplay, and 
 * assimp
 * bullet
 * glm
+* openal (freealut on ar(ch|tix)linux)
 
 ## Linux Installation:
 1. Clone this git repo

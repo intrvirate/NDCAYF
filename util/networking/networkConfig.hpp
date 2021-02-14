@@ -2,12 +2,6 @@
 #define NETWORK_H
 #include <glm/glm.hpp>
 
-/*
- * store all network constants here,
- * or elsewhere once integrated into
- * the main code, ikc
- *
- */
 #define PORT  12345
 #define SUPERSECRETKEY_SERVER "ndcayfser"
 #define SUPERSECRETKEY_CLIENT "ndcayfcli"
@@ -18,6 +12,7 @@
 #define CONNECT 5
 #define MOVE 6
 #define DUMP 7
+#define EDIT 8
 
 #define IPLEN 30
 
