@@ -34,8 +34,8 @@ float yRotateIncrement = 0.261799387799;
 
 float scaleIncrement = 0.01;
 
-bool needSave = true;
-bool needOpen = true;
+bool needSave = false;
+bool needOpen = false;
 
 void editorTranslateY(int direction)
 {
@@ -197,10 +197,10 @@ void drawEditor()
 
         if (pickedModel != NULL || cursoredModel != NULL)
         {
-            windowSize = ImVec2(ImGui::GetFontSize() * 20.0f, 90);
+            windowSize = ImVec2(ImGui::GetFontSize() * 15.0f, 90);
         } else
         {
-            windowSize = ImVec2(ImGui::GetFontSize() * 20.0f, 0);
+            windowSize = ImVec2(ImGui::GetFontSize() * 15.0f, 0);
         }
         ImGui::SetNextWindowSize(windowSize);
         ImGui::SetNextWindowPos(ImVec2(25.0f, 25.0f));
@@ -219,8 +219,8 @@ void drawEditor()
         {
             ImGui::Text("Picked:");
             ImGui::SameLine();
-            ImGui::Text(modelName.c_str());
-            ImGui::Text(scrollModeText.c_str());
+            ImGui::Text("%s",modelName.c_str());
+            ImGui::Text("%s",scrollModeText.c_str());
 
             if (modelDynamic)
             {
@@ -231,10 +231,10 @@ void drawEditor()
             }
         } else if (cursoredModel != NULL)
         {
-            ImGui::Text("Cursored:");
+            ImGui::Text("obj:");
             ImGui::SameLine();
-            ImGui::Text(cursoredModelName.c_str());
-            ImGui::Text(scrollModeText.c_str());
+            ImGui::Text("%s",cursoredModelName.c_str());
+            ImGui::Text("%s",scrollModeText.c_str());
 
             if (cursoredModelDynamic)
             {
@@ -242,6 +242,18 @@ void drawEditor()
             } else
             {
                 ImGui::Text("Is Static");
+            }
+        }else{
+            //show save/load buttons only when escaped
+            if(ImGui::Button("save world"))
+            {
+                needSave = true;
+                hasSaved = false;
+            }
+            if(ImGui::Button("open world"))
+            {
+                needOpen = true;
+                hasOpened = false;
             }
         }
         ImGui::End();

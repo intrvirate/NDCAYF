@@ -31,6 +31,7 @@
 #include "util/globalStateHandlers.hpp"
 
 #include "util/object/object.h"
+#include "util/object/object_gl.h"
 #include "util/editor/editor.hpp"
 
 #include "util/bulletDebug/collisiondebugdrawer.hpp"
@@ -251,9 +252,11 @@ int main()
 
     (char)number;
 
-    if( !glfwInit() )
+    int GLFWinitValue = glfwInit();
+    if( !GLFWinitValue )
     {
-        fprintf( stderr, "Failed to initialize GLFW\n" );
+        fprintf( stderr, "Failed to initialize GLFW. \nglfwInit()error # =" );
+        fprintf(stderr, "%i", GLFWinitValue);
         getchar();
         return -1;
     };
@@ -321,9 +324,9 @@ int main()
 
 //=========== RENDER =========================================================
 
-    //loadModels("gamedata/world1.json");
+    loadModels("gamedata/world1.json");
     //loadModels("gamedata/scratchpadWorld.json");
-    loadModels("testSaveWorld.json");
+    //loadModels("testSaveWorld.json");
     InitializePhysicsWorld();
 
     load3DShaders();
@@ -604,7 +607,6 @@ int main()
             //Properties edit window
             drawEditor();
 
-
             drawObjects();
             debugDraw.draw();
             renderSkybox();
@@ -773,8 +775,8 @@ void enterPlay(){
 }
 void enterLegacy(){
     fprintf(stderr, "entered legacy\n");
-    saveJson("testSaveWorld.json");
-
+    //saveJson("testSaveWorld.json");
+    unloadModels();
 }
 
 void leaveMenu(){
@@ -795,6 +797,9 @@ void leavePlay(){
 }
 void leaveLegacy(){
     fprintf(stderr, "left legacy\n");
+    loadModels("gamedata/scratchpadWorld.json");
+
+
 
 }
 
