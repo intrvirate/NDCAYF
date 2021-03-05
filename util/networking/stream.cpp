@@ -130,20 +130,88 @@ void twitchStreamer::update_stream()
 
 
 /**
+ * removes uesd buffers
+ */
+void twitchStreamer::clean()
+{
+    ALint buffersProcessed = 0;
+    alCall(alGetSourcei, _source, AL_BUFFERS_PROCESSED, &buffersProcessed);
+
+    if(buffersProcessed <= 0)
+        return;
+
+    ALuint buffer;
+    alCall(alSourceUnqueueBuffers, _source, 1, &buffer);
+}
+
+/**
+ * removes a buffer
+ *
+ */
+void twitchStreamer::addBuffer(char* data)
+{
+
+    ALint buffersProcessed = 0;
+    alCall(alGetSourcei, _source, AL_BUFFERS_PROCESSED, &buffersProcessed);
+
+    ALuint buffer;
+    // remove a buffer if we can, other wise just set to the next
+    if(buffersProcessed <= 0)
+        alCall(alSourceUnqueueBuffers, _source, 1, &buffer);
+    else
+    {
+        buffer = _buffers[_curBuffer];
+        _curBuffer++;
+    }
+
+
+    alCall(alBufferData, buffer, AL_FORMAT_STEREO16, data, BUFFER_SIZE, _header.sampleRate);
+    alCall(alSourceQueueBuffers, _source, 1, &buffer);
+}
+
+int twitchStreamer::getNumBuffers()
+{
+    ALint numBuf;
+    alCall(alGetSourcei, _source, AL_BUFFERS_QUEUED, &numBuf);
+    return (int)numBuf;
+}
+
+void twitchStreamer::play()
+{
+    alCall(alSourcePlay, _source);
+
+    _state = AL_PLAYING;
+}
+
+void twitchStreamer::pause()
+{
+    alCall(alSourcePause, _source);
+
+    _state = AL_PAUSED;
+}
+
+ALint twitchStreamer::getState()
+{
+    alCall(alGetSourcei, _source, AL_SOURCE_STATE, &_state);
+    return _state;
+}
+
+void twitchStreamer::setHead(struct musicHeader theHead)
+{
+    _header = theHead;
+}
+
+
+
+/**
  * makes a audio player
  * @param head the music header info
  * @param buff a buffer with atleast 8 buffers
  */
-twitchStreamer::twitchStreamer(struct musicHeader head, BufferManager *buff, char* temp)
+twitchStreamer::twitchStreamer()
 {
-    std::string thing("sout.wav");
-    _file = new std::ofstream();
-    _file->open(thing, std::ios::binary);
-    _file->write(temp, 44);
-
-    _header = head;
-    _buff = buff;
     _cursor = BUFFER_SIZE * MUSIC_BUFFERS;
+    _curBuffer = 0;
     DONE = false;
 
 
@@ -171,14 +239,6 @@ twitchStreamer::twitchStreamer(struct musicHeader head, BufferManager *buff, cha
 
     alCall(alGenBuffers, MUSIC_BUFFERS, &_buffers[0]);
 
-
-    for(std::size_t i = 0; i < MUSIC_BUFFERS; ++i)
-    {
-        //alCall(alBufferData, buffers[i], network.gFormat(), &soundData[i * BUFFER_SIZE], BUFFER_SIZE, network.gSampleRate());
-        // prime the buffers, starts with 4, each is 66000 big
-        alCall(alBufferData, _buffers[i], AL_FORMAT_STEREO16, _buff->getData(), BUFFER_SIZE, _header.sampleRate);
-    }
-
     alCall(alGenSources, 1, &_source);
     alCall(alSourcef, _source, AL_PITCH, 1);
     alCall(alSourcef, _source, AL_GAIN, 1.0f);
@@ -188,32 +248,53 @@ twitchStreamer::twitchStreamer(struct musicHeader head, BufferManager *buff, cha
 
     alCall(alSourceQueueBuffers, _source, MUSIC_BUFFERS, &_buffers[0]);
 
-    alCall(alSourcePlay, _source);
-
-    _state = AL_PLAYING;
+    _streamStatus = 0;
 
 }
 
-bool twitchStreamer::playLoop()
+
+int twitchStreamer::playLoop()
 {
     //std::cout << "q: " << _buff->qSize() << std::endl;
     if (!DONE)
         update_stream();
 
-    if (_buff->qSize() < 10)
+    if (_buff->qSize() <= 1)
+    {
+        std::cout << "aaaaaaaaaaaaa" << "\r";
+        std::cout.flush();
+        alCall(alSourcePause, _source);
+        _streamStatus = -1;
+    }
+    else if (_buff->qSize() < 10)
     {
         std::cout << "Q low: " << _buff->qSize() << "\r";
         std::cout.flush();
     }
     else
     {
+        if (_state != AL_PLAYING)
+        {
+            alCall(alSourcePause, _source);
+            _streamStatus = 0;
+        }
+
         std::cout << "Q good: " << _buff->qSize() << "\r";
         std::cout.flush();
     }
 
     alCall(alGetSourcei, _source, AL_SOURCE_STATE, &_state);
 
-    return _state == AL_PLAYING;
+    if (_state != AL_PLAYING && _streamStatus == -1)
+    {
+        _streamStatus = -2;
+    }
+    else if (_state != AL_PLAYING)
+    {
+        _streamStatus = -3;
+    }
+
+    return _streamStatus;
 }
 
 void twitchStreamer::destroy()

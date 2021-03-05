@@ -41,7 +41,7 @@
 #define STREAMVOICE 4
 
 #define NUM_BUFFERS 32
-#define MUSIC_BUFFERS 8
+#define MUSIC_BUFFERS 25
 #define PACKET_DATA 6000
 #define BUFFER_SIZE 66000
 

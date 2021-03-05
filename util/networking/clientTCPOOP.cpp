@@ -17,6 +17,11 @@
 #include <fstream>
 #include <string>
 
+#include <AL/al.h>
+#include <AL/alc.h>
+#include <AL/alext.h>
+#include <AL/alut.h>
+
 using namespace std;
 
 #include "networkConfig.hpp"
@@ -422,12 +427,15 @@ bool TCP::musicGet()
     string thing("sout.wav");
     myfile.open(thing, ios::binary);
     myfile2.open(thing2, ios::binary);
-    twitchStreamer* player;
+    twitchStreamer player;
+    player.getNumBuffers();
 
     bool done = false;
-    //queue<BufferManager> bufs;
-    queue<vector<char>> bufs;
-    bufs.reserve(:
+    queue<BufferManager> bufs;
+    char current[BUFFER_SIZE];
+    size_t curSize = 0;
+    //queue<vector<char>> bufs;
+    //bufs.reserve(:
     struct musicHeader header;
     size_t cursor = 0;
     char temp[44];
@@ -439,6 +447,8 @@ bool TCP::musicGet()
     bool havePlayer = false;
     bool actuallyDone = false;
 
+    int numBuffers = 0;
+
     printf("starting\n");
     while (!done)
     {
@@ -449,11 +459,12 @@ bool TCP::musicGet()
                 // make audio player
                 if (firstSong)
                 {
-                    bufs.emplace();
+                    //bufs.emplace();
 
 
                     firstSong = false;
                     memcpy(&header, &bufT.data, sizeof(struct musicHeader));
+                    player.setHead(header);
                     //memcpy(&temp, &bufT.data[sizeof(struct musicHeader)], bufT.dataSize);
                     //myfile2.write(temp, bufT.dataSize);
                     printf("channels %d, sampleRate %d, bps %d, size %d\n", header.channels, header.sampleRate, header.bitsPerSample, header.dataSize);
@@ -461,7 +472,8 @@ bool TCP::musicGet()
                 else
                 {
                     // add buf to end
-                    bufs.emplace();
+                    //bufs.emplace();
+                    //dump final info into the stream
                 }
                 requested = false;
                 // do stuff
@@ -472,6 +484,7 @@ bool TCP::musicGet()
                 cursor += bufT.dataSize;
                 //myfile2.write(bufT.data, bufT.dataSize);
                 //myfile2.flush();
+                /*
                 bufs.back().add(bufT.data, bufT.dataSize);
                 //printf("in size %d\n", bufT.dataSize);
 
@@ -486,6 +499,23 @@ bool TCP::musicGet()
                     // we will request more later
                     requested = false;
                 }
+                */
+
+                memcpy(&current[curSize], bufT.data, bufT.dataSize);
+                curSize += bufT.dataSize;
+
+                if (curSize != BUFFER_SIZE)
+                {
+                    // we want to fill this up
+                    sendPTL(MORESONG, cursor);
+                    requested = true;
+                }
+                else
+                {
+                    // wait
+                    requested = false;
+                }
+
 
             }
             else if (bufT.protocol == ENDSONG)
@@ -495,28 +525,50 @@ bool TCP::musicGet()
                 actuallyDone = true;
                 //myfile2.flush();
                 cursor += bufT.dataSize;
-                bufs.back().add(bufT.data, bufT.dataSize);
-                bufs.back().noMore();
+
+                memcpy(&current[curSize], bufT.data, bufT.dataSize);
+                curSize += bufT.dataSize;
+
+                // clear out the rest of buffer
+                memset(&current[curSize], 0, BUFFER_SIZE - curSize);
+
+                //bufs.back().add(bufT.data, bufT.dataSize);
+                //bufs.back().noMore();
                 sendPTL(ENDSONG, 0);
             }
         }
         // do music code
+        int numBuffers = player.getNumBuffers();
+        ALint state = player.getState();
 
-        // request more if we haven't,
-        // once song finishes we won't recieve anymore for this song so this wont get called
-        if (bufs.front().needMore() && !requested)
+        //player.clean();
+
+        // make sure we are as full as can be
+        if (numBuffers < (MUSIC_BUFFERS - 1) && !requested)
         {
             sendPTL(MORESONG, cursor);
             //printf("request\n");
             requested = true;
         }
 
-        if (bufs.front().qSize() > 13 && !havePlayer)
+        if (numBuffers < MUSIC_BUFFERS && curSize == BUFFER_SIZE)
         {
-            player = new twitchStreamer(header, &bufs.front(), temp);
-            havePlayer = true;
+            player.addBuffer(current);
+            curSize = 0;
+        }
+
+        if ((numBuffers > 10 && state == AL_PAUSED) || actuallyDone)
+        {
+            player.play();
             printf("============START===========\n");
         }
+
+        if (numBuffers < 2 && state == AL_PLAYING)
+        {
+            player.pause();
+            printf("============START===========\n");
+        }
+
 
         // and we need more
         /*
@@ -530,36 +582,30 @@ bool TCP::musicGet()
         }
         */
 
-        if (havePlayer)
+        if (actuallyDone && state == AL_PAUSED)
         {
-            if (player->playLoop())
+            if (actuallyDone)
             {
-                //it work
+                printf("done\n");
             }
             else
             {
-                if (actuallyDone)
-                {
-                    printf("done\n");
-                }
-                else
-                {
-                    printf("we broke it\n");
-                }
-                actuallyDone = false;
-                done = true;
-                // remove the first element, so the next in line becomes cur
-                bufs.pop();
-
-                // destroy, then replace
-                player->destroy();
-                //player = new twitchStreamer(header, &bufs.front());
+                printf("we broke it\n");
             }
+
+            actuallyDone = false;
+            done = true;
+            // remove the first element, so the next in line becomes cur
+            //bufs.pop();
+
+            // destroy, then replace
+            player.destroy();
+            //player = new twitchStreamer(header, &bufs.front());
         }
     }
     //myfile2.close();
 
-    delete player;
+    //delete player;
 
     printf("exit\n");
     close(sockTCP);
