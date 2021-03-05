@@ -419,7 +419,9 @@ bool TCP::musicGet()
     twitchStreamer* player;
 
     bool done = false;
-    queue<BufferManager> bufs;
+    //queue<BufferManager> bufs;
+    queue<vector<char>> bufs;
+    bufs.reserve(:
     struct musicHeader header;
     size_t cursor = 0;
 
@@ -448,14 +450,6 @@ bool TCP::musicGet()
                     memcpy(&temp, &bufT.data[sizeof(struct musicHeader)], bufT.dataSize);
                     myfile2.write(temp, bufT.dataSize);
                     printf("channels %d, sampleRate %d, bps %d, size %d\n", header.channels, header.sampleRate, header.bitsPerSample, header.dataSize);
-
-                    /*
-                    header.channels = 2;
-                    header.sampleRate = 44100;
-                    header.bitsPerSample = 16;
-                    header.dataSize = 39358464;
-                    header.format = AL_FORMAT_STEREO16;
-                    */
                 }
                 else
                 {
