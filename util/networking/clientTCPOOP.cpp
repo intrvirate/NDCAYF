@@ -233,7 +233,7 @@ int TCP::getFromPoll(bool waitForFill)
 
         if (waitForFill)
         {
-            if (peek < sizeof(bufT))
+            if (peek < bufTSize)
             {
                 //printf("waiting for it all\n");
                 bufT.protocol = -1;
@@ -241,6 +241,10 @@ int TCP::getFromPoll(bool waitForFill)
             else
             {
                 len = recv(sockTCP, &bufT, bufTSize, 0);
+                if (len != bufTSize)
+                {
+                    perror("Oh no:\n");
+                }
             }
         }
     }
@@ -415,6 +419,8 @@ bool TCP::musicGet()
     ofstream myfile;
     ofstream myfile2;
     string thing2("out2.wav");
+    string thing("sout.wav");
+    myfile.open(thing, ios::binary);
     myfile2.open(thing2, ios::binary);
     twitchStreamer* player;
 
@@ -424,12 +430,14 @@ bool TCP::musicGet()
     bufs.reserve(:
     struct musicHeader header;
     size_t cursor = 0;
+    char temp[44];
 
     sendPTL(STARTSTREAM, 0);
     bool firstSong = true;
     sendingFile = true;
     bool requested = false;
     bool havePlayer = false;
+    bool actuallyDone = false;
 
     printf("starting\n");
     while (!done)
@@ -444,11 +452,10 @@ bool TCP::musicGet()
                     bufs.emplace();
 
 
-                    char temp[bufT.dataSize];
                     firstSong = false;
                     memcpy(&header, &bufT.data, sizeof(struct musicHeader));
-                    memcpy(&temp, &bufT.data[sizeof(struct musicHeader)], bufT.dataSize);
-                    myfile2.write(temp, bufT.dataSize);
+                    //memcpy(&temp, &bufT.data[sizeof(struct musicHeader)], bufT.dataSize);
+                    //myfile2.write(temp, bufT.dataSize);
                     printf("channels %d, sampleRate %d, bps %d, size %d\n", header.channels, header.sampleRate, header.bitsPerSample, header.dataSize);
                 }
                 else
@@ -463,8 +470,8 @@ bool TCP::musicGet()
             {
                 // check that we are sending a file and that they want the next line
                 cursor += bufT.dataSize;
-                myfile2.write(bufT.data, bufT.dataSize);
-                myfile2.flush();
+                //myfile2.write(bufT.data, bufT.dataSize);
+                //myfile2.flush();
                 bufs.back().add(bufT.data, bufT.dataSize);
                 //printf("in size %d\n", bufT.dataSize);
 
@@ -484,8 +491,9 @@ bool TCP::musicGet()
             else if (bufT.protocol == ENDSONG)
             {
                 printf("in size %d\n", bufT.dataSize);
-                myfile2.write(bufT.data, bufT.dataSize);
-                myfile2.flush();
+                //myfile2.write(bufT.data, bufT.dataSize);
+                actuallyDone = true;
+                //myfile2.flush();
                 cursor += bufT.dataSize;
                 bufs.back().add(bufT.data, bufT.dataSize);
                 bufs.back().noMore();
@@ -503,11 +511,11 @@ bool TCP::musicGet()
             requested = true;
         }
 
-        if (bufs.front().qSize() > 10 && !havePlayer)
+        if (bufs.front().qSize() > 13 && !havePlayer)
         {
-            player = new twitchStreamer(header, &bufs.front());
+            player = new twitchStreamer(header, &bufs.front(), temp);
             havePlayer = true;
-            printf("asdf\n");
+            printf("============START===========\n");
         }
 
         // and we need more
@@ -530,7 +538,15 @@ bool TCP::musicGet()
             }
             else
             {
-                printf("done");
+                if (actuallyDone)
+                {
+                    printf("done\n");
+                }
+                else
+                {
+                    printf("we broke it\n");
+                }
+                actuallyDone = false;
                 done = true;
                 // remove the first element, so the next in line becomes cur
                 bufs.pop();
@@ -541,7 +557,7 @@ bool TCP::musicGet()
             }
         }
     }
-    myfile2.close();
+    //myfile2.close();
 
     delete player;
 

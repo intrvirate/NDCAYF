@@ -36,6 +36,8 @@ class BufferManager {
 
 
   private:
+    bool peak;
+    bool low;
 
     // manages the data
 

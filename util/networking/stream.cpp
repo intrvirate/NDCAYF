@@ -16,11 +16,6 @@
 #include "stream.hpp"
 
 
-char* load_wav(const std::string& filename, std::uint8_t& channels, std::int32_t& sampleRate, std::uint8_t& bitsPerSample, ALsizei& size);
-std::int32_t convert_to_int(char* buffer, std::size_t len);
-bool load_wav_file_header(std::ifstream& file, std::uint8_t& channels, std::int32_t& sampleRate, std::uint8_t& bitsPerSample, ALsizei& size);
-bool check_alc_errors(const std::string& filename, const std::uint_fast32_t line, ALCdevice* device);
-bool check_al_errors(const std::string& filename, const std::uint_fast32_t line);
 //void update_stream(const ALuint source, const std::vector<char>& soundData, std::size_t& cursor, Buff& net);
 
 
@@ -105,10 +100,13 @@ void twitchStreamer::update_stream()
         //std::memcpy(&data[0], &soundData[cursor], dataSizeToCopy);
         //std::memcpy(&data[0], _buff->getData(), dataSizeToCopy);
         //_cursor += dataSizeToCopy;
-        _cursor += _buff->getSize();
+        int newData = _buff->getSize();
+        if (newData != 66000)
+            printf("%d\n", newData);
+        _cursor += newData;
 
         // im guessing done
-        if(_buff->getSize() < BUFFER_SIZE)
+        if(newData < BUFFER_SIZE)
         {
             DONE = true;
             //std::memcpy(&data[dataSizeToCopy], _buff->getData(), BUFFER_SIZE - dataSizeToCopy);
@@ -119,7 +117,10 @@ void twitchStreamer::update_stream()
         if (!DONE)
         {
             //alCall(alBufferData, buffer, _header.format, _buff->getData(), BUFFER_SIZE, _header.sampleRate);
-            alCall(alBufferData, buffer, AL_FORMAT_STEREO16, _buff->getData(), BUFFER_SIZE, _header.sampleRate);
+            char* temp = _buff->getData();
+            _file->write(temp, BUFFER_SIZE);
+            _file->flush();
+            alCall(alBufferData, buffer, AL_FORMAT_STEREO16, temp, BUFFER_SIZE, _header.sampleRate);
             alCall(alSourceQueueBuffers, _source, 1, &buffer);
         }
 
@@ -133,8 +134,13 @@ void twitchStreamer::update_stream()
  * @param head the music header info
  * @param buff a buffer with atleast 8 buffers
  */
-twitchStreamer::twitchStreamer(struct musicHeader head, BufferManager *buff)
+twitchStreamer::twitchStreamer(struct musicHeader head, BufferManager *buff, char* temp)
 {
+    std::string thing("sout.wav");
+    _file = new std::ofstream();
+    _file->open(thing, std::ios::binary);
+    _file->write(temp, 44);
+
     _header = head;
     _buff = buff;
     _cursor = BUFFER_SIZE * MUSIC_BUFFERS;
