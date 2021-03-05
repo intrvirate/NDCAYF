@@ -43,7 +43,10 @@ using namespace std;
 BufferManager::BufferManager()
 {
     bufs.emplace();
+    printf("start: %d\n", bufs.front().getSize());
     clear = false;
+    peak = false;
+    low = true;
 }
 
 
@@ -63,7 +66,23 @@ bool BufferManager::clearing()
 
 bool BufferManager::needMore()
 {
-    return bufs.size() <= NUM_BUFFERS - 2;
+    bool returnable = false;
+    if (peak && (bufs.size() <= 10))
+    {
+        peak = false;
+    }
+    else if (!peak)
+    {
+        returnable = bufs.size() <= NUM_BUFFERS - 2;
+    }
+
+    if (bufs.size() >= NUM_BUFFERS - 2)
+    {
+        peak = true;
+    }
+
+
+    return returnable;
 }
 
 
@@ -76,21 +95,17 @@ bool BufferManager::needMore()
  */
 int BufferManager::add(char* data, int amount)
 {
-    char* temp = new char[amount];
-
-    // adds the right amount to temp, from the end of data
-    memcpy(temp, data, amount);
-
     // add to last buffer
-    int overFlow = bufs.back().add(temp, amount);
+    int overFlow = bufs.back().add(data, amount);
 
     // check if we have more data at the end that didn't make it
     if (overFlow != 0 && !isFull())
     {
         bufs.emplace();
         overFlow = add(data, overFlow);
+        if (overFlow != 0)
+            printf("overflow %d\n", overFlow);
     }
-    delete[] temp;
 
     return overFlow;
 }
@@ -124,6 +139,7 @@ char* BufferManager::getData()
  */
 int BufferManager::getSize()
 {
+    //printf("buffm: %d, full? %s\n", bufs.front().getSize(), bufs.front().isFull() ? "t" : "f");
     return bufs.front().getSize();
 }
 
@@ -207,17 +223,33 @@ int Buffer::checkSize(int amount)
 int Buffer::add(char* data, int amount)
 {
     int overFlow = checkSize(amount);
+    //printf("start %d, %d, %d\n", amount, overFlow, numData);
 
     if (overFlow == 0)
     {
+        /*
+        int i;
+        unsigned char *p = (unsigned char *)data;
+        for (i=0;i<amount;i++) {
+          printf("0x%02x ", p[i]);
+          if (i%16==0 && i)
+            printf("\n");
+        }
+        printf("\n");
+        */
         memcpy(&buf[numData], data, amount);
-        numData += amount;
+        numData = numData + amount;
     }
     else
     {
-        memcpy(&buf[numData], data, amount - overFlow);
-        numData += amount - overFlow;
+        if (overFlow != amount)
+        {
+            printf("overFlow buf: %d\n", overFlow);
+            memcpy(&buf[numData], data, amount - overFlow);
+            numData += amount - overFlow;
+        }
     }
+    //printf("after %d, %d, %d\n", amount, overFlow, numData);
 
     return overFlow;
 }
