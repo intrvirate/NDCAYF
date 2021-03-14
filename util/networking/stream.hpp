@@ -22,10 +22,12 @@ class twitchStreamer
       ALint getState();
       void setHead(struct musicHeader head);
       void clean();
+      void initAdd(char* theData, int index);
 
     private:
       int _curBuffer;
       int _streamStatus;
+      int _bufsIn;
       bool DONE;
       struct musicHeader _header;
       std::size_t _cursor;

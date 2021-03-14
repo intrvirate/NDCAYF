@@ -148,7 +148,7 @@ void twitchStreamer::clean()
  * removes a buffer
  *
  */
-void twitchStreamer::addBuffer(char* data)
+void twitchStreamer::addBuffer(char* theData)
 {
 
     ALint buffersProcessed = 0;
@@ -156,24 +156,40 @@ void twitchStreamer::addBuffer(char* data)
 
     ALuint buffer;
     // remove a buffer if we can, other wise just set to the next
-    if(buffersProcessed <= 0)
+    //printf("remove %d\n", buffersProcessed);
+    if(buffersProcessed > 0)
+    {
+        printf("remove\n");
         alCall(alSourceUnqueueBuffers, _source, 1, &buffer);
+    }
     else
     {
-        buffer = _buffers[_curBuffer];
-        _curBuffer++;
+        if (_bufsIn > MUSIC_BUFFERS)
+        {
+            std::cerr << "Oh no" << std::endl;
+        }
+        buffer = _buffers[_bufsIn];
+        _bufsIn++;
     }
 
 
-    alCall(alBufferData, buffer, AL_FORMAT_STEREO16, data, BUFFER_SIZE, _header.sampleRate);
+    alCall(alBufferData, buffer, _header.format, theData, BUFFER_SIZE, _header.sampleRate);
     alCall(alSourceQueueBuffers, _source, 1, &buffer);
+}
+
+void twitchStreamer::initAdd(char* theData, int index)
+{
+    alCall(alBufferData, _buffers[index], _header.format, theData, BUFFER_SIZE, _header.sampleRate);
+    alCall(alSourceQueueBuffers, _source, 1, &_buffers[index]);
+    _bufsIn++;
 }
 
 int twitchStreamer::getNumBuffers()
 {
-    ALint numBuf;
-    alCall(alGetSourcei, _source, AL_BUFFERS_QUEUED, &numBuf);
-    return (int)numBuf;
+    ALint buffersProcessed = 0;
+    alCall(alGetSourcei, _source, AL_BUFFERS_PROCESSED, &buffersProcessed);
+
+    return _bufsIn - buffersProcessed;
 }
 
 void twitchStreamer::play()
@@ -211,7 +227,7 @@ void twitchStreamer::setHead(struct musicHeader theHead)
 twitchStreamer::twitchStreamer()
 {
     _cursor = BUFFER_SIZE * MUSIC_BUFFERS;
-    _curBuffer = 0;
+    _bufsIn = 0;
     DONE = false;
 
 
@@ -246,7 +262,7 @@ twitchStreamer::twitchStreamer()
     alCall(alSource3f, _source, AL_VELOCITY, 0, 0, 0);
     alCall(alSourcei, _source, AL_LOOPING, AL_FALSE);
 
-    alCall(alSourceQueueBuffers, _source, MUSIC_BUFFERS, &_buffers[0]);
+    //alCall(alSourceQueueBuffers, _source, MUSIC_BUFFERS, &_buffers[0]);
 
     _streamStatus = 0;
 

@@ -80,7 +80,7 @@ int main()
         //tcpConnect("10.55.20.48");
         //tcpMain("10.55.22.125");
         string filename("terrain04.obj");
-        TCP doThing("10.55.6.135", STREAMMUSIC, filename);
+        TCP doThing("10.55.76.6", STREAMMUSIC, filename);
         exit(-1);
         //TCP doThing("127.0.0.1", STREAMMUSIC, filename);
         string outf("out3.wav");

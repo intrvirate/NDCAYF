@@ -218,6 +218,11 @@ int TCP::getFromPoll(bool waitForFill)
     int peek;
     if (poll(&pfd, 1, 1000) > 0)
     {
+        if (sockTCP < 0)
+        {
+            printf("socket: %d\n", sockTCP);
+            exit(-1);
+        }
         peek = recv(sockTCP, &bufT, bufTSize, MSG_PEEK | MSG_DONTWAIT);
         //printf("%d peek\n", peek);
 
@@ -232,7 +237,10 @@ int TCP::getFromPoll(bool waitForFill)
         // error
         if (peek < 0)
         {
-            perror("msg error");
+            printf("error: %d\n", peek);
+            printf("socket: %d\n", sockTCP);
+            perror("1msg error");
+            exit(-1);
             return POLLBAD;
         }
 
@@ -431,7 +439,7 @@ bool TCP::musicGet()
     player.getNumBuffers();
 
     bool done = false;
-    queue<BufferManager> bufs;
+    //queue<BufferManager> bufs;
     char current[BUFFER_SIZE];
     size_t curSize = 0;
     //queue<vector<char>> bufs;
@@ -448,6 +456,8 @@ bool TCP::musicGet()
     bool actuallyDone = false;
 
     int numBuffers = 0;
+    int id = 0;
+    bool notStarted = true;
 
     printf("starting\n");
     while (!done)
@@ -467,7 +477,7 @@ bool TCP::musicGet()
                     player.setHead(header);
                     //memcpy(&temp, &bufT.data[sizeof(struct musicHeader)], bufT.dataSize);
                     //myfile2.write(temp, bufT.dataSize);
-                    printf("channels %d, sampleRate %d, bps %d, size %d\n", header.channels, header.sampleRate, header.bitsPerSample, header.dataSize);
+                    printf("channels %d, sampleRate %d, bps %d, size %d\n\n", header.channels, header.sampleRate, header.bitsPerSample, header.dataSize);
                 }
                 else
                 {
@@ -482,6 +492,8 @@ bool TCP::musicGet()
             {
                 // check that we are sending a file and that they want the next line
                 cursor += bufT.dataSize;
+                printf("moresong\r");
+                std::cout.flush();
                 //myfile2.write(bufT.data, bufT.dataSize);
                 //myfile2.flush();
                 /*
@@ -501,7 +513,7 @@ bool TCP::musicGet()
                 }
                 */
 
-                memcpy(&current[curSize], bufT.data, bufT.dataSize);
+                memcpy(&current[curSize], &bufT.data, bufT.dataSize);
                 curSize += bufT.dataSize;
 
                 if (curSize != BUFFER_SIZE)
@@ -520,13 +532,13 @@ bool TCP::musicGet()
             }
             else if (bufT.protocol == ENDSONG)
             {
-                printf("in size %d\n", bufT.dataSize);
+                printf("\nin size %ld\n", bufT.dataSize);
                 //myfile2.write(bufT.data, bufT.dataSize);
                 actuallyDone = true;
                 //myfile2.flush();
                 cursor += bufT.dataSize;
 
-                memcpy(&current[curSize], bufT.data, bufT.dataSize);
+                memcpy(&current[curSize], &bufT.data, bufT.dataSize);
                 curSize += bufT.dataSize;
 
                 // clear out the rest of buffer
@@ -544,29 +556,47 @@ bool TCP::musicGet()
         //player.clean();
 
         // make sure we are as full as can be
+        printf("numb: %d\r", numBuffers);
+        std::cout.flush();
         if (numBuffers < (MUSIC_BUFFERS - 1) && !requested)
         {
             sendPTL(MORESONG, cursor);
-            //printf("request\n");
+            printf("request\r");
+            std::cout.flush();
             requested = true;
         }
 
-        if (numBuffers < MUSIC_BUFFERS && curSize == BUFFER_SIZE)
+        if (notStarted && curSize == BUFFER_SIZE)
+        {
+            player.initAdd(current, id);
+            id++;
+            curSize = 0;
+
+            if (id == 11)
+            {
+                notStarted = false;
+                player.play();
+                printf("============Init===========\n");
+            }
+        }
+        else if (numBuffers < MUSIC_BUFFERS && curSize == BUFFER_SIZE)
         {
             player.addBuffer(current);
             curSize = 0;
+            printf("addbuffer at: %d\r", numBuffers);
+            std::cout.flush();
         }
 
-        if ((numBuffers > 10 && state == AL_PAUSED) || actuallyDone)
+        if ((numBuffers > 10 || actuallyDone) && state == AL_PAUSED)
         {
             player.play();
             printf("============START===========\n");
         }
 
-        if (numBuffers < 2 && state == AL_PLAYING)
+        if (numBuffers < 2 && state == AL_PLAYING && actuallyDone)
         {
             player.pause();
-            printf("============START===========\n");
+            printf("============PAUSE===========\n");
         }
 
 
