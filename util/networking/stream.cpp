@@ -218,6 +218,54 @@ void twitchStreamer::setHead(struct musicHeader theHead)
 }
 
 
+void twitchStreamer::threadRunner(char* data, int &dataLen, bool &done)
+{
+    bool running = true;
+    int numBuffers;
+    ALint state;
+
+    while (running)
+    {
+        numBuffers = getNumBuffers();
+        state = getState();
+
+        // add, normal, or add the remaining part
+        if (numBuffers < MUSIC_BUFFERS && dataLen == BUFFER_SIZE)
+        {
+            addBuffer(data);
+            dataLen = 0;
+        }
+        else if (done && numBuffers < MUSIC_BUFFERS && dataLen != 0)
+        {
+            addBuffer(data);
+            dataLen = 0;
+        }
+
+
+
+        // if we have enough, then we play, or if we are done then force to play
+        if ((numBuffers > 10 && state == AL_PAUSED) || done)
+        {
+            play();
+            printf("============START===========\n");
+        }
+
+        // pause if we are short, but also no in done state
+        if (numBuffers < 2 && state == AL_PLAYING && !done)
+        {
+            pause();
+            printf("============PAUSE===========\n");
+        }
+
+        // we are done, and the playing has stopped
+        // then leave
+        if (done && getState == AL_STOPPED)
+        {
+            running = false;
+        }
+    }
+}
+
 
 /**
  * makes a audio player
