@@ -21,6 +21,7 @@
 #include <AL/alc.h>
 #include <AL/alext.h>
 #include <AL/alut.h>
+#include <thread>
 
 using namespace std;
 
@@ -449,6 +450,8 @@ bool TCP::musicGet()
 
     int numBuffers = 0;
 
+    thread (twitchStreamer::threadRunner, current, curSize, actuallyDone);
+
     printf("starting\n");
     while (!done)
     {
@@ -551,6 +554,7 @@ bool TCP::musicGet()
             requested = true;
         }
 
+        /*
         if (numBuffers < MUSIC_BUFFERS && curSize == BUFFER_SIZE)
         {
             player.addBuffer(current);
@@ -566,8 +570,9 @@ bool TCP::musicGet()
         if (numBuffers < 2 && state == AL_PLAYING)
         {
             player.pause();
-            printf("============START===========\n");
+            printf("============PAUSE===========\n");
         }
+        */
 
 
         // and we need more
@@ -582,7 +587,7 @@ bool TCP::musicGet()
         }
         */
 
-        if (actuallyDone && state == AL_PAUSED)
+        if (actuallyDone && state == AL_STOPPED)
         {
             if (actuallyDone)
             {

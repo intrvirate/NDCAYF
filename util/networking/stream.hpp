@@ -22,6 +22,7 @@ class twitchStreamer
       ALint getState();
       void setHead(struct musicHeader head);
       void clean();
+      void threadRunner(char* data, int &dataLen, bool &done);
 
     private:
       int _curBuffer;
