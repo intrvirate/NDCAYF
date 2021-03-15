@@ -428,6 +428,39 @@ void TCP::foobar(int& number)
     printf("a number %d\n", number);
 }
 
+bool TCP::chance(int num)
+{
+    int value;
+    if (num > (MUSIC_BUFFERS - 50))
+    {
+        value = rand() % 70;
+    }
+    else if (num > (MUSIC_BUFFERS - 100))
+    {
+        value = rand() % 60;
+    }
+    else if (num > (MUSIC_BUFFERS - 100))
+    {
+        value = rand() % 50;
+    }
+    else if (num > (MUSIC_BUFFERS - 150))
+    {
+        value = rand() % 40;
+    }
+    else if (num > (MUSIC_BUFFERS - 200))
+    {
+        value = rand() % 30;
+    }
+    else if (num < (MUSIC_BUFFERS - 200))
+    {
+        value = 0;
+    }
+
+    if (value == 0)
+        return true;
+
+    return false;
+}
 
 /**
  * main loop for sending files
@@ -437,22 +470,13 @@ void TCP::foobar(int& number)
  */
 bool TCP::musicGet()
 {
-    ofstream myfile;
-    ofstream myfile2;
-    string thing2("out2.wav");
-    string thing("sout.wav");
-    myfile.open(thing, ios::binary);
-    myfile2.open(thing2, ios::binary);
-    twitchStreamer player;
-    player.getNumBuffers();
+    //twitchStreamer player;
+    //player.getNumBuffers();
 
     bool done = false;
-    //queue<BufferManager> bufs;
-    char current[BUFFER_SIZE];
-    int curSize = 0;
-    //queue<vector<char>> bufs;
-    //bufs.reserve(:
     struct musicHeader header;
+    bool headReady = false;
+
     size_t cursor = 0;
     char temp[44];
 
@@ -466,12 +490,14 @@ bool TCP::musicGet()
     bool ready = false;
 
     int numBuffers = 0;
+    ALint state;
+
     int id = 0;
     bool notStarted = true;
 
-    thread musicPlayer(threadRunner, bufT.data, ref(ready), ref(actuallyDone), ref(player));
+    //thread musicPlayer(threadRunner, bufT.data, ref(ready), ref(actuallyDone), ref(player));
+    thread musicPlayer(threadRunner, bufT.data, ref(ready), ref(actuallyDone), ref(numBuffers), ref(state), ref(header), ref(headReady));
     musicPlayer.detach();
-    //thread dummy(TCP::foobar, ref(id));
 
     printf("starting\n");
     while (!done)
@@ -486,7 +512,8 @@ bool TCP::musicGet()
 
                     firstSong = false;
                     memcpy(&header, &bufT.data, sizeof(struct musicHeader));
-                    player.setHead(header);
+                    //player.setHead(header);
+                    headReady = true;
                     printf("channels %d, sampleRate %d, bps %d, size %d\n\n",
                         header.channels, header.sampleRate,
                         header.bitsPerSample, header.dataSize);
@@ -547,15 +574,15 @@ bool TCP::musicGet()
             }
         }
         // do music code
-        int numBuffers = player.getNumBuffers();
-        ALint state = player.getState();
+        //numBuffers = player.getNumBuffers();
+        //state = player.getState();
 
         //player.clean();
 
         // make sure we are as full as can be
         printf("CurrentBufs: %d\r", numBuffers);
         std::cout.flush();
-        if (numBuffers < (MUSIC_BUFFERS - 2) && !requested)
+        if (numBuffers < (MUSIC_BUFFERS - 1) && !requested)
         {
             sendPTL(MORESONG, cursor);
             //printf("request\r");
@@ -573,6 +600,7 @@ bool TCP::musicGet()
         }
         */
 
+        /*
         if ((numBuffers > 100 && (state == AL_PAUSED || state == AL_INITIAL)) ||
             actuallyDone && (state == AL_PAUSED))
         {
@@ -585,6 +613,7 @@ bool TCP::musicGet()
             player.pause();
             printf("============PAUSE===========\n");
         }
+        */
 
 
         if (actuallyDone && state == AL_STOPPED)
@@ -602,7 +631,6 @@ bool TCP::musicGet()
             done = true;
 
             // reset the player, vars, idk
-            player.destroy();
         }
     }
 

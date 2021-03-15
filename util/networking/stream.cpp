@@ -224,47 +224,50 @@ void foo(int& dataLen)
 }
 
 
-void threadRunner(char* data, bool& ready, bool& done, twitchStreamer& obj)
+void threadRunner(char* data, bool& ready, bool& done, int& numBuffers, ALint& state, struct musicHeader& header, bool& headReady)
 {
     bool running = true;
-    int numBuffers;
-    ALint state;
+    twitchStreamer player;
+    player.getNumBuffers();
 
     while (running)
     {
-        numBuffers = obj.getNumBuffers();
-        state = obj.getState();
+        numBuffers = player.getNumBuffers();
+        state = player.getState();
 
         // add, normal, or add the remaining part
         if (numBuffers < MUSIC_BUFFERS - 1 && ready)
         {
-            obj.addBuffer(data);
+            player.addBuffer(data);
             ready = false;
         }
         else if (done && numBuffers < MUSIC_BUFFERS && ready)
         {
-            obj.addBuffer(data);
+            player.addBuffer(data);
             ready = false;
         }
 
+        if (headReady)
+        {
+            player.setHead(header);
+            headReady = false;
+        }
 
 
-        /*
+
         // if we have enough, then we play, or if we are done then force to play
-        if ((numBuffers > 10 && (state == AL_PAUSED || state == AL_INITIAL)) ||
+        if ((numBuffers > 100 && (state == AL_PAUSED || state == AL_INITIAL)) ||
             done && (state == AL_PAUSED))
         {
-            obj.play();
+            player.play();
             printf("============START===========\n");
         }
 
-        // pause if we are short, but also no in done state
-        if (numBuffers < 2 && state == AL_PLAYING && !done)
+        if (numBuffers < 20 && state == AL_PLAYING && !done)
         {
-            obj.pause();
+            player.pause();
             printf("============PAUSE===========\n");
         }
-        */
 
         // we are done, and the playing has stopped
         // then leave
@@ -275,6 +278,7 @@ void threadRunner(char* data, bool& ready, bool& done, twitchStreamer& obj)
     }
 
     printf("dead\n");
+    player.destroy();
 }
 
 

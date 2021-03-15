@@ -67,6 +67,7 @@ class TCP {
     void musicInit();
     bool musicGet();
     void sendPTL(int protocol, int size);
+    bool chance(int num);
 
     static void foobar(int& number);
 
