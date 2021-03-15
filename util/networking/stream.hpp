@@ -23,7 +23,6 @@ class twitchStreamer
       void setHead(struct musicHeader head);
       void clean();
       void initAdd(char* theData, int index);
-      void threadRunner(char* data, int &dataLen, bool &done);
 
     private:
       int _curBuffer;
@@ -42,6 +41,9 @@ class twitchStreamer
       std::ofstream* _file;
 
 };
+
+void threadRunner(char* data, int &dataLen, bool &done, twitchStreamer &obj);
+void foo(int& dataLen);
 
 char* load_wav(const std::string& filename, std::uint8_t& channels, std::int32_t& sampleRate, std::uint8_t& bitsPerSample, ALsizei& size);
 std::int32_t convert_to_int(char* buffer, std::size_t len);

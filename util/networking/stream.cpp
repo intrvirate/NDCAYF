@@ -159,7 +159,7 @@ void twitchStreamer::addBuffer(char* theData)
     //printf("remove %d\n", buffersProcessed);
     if(buffersProcessed > 0)
     {
-        printf("remove\n");
+        //printf("remove\n");
         alCall(alSourceUnqueueBuffers, _source, 1, &buffer);
     }
     else
@@ -218,7 +218,13 @@ void twitchStreamer::setHead(struct musicHeader theHead)
 }
 
 
-void twitchStreamer::threadRunner(char* data, int &dataLen, bool &done)
+void foo(int& dataLen)
+{
+    printf("we got a thing\n");
+}
+
+
+void threadRunner(char* data, int &dataLen, bool &done, twitchStreamer &obj)
 {
     bool running = true;
     int numBuffers;
@@ -226,44 +232,49 @@ void twitchStreamer::threadRunner(char* data, int &dataLen, bool &done)
 
     while (running)
     {
-        numBuffers = getNumBuffers();
-        state = getState();
+        numBuffers = obj.getNumBuffers();
+        state = obj.getState();
 
         // add, normal, or add the remaining part
         if (numBuffers < MUSIC_BUFFERS && dataLen == BUFFER_SIZE)
         {
-            addBuffer(data);
+            obj.addBuffer(data);
             dataLen = 0;
         }
         else if (done && numBuffers < MUSIC_BUFFERS && dataLen != 0)
         {
-            addBuffer(data);
+            obj.addBuffer(data);
             dataLen = 0;
         }
 
 
 
+        /*
         // if we have enough, then we play, or if we are done then force to play
-        if ((numBuffers > 10 && state == AL_PAUSED) || done)
+        if ((numBuffers > 10 && (state == AL_PAUSED || state == AL_INITIAL)) ||
+            done && (state == AL_PAUSED))
         {
-            play();
+            obj.play();
             printf("============START===========\n");
         }
 
         // pause if we are short, but also no in done state
         if (numBuffers < 2 && state == AL_PLAYING && !done)
         {
-            pause();
+            obj.pause();
             printf("============PAUSE===========\n");
         }
+        */
 
         // we are done, and the playing has stopped
         // then leave
-        if (done && getState == AL_STOPPED)
+        if (done && state == AL_STOPPED)
         {
             running = false;
         }
     }
+
+    printf("dead\n");
 }
 
 

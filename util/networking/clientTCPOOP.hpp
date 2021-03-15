@@ -68,6 +68,8 @@ class TCP {
     bool musicGet();
     void sendPTL(int protocol, int size);
 
+    static void foobar(int& number);
+
 
     // packet we send
     struct generalTCP toSend;
