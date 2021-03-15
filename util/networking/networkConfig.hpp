@@ -41,9 +41,9 @@
 #define STREAMVOICE 4
 
 #define NUM_BUFFERS 32
-#define MUSIC_BUFFERS 25
+#define MUSIC_BUFFERS 250
 #define PACKET_DATA 6000
-#define BUFFER_SIZE 66000
+#define BUFFER_SIZE 6000
 
 #define POLLOK 0
 #define POLLHUNGUP 1

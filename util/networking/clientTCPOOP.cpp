@@ -461,20 +461,22 @@ bool TCP::musicGet()
     sendingFile = true;
     bool requested = false;
     bool havePlayer = false;
+
     bool actuallyDone = false;
+    bool ready = false;
 
     int numBuffers = 0;
     int id = 0;
     bool notStarted = true;
 
-    thread musicPlayer(threadRunner, current, ref(curSize), ref(actuallyDone), ref(player));
+    thread musicPlayer(threadRunner, bufT.data, ref(ready), ref(actuallyDone), ref(player));
     musicPlayer.detach();
     //thread dummy(TCP::foobar, ref(id));
 
     printf("starting\n");
     while (!done)
     {
-        if (curSize != BUFFER_SIZE && getFromPoll(true) == 0)
+        if (!ready && getFromPoll(true) == 0)
         {
             if (bufT.protocol == SONGHEADER)
             {
@@ -501,9 +503,13 @@ bool TCP::musicGet()
             {
                 // check that we are sending a file and that they want the next line
                 cursor += bufT.dataSize;
-                printf("\t\tmoresong\r");
-                std::cout.flush();
+                //printf("\t\tmoresong\r");
+                //std::cout.flush();
+                ready = true;
 
+                requested = false;
+
+                /*
                 memcpy(&current[curSize], &bufT.data, bufT.dataSize);
                 curSize += bufT.dataSize;
 
@@ -518,6 +524,7 @@ bool TCP::musicGet()
                     // wait
                     requested = false;
                 }
+                */
 
 
             }
@@ -526,12 +533,15 @@ bool TCP::musicGet()
                 printf("\nin size %ld\n", bufT.dataSize);
                 actuallyDone = true;
                 cursor += bufT.dataSize;
+                ready = true;
 
+                /*
                 memcpy(&current[curSize], &bufT.data, bufT.dataSize);
                 curSize += bufT.dataSize;
 
                 // clear out the rest of buffer
                 memset(&current[curSize], 0, BUFFER_SIZE - curSize);
+                */
 
                 sendPTL(ENDSONG, 0);
             }
@@ -545,11 +555,11 @@ bool TCP::musicGet()
         // make sure we are as full as can be
         printf("CurrentBufs: %d\r", numBuffers);
         std::cout.flush();
-        if (numBuffers < (MUSIC_BUFFERS - 1) && !requested)
+        if (numBuffers < (MUSIC_BUFFERS - 2) && !requested)
         {
             sendPTL(MORESONG, cursor);
-            printf("request\r");
-            std::cout.flush();
+            //printf("request\r");
+            //std::cout.flush();
             requested = true;
         }
 
@@ -563,14 +573,14 @@ bool TCP::musicGet()
         }
         */
 
-        if ((numBuffers > 10 && (state == AL_PAUSED || state == AL_INITIAL)) ||
+        if ((numBuffers > 100 && (state == AL_PAUSED || state == AL_INITIAL)) ||
             actuallyDone && (state == AL_PAUSED))
         {
             player.play();
             printf("============START===========\n");
         }
 
-        if (numBuffers < 2 && state == AL_PLAYING && !actuallyDone)
+        if (numBuffers < 20 && state == AL_PLAYING && !actuallyDone)
         {
             player.pause();
             printf("============PAUSE===========\n");

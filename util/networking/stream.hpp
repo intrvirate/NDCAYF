@@ -42,7 +42,7 @@ class twitchStreamer
 
 };
 
-void threadRunner(char* data, int &dataLen, bool &done, twitchStreamer &obj);
+void threadRunner(char* data, bool& ready, bool& done, twitchStreamer& obj);
 void foo(int& dataLen);
 
 char* load_wav(const std::string& filename, std::uint8_t& channels, std::int32_t& sampleRate, std::uint8_t& bitsPerSample, ALsizei& size);

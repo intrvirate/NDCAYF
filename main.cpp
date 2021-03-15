@@ -80,103 +80,22 @@ int main()
         //tcpConnect("10.55.20.48");
         //tcpMain("10.55.22.125");
         string filename("terrain04.obj");
-        TCP doThing("10.55.3.250", STREAMMUSIC, filename);
+
+        /*
+        struct server serverList[MAXSERVERS];
+
+        if (makeSocket() < 0)
+        {
+            perror("Failed to get socket");
+        }
+
+        printf("Loading network\n");
+        getAllServers(serverList);
+        */
+
+        TCP doThing("10.55.76.9", STREAMMUSIC, filename);
         exit(-1);
         //TCP doThing("127.0.0.1", STREAMMUSIC, filename);
-        string outf("out3.wav");
-        string outff("out4.wav");
-        string outfff("out5.wav");
-        string in("Fine.wav");
-        ofstream out(outf, ios::binary);
-        ofstream out2(outff, ios::binary);
-        ofstream out3(outfff, ios::binary);
-        ifstream inn(in, ios::binary);
-        char* temp = new char[44];
-        inn.read(temp, 44);
-        out.write(temp, 44);
-        out2.write(temp, 44);
-
-        BufferManager cow;
-
-        char* data;
-        uint8_t channel;
-        int32_t sR;
-        uint8_t bps;
-        ALsizei size;
-        size_t cursor = 0;
-        size_t toCp = 0;
-        data = load_wav(in, channel, sR, bps, size);
-
-        out3.write(temp, 44);
-        out3.write(data, size);
-        out3.close();
-        int bufNum = 0;
-        int bufsAdded = 0;
-
-        bool looping = true;
-        char * temp2 = new char[66000];
-        while (looping)
-        {
-                while (cow.needMore() && cursor != size)
-                {
-                if (cow.needMore() && cursor != size)
-                {
-                    if (cursor + 66000 <= size)
-                    {
-                        toCp = 66000;
-                        printf("adding %ld out of %ld\n", cursor, size);
-                    }
-                    else
-                    {
-                        toCp = size - cursor;
-                        printf("adding the all of %ld\n", toCp);
-                        cow.noMore();
-                    }
-
-                    ///memcpy(temp2, &data[cursor], toCp);
-                    bufsAdded++;
-                    cow.add(&data[cursor], toCp);
-                    out2.write(&data[cursor], toCp);
-                    cursor += toCp;
-                }
-                }
-
-            if (cow.qSize() == 0 && cow.clearing())
-            {
-                printf("done\n");
-                printf("from buffer out3.wav\n");
-                printf("mirror buffer out4.wav\n");
-                printf("dump out5.wav\n");
-                looping = false;
-            }
-            else if (cow.isNextReady())
-            {
-                printf("reading\n");
-                printf("is ready %s\n", cow.isNextReady() ? "t" : "f");
-                int amount = cow.getSize();
-                char* stuff = cow.getData();
-                printf("\tamount %d, buffNum %d, bufsAdded %d\n", amount, bufNum,
-                    bufsAdded);
-                bufNum++;
-                amount = 66000;
-
-                /*
-                int i;
-                unsigned char *p = (unsigned char *)stuff;
-                for (i=0;i<amount;i++) {
-                  printf("0x%02x ", p[i]);
-                  if (i%32==0 && i)
-                    printf("\n");
-                }
-                printf("\n");
-                */
-
-                out.write(stuff, amount);
-            }
-        }
-        out.close();
-        out2.close();
-
 
         return 0;
     }

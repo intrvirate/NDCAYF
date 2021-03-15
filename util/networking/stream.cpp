@@ -224,7 +224,7 @@ void foo(int& dataLen)
 }
 
 
-void threadRunner(char* data, int &dataLen, bool &done, twitchStreamer &obj)
+void threadRunner(char* data, bool& ready, bool& done, twitchStreamer& obj)
 {
     bool running = true;
     int numBuffers;
@@ -236,15 +236,15 @@ void threadRunner(char* data, int &dataLen, bool &done, twitchStreamer &obj)
         state = obj.getState();
 
         // add, normal, or add the remaining part
-        if (numBuffers < MUSIC_BUFFERS && dataLen == BUFFER_SIZE)
+        if (numBuffers < MUSIC_BUFFERS - 1 && ready)
         {
             obj.addBuffer(data);
-            dataLen = 0;
+            ready = false;
         }
-        else if (done && numBuffers < MUSIC_BUFFERS && dataLen != 0)
+        else if (done && numBuffers < MUSIC_BUFFERS && ready)
         {
             obj.addBuffer(data);
-            dataLen = 0;
+            ready = false;
         }
 
 
