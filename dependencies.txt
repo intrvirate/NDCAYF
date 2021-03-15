@@ -10,4 +10,4 @@ libgl1-mesa-dev
 libglew-dev
 libbullet-dev
 
-sudo apt-get install libassimp-dev assimp-utils libglfw3-dev libglm-dev g++ gcc libx11-dev libgl1-mesa-dev libglew-dev libbullet-dev
+sudo apt-get install libassimp-dev assimp-utils libglfw3-dev libglm-dev g++ gcc libx11-dev libgl1-mesa-dev libglew-dev libbullet-dev libalut-dev libopenal-dev
