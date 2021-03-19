@@ -2,6 +2,7 @@
 #include <AL/alc.h>
 #include <AL/alext.h>
 #include <AL/alut.h>
+#include <thread>
 
 #include <cstring>
 #include <iostream>
@@ -218,9 +219,48 @@ void twitchStreamer::setHead(struct musicHeader theHead)
 }
 
 
-void foo(int& dataLen)
+void playLocalFile(std::string& song)
 {
-    printf("we got a thing\n");
+    struct musicHeader head;
+
+    char* data = load_wav(song, head.channels,
+        head.sampleRate, head.bitsPerSample, head.dataSize, head.format);
+
+    printf("channels %d, sampleRate %d, bps %d, size %d\n\n",
+        head.channels, head.sampleRate, head.bitsPerSample, head.dataSize);
+
+    char buf[BUFFER_SIZE];
+    bool ready = false;
+    bool actuallyDone = false;
+    bool headReady = true;
+    int numBuffers = 0;
+    long cursor = 0;
+    ALint state = AL_INITIAL;
+
+    std::thread musicPlayer(threadRunner, buf, std::ref(ready), std::ref(actuallyDone), std::ref(numBuffers), std::ref(state), std::ref(head), std::ref(headReady));
+
+    bool running = true;
+    while (running)
+    {
+        if (!ready)
+        {
+            if ((head.dataSize - (cursor + BUFFER_SIZE)) < 0)
+            {
+                memcpy(&buf, &data[cursor], head.dataSize - cursor);
+                ready = true;
+                actuallyDone = true;
+                running = false;
+            }
+            else
+            {
+                memcpy(&buf, &data[cursor], BUFFER_SIZE);
+                cursor += BUFFER_SIZE;
+                ready = true;
+            }
+        }
+    }
+
+    musicPlayer.join();
 }
 
 
@@ -228,7 +268,6 @@ void threadRunner(char* data, bool& ready, bool& done, int& numBuffers, ALint& s
 {
     bool running = true;
     twitchStreamer player;
-    player.getNumBuffers();
 
     while (running)
     {
@@ -686,7 +725,7 @@ bool load_wav_file_header(std::ifstream& file, std::uint8_t& channels, std::int3
     return true;
 }
 
-char* load_wav(const std::string& filename, std::uint8_t& channels, std::int32_t& sampleRate, std::uint8_t& bitsPerSample, ALsizei& size)
+char* load_wav(const std::string& filename, std::uint8_t& channels, std::int32_t& sampleRate, std::uint8_t& bitsPerSample, ALsizei& size, ALenum& format)
 {
     std::ifstream in(filename, std::ios::binary);
     if(!in.is_open())
@@ -702,7 +741,25 @@ char* load_wav(const std::string& filename, std::uint8_t& channels, std::int32_t
 
     char* data = new char[size];
 
+
     in.read(data, size);
+
+    if (channels == 1 && bitsPerSample == 8)
+        format = AL_FORMAT_MONO8;
+    else if (channels == 1 && bitsPerSample == 16)
+        format = AL_FORMAT_MONO16;
+    else if (channels == 2 && bitsPerSample == 8)
+        format = AL_FORMAT_STEREO8;
+    else if (channels == 2 && bitsPerSample == 16)
+        format = AL_FORMAT_STEREO16;
+    else
+    {
+        std::cerr
+            << "ERROR: unrecognized wave format: "
+            << channels << " channels, "
+            << bitsPerSample << " bps" << std::endl;
+        exit(EXIT_FAILURE);
+    }
 
     return data;
 }

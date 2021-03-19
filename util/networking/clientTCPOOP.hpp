@@ -47,6 +47,7 @@ class TCP {
 
   public:
     TCP(char* ip, int type, std::string filename);
+    void run();
   private:
     int sockTCP;
     struct sockaddr_in tcpServer;
@@ -70,6 +71,9 @@ class TCP {
     bool chance(int num);
 
     static void foobar(int& number);
+
+    char* _ip;
+    int _type;
 
 
     // packet we send

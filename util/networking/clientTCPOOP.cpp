@@ -58,13 +58,19 @@ TCP::TCP(char* ip, int type, string file)
 {
     addrlen = sizeof(tcpServer);
     fileName = file;
+    _ip = ip;
+    _type = type;
 
 
     // amke the socket
     makeTCP();
 
+}
+
+void TCP::run()
+{
     // try and connnect to the server
-    if (!tcpConnect(ip, type))
+    if (!tcpConnect(_ip, _type))
     {
         printf("tcpError!\n");
         exit(EXIT_FAILURE);
@@ -141,24 +147,24 @@ TCP::TCP(char* ip, int type, string file)
     }
 
     // type specific set up and run
-    if (type == UPLOADFILE)
+    if (_type == UPLOADFILE)
     {
         fileSendInit();
         printf("Uploading file!\n");
         fileSendMain();
     }
-    else if (type == DOWNLOADFILE)
+    else if (_type == DOWNLOADFILE)
     {
         printf("Downloading file!\n");
         exit(EXIT_FAILURE);
     }
-    else if (type == STREAMMUSIC)
+    else if (_type == STREAMMUSIC)
     {
         musicInit();
         printf("Streaming music\n");
         musicGet();
     }
-    else if (type == STREAMVOICE)
+    else if (_type == STREAMVOICE)
     {
         printf("Voice channel\n");
         exit(EXIT_FAILURE);
@@ -172,7 +178,7 @@ TCP::TCP(char* ip, int type, string file)
  */
 void TCP::fileSendInit()
 {
-    toSend = makeBasicTCPPack(SENDINGFILE);
+    toSend = makeBasicTCPPack(SENDINGFILEHEADER);
     string dir = "obj/objects/";
     printf("%s..%s\n", dir.c_str(), fileName.c_str());
     fileName = dir + fileName;
@@ -231,7 +237,9 @@ int TCP::getFromPoll(bool waitForFill)
         if (peek == 0)
         {
             printf("they hung up\n");
-            //exit(EXIT_FAILURE);
+            if (_type != STREAMMUSIC)
+                exit(EXIT_FAILURE);
+
             return POLLHUNGUP;
         }
 
@@ -311,6 +319,9 @@ void TCP::sendFileInfo(ifstream &myfile)
 {
     memcpy(&toSend.data, &fileInfo, sizeof(aboutFile));
     send(sockTCP, (const void*)&toSend, sizeof(struct generalTCP), 0);
+
+    toSend.protocol = SENDINGFILE;
+
     printf("Sent the info about the map\n");
     myfile.open(fileName, std::ios::out);
 

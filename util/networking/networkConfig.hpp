@@ -34,6 +34,7 @@
 #define MORESONG 13
 #define SONGHEADER 14
 #define ENDSONG 15
+#define SENDINGFILEHEADER 16
 
 #define UPLOADFILE 1
 #define DOWNLOADFILE 2
@@ -43,7 +44,7 @@
 #define NUM_BUFFERS 32
 #define MUSIC_BUFFERS 105
 #define PACKET_DATA 6000
-#define BUFFER_SIZE 6000
+#define BUFFER_SIZE 60000
 
 #define POLLOK 0
 #define POLLHUNGUP 1

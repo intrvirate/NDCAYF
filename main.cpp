@@ -93,7 +93,17 @@ int main()
         getAllServers(serverList);
         */
 
-        TCP doThing("10.55.76.9", STREAMMUSIC, filename);
+        //TCP file("10.55.5.204", UPLOADFILE, filename);
+        //TCP music("10.55.5.204", STREAMMUSIC, filename);
+
+        string song = "NoWay.wav";
+
+        //thread fileget(&TCP::run, file);
+        thread musicget(playLocalFile, ref(song));
+
+        //fileget.join();
+        musicget.join();
+
         exit(-1);
         //TCP doThing("127.0.0.1", STREAMMUSIC, filename);
 
