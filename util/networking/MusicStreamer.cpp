@@ -168,6 +168,8 @@ void Music::run()
             actuallyDone = false;
             done = true;
         }
+
+        this_thread::sleep_for(10ms);
     }
 
     printf("exit\n");
