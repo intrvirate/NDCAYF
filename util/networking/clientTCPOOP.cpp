@@ -257,12 +257,39 @@ int TCP::getFromPoll(bool waitForFill)
         {
             if (peek < bufTSize)
             {
-                //printf("waiting for it all\n");
+                //printf("waiting for it all; cur: %ld\n", peek);
                 bufT.protocol = -1;
             }
             else
             {
                 len = recv(sockTCP, &bufT, bufTSize, 0);
+                //printf("got it all; cur: %ld\n", peek);
+                /*
+                std::cout << "\nGot name: " << bufT.name << std::endl;
+                std::cout << "\nGot ptl: " << bufT.protocol << std::endl;
+                std::cout << "\nGot numO: " << bufT.numObjects<< std::endl;
+                std::cout << "\nGot dataSize: " << bufT.dataSize << std::endl;
+                //std::cout << "\nGot time: " << bufT.time << std::endl;
+                std::cout << "\nGot data: " << bufT.data << std::endl;
+                */
+
+                /*
+                char* ptr = (char*)&bufT;
+                size_t kk = sizeof(struct generalTCP);
+                int k = 0;
+
+                while (kk--)
+                {
+                    if (k == 16)
+                    {
+                        k = 0;
+                        printf("\n");
+                    }
+                    printf("%hhx ", *ptr++);
+                }
+                */
+
+
                 if (len != bufTSize)
                 {
                     perror("Oh no:\n");
@@ -492,6 +519,14 @@ bool TCP::musicGet()
     char temp[44];
 
     sendPTL(STARTSTREAM, 0);
+    /*
+    std::cout << "bufSize: " << bufTSize << std::endl;
+    while (1)
+    {
+        getFromPoll(true);
+    }
+    */
+
     bool firstSong = true;
     sendingFile = true;
     bool requested = false;
@@ -517,6 +552,7 @@ bool TCP::musicGet()
         {
             if (bufT.protocol == SONGHEADER)
             {
+                //printf("\t\t\t\tgot header\n");
                 // make audio player
                 if (firstSong)
                 {
@@ -540,9 +576,12 @@ bool TCP::musicGet()
             else if (bufT.protocol == MORESONG)
             {
                 // check that we are sending a file and that they want the next line
-                cursor += bufT.dataSize;
-                //printf("\t\tmoresong\r");
-                //std::cout.flush();
+                if (bufT.numObjects != SOCKET_BUFF)
+                    printf("\noh no\n");
+
+                cursor += bufT.numObjects;
+                //printf("\t\t\t\tmoresong\r");
+                std::cout.flush();
                 ready = true;
 
                 requested = false;
@@ -595,9 +634,9 @@ bool TCP::musicGet()
         std::cout.flush();
         if (numBuffers < (MUSIC_BUFFERS - 1) && !requested)
         {
-            sendPTL(MORESONG, cursor);
-            //printf("request\r");
-            //std::cout.flush();
+            sendPTL(MORESONG, 0);
+            //printf("\t\trequest\r");
+            std::cout.flush();
             requested = true;
         }
 

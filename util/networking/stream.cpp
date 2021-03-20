@@ -288,6 +288,7 @@ void threadRunner(char* data, bool& ready, bool& done, int& numBuffers, ALint& s
 
         if (headReady)
         {
+            //printf("\nadded head\n");
             player.setHead(header);
             headReady = false;
         }
@@ -295,14 +296,14 @@ void threadRunner(char* data, bool& ready, bool& done, int& numBuffers, ALint& s
 
 
         // if we have enough, then we play, or if we are done then force to play
-        if ((numBuffers > 100 && (state == AL_PAUSED || state == AL_INITIAL)) ||
+        if ((numBuffers > START_MUSIC_BUFFERS && (state == AL_PAUSED || state == AL_INITIAL)) ||
             done && (state == AL_PAUSED))
         {
             player.play();
             printf("============START===========\n");
         }
 
-        if (numBuffers < 20 && state == AL_PLAYING && !done)
+        if (numBuffers < MIN_MUSIC_BUFFERS && state == AL_PLAYING && !done)
         {
             player.pause();
             printf("============PAUSE===========\n");
