@@ -211,7 +211,9 @@ void TCP::fileSendInit()
  */
 void TCP::musicInit()
 {
-
+    // for the progress bar
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    barWidth = w.ws_col - 16;
 }
 
 /**
@@ -236,9 +238,11 @@ int TCP::getFromPoll(bool waitForFill)
         // they broke the connection
         if (peek == 0)
         {
-            printf("they hung up\n");
             if (_type != STREAMMUSIC)
+            {
+                printf("they hung up\n");
                 exit(EXIT_FAILURE);
+            }
 
             return POLLHUNGUP;
         }
@@ -513,9 +517,10 @@ bool TCP::musicGet()
 
     bool done = false;
     struct musicHeader header;
+    header.dataSize = 1000;
     bool headReady = false;
 
-    size_t cursor = 0;
+    long cursor = 0;
     char temp[44];
 
     sendPTL(STARTSTREAM, 0);
@@ -543,6 +548,8 @@ bool TCP::musicGet()
 
     //thread musicPlayer(threadRunner, bufT.data, ref(ready), ref(actuallyDone), ref(player));
     thread musicPlayer(threadRunner, bufT.data, ref(ready), ref(actuallyDone), ref(numBuffers), ref(state), ref(header), ref(headReady));
+    thread progressBarThing(progressBarWithBufThread, ref(cursor), ref(header.dataSize), barWidth, ref(numBuffers));
+    progressBarThing.detach();
     musicPlayer.detach();
 
     printf("starting\n");
@@ -561,7 +568,7 @@ bool TCP::musicGet()
                     memcpy(&header, &bufT.data, sizeof(struct musicHeader));
                     //player.setHead(header);
                     headReady = true;
-                    printf("channels %d, sampleRate %d, bps %d, size %d\n\n",
+                    printf("\nchannels %d, sampleRate %d, bps %d, size %d\n",
                         header.channels, header.sampleRate,
                         header.bitsPerSample, header.dataSize);
                 }
@@ -581,7 +588,7 @@ bool TCP::musicGet()
 
                 cursor += bufT.numObjects;
                 //printf("\t\t\t\tmoresong\r");
-                std::cout.flush();
+                //std::cout.flush();
                 ready = true;
 
                 requested = false;
@@ -607,9 +614,9 @@ bool TCP::musicGet()
             }
             else if (bufT.protocol == ENDSONG)
             {
-                printf("\nin size %ld\n", bufT.dataSize);
+                printf("actually done with song\n");
                 actuallyDone = true;
-                cursor += bufT.dataSize;
+                cursor += bufT.numObjects;
                 ready = true;
 
                 /*
@@ -630,13 +637,11 @@ bool TCP::musicGet()
         //player.clean();
 
         // make sure we are as full as can be
-        printf("CurrentBufs: %d\r", numBuffers);
-        std::cout.flush();
         if (numBuffers < (MUSIC_BUFFERS - 1) && !requested)
         {
             sendPTL(MORESONG, 0);
             //printf("\t\trequest\r");
-            std::cout.flush();
+            //std::cout.flush();
             requested = true;
         }
 
@@ -745,6 +750,37 @@ int TCP::getLines(string file)
     return count;
 }
 
+void progressBarThread(long& top, int& bottom, int width)
+{
+    while (top != bottom)
+    {
+        drawProgress((float) top / (float) bottom, width);
+    }
+}
+
+void progressBarWithBufThread(long& top, int& bottom, int width, int& numBuffs)
+{
+    while (top != bottom)
+    {
+        drawProgressWithBufCount((float) top / (float) bottom, width, numBuffs);
+    }
+}
+
+void drawProgress(double percent, int width)
+{
+    drawProgressRaw(percent, width);
+    cout << "\r";
+    cout.flush();
+}
+
+
+void drawProgressWithBufCount(double percent, int width, int numBuffs)
+{
+    drawProgressRaw(percent, width);
+    cout << " " << numBuffs << " / " << MUSIC_BUFFERS << "\r";
+    cout.flush();
+}
+
 
 /**
  * makes the pretty progress bar
@@ -752,7 +788,7 @@ int TCP::getLines(string file)
  * @param percent how far along we want this
  * @param width the max width
  */
-void TCP::drawProgress(double percent, int width)
+void drawProgressRaw(double percent, int width)
 {
     cout << "[";
     int pos = width * percent;
@@ -761,8 +797,7 @@ void TCP::drawProgress(double percent, int width)
         else if (i == pos) cout << ">";
         else cout << " ";
     }
-    cout << "] " << int(percent * 100.0) << " %\r";
-    cout.flush();
+    cout << "] " << int(percent * 100.0) << " %";
 }
 
 

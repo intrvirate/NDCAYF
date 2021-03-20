@@ -300,13 +300,13 @@ void threadRunner(char* data, bool& ready, bool& done, int& numBuffers, ALint& s
             done && (state == AL_PAUSED))
         {
             player.play();
-            printf("============START===========\n");
+            printf("\n============START===========\n");
         }
 
         if (numBuffers < MIN_MUSIC_BUFFERS && state == AL_PLAYING && !done)
         {
             player.pause();
-            printf("============PAUSE===========\n");
+            printf("\n============PAUSE===========\n");
         }
 
         // we are done, and the playing has stopped
