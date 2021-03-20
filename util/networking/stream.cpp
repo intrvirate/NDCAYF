@@ -71,65 +71,6 @@ auto alCallImpl(const char* filename,
 }
 
 
-void twitchStreamer::update_stream()
-{
-    ALint buffersProcessed = 0;
-    alCall(alGetSourcei, _source, AL_BUFFERS_PROCESSED, &buffersProcessed);
-
-    if(buffersProcessed <= 0)
-        return;
-    //else
-        //std::cerr << _cursor << std::endl;
-
-    while(buffersProcessed--)
-    {
-        ALuint buffer;
-        alCall(alSourceUnqueueBuffers, _source, 1, &buffer);
-
-        // create a new buffer, and zero it out
-        //char* data = new char[BUFFER_SIZE];
-        //std::memset(data, 0, BUFFER_SIZE);
-
-        // how much we want to take out of soundData
-        //std::size_t dataSizeToCopy = BUFFER_SIZE;
-
-        // if where we are + what we want is greater than what is left, take what we can
-        //if(_cursor + BUFFER_SIZE > _header.dataSize())//soundData.size())
-            //dataSizeToCopy = _header.dataSize() - _cursor;
-
-        // copy to data from soundData, move current position
-        //std::memcpy(&data[0], &soundData[cursor], dataSizeToCopy);
-        //std::memcpy(&data[0], _buff->getData(), dataSizeToCopy);
-        //_cursor += dataSizeToCopy;
-        int newData = _buff->getSize();
-        if (newData != 66000)
-            printf("%d\n", newData);
-        _cursor += newData;
-
-        // im guessing done
-        if(newData < BUFFER_SIZE)
-        {
-            DONE = true;
-            //std::memcpy(&data[dataSizeToCopy], _buff->getData(), BUFFER_SIZE - dataSizeToCopy);
-            //_cursor = BUFFER_SIZE - dataSizeToCopy;
-        }
-
-        // add to buffer?, then add buffer to queue
-        if (!DONE)
-        {
-            //alCall(alBufferData, buffer, _header.format, _buff->getData(), BUFFER_SIZE, _header.sampleRate);
-            char* temp = _buff->getData();
-            _file->write(temp, BUFFER_SIZE);
-            _file->flush();
-            alCall(alBufferData, buffer, AL_FORMAT_STEREO16, temp, BUFFER_SIZE, _header.sampleRate);
-            alCall(alSourceQueueBuffers, _source, 1, &buffer);
-        }
-
-        //delete[] data;
-    }
-}
-
-
 /**
  * removes uesd buffers
  */
@@ -294,7 +235,6 @@ void threadRunner(char* data, bool& ready, bool& done, int& numBuffers, ALint& s
         }
 
 
-
         // if we have enough, then we play, or if we are done then force to play
         if ((numBuffers > START_MUSIC_BUFFERS && (state == AL_PAUSED || state == AL_INITIAL)) ||
             done && (state == AL_PAUSED))
@@ -318,7 +258,6 @@ void threadRunner(char* data, bool& ready, bool& done, int& numBuffers, ALint& s
     }
 
     printf("dead\n");
-    player.destroy();
 }
 
 
@@ -372,51 +311,7 @@ twitchStreamer::twitchStreamer()
 }
 
 
-int twitchStreamer::playLoop()
-{
-    //std::cout << "q: " << _buff->qSize() << std::endl;
-    if (!DONE)
-        update_stream();
-
-    if (_buff->qSize() <= 1)
-    {
-        std::cout << "aaaaaaaaaaaaa" << "\r";
-        std::cout.flush();
-        alCall(alSourcePause, _source);
-        _streamStatus = -1;
-    }
-    else if (_buff->qSize() < 10)
-    {
-        std::cout << "Q low: " << _buff->qSize() << "\r";
-        std::cout.flush();
-    }
-    else
-    {
-        if (_state != AL_PLAYING)
-        {
-            alCall(alSourcePause, _source);
-            _streamStatus = 0;
-        }
-
-        std::cout << "Q good: " << _buff->qSize() << "\r";
-        std::cout.flush();
-    }
-
-    alCall(alGetSourcei, _source, AL_SOURCE_STATE, &_state);
-
-    if (_state != AL_PLAYING && _streamStatus == -1)
-    {
-        _streamStatus = -2;
-    }
-    else if (_state != AL_PLAYING)
-    {
-        _streamStatus = -3;
-    }
-
-    return _streamStatus;
-}
-
-void twitchStreamer::destroy()
+twitchStreamer::~twitchStreamer()
 {
     alCall(alDeleteSources, 1, &_source);
     alCall(alDeleteBuffers, MUSIC_BUFFERS, &_buffers[0]);
@@ -427,85 +322,6 @@ void twitchStreamer::destroy()
     ALCboolean closed;
     alcCall(alcCloseDevice, closed, _openALDevice, _openALDevice);
 }
-
-/*
-int main()
-{
-    ALCdevice* openALDevice = alcOpenDevice(nullptr);
-    if(!openALDevice)
-        return 0;
-
-    ALCcontext* openALContext;
-    if(!alcCall(alcCreateContext, openALContext, openALDevice, openALDevice, nullptr) || !openALContext)
-    {
-        std::cerr << "ERROR: Could not create audio context" << std::endl;
-        return 0;
-    }
-    ALCboolean contextMadeCurrent = false;
-    if(!alcCall(alcMakeContextCurrent, contextMadeCurrent, openALDevice, openALContext)
-       || contextMadeCurrent != ALC_TRUE)
-    {
-        std::cerr << "ERROR: Could not make audio context current" << std::endl;
-        return 0;
-    }
-
-
-    //Buff second("Fine.wav");
-    //Buff network("out.wav");
-    //Buff network("Start.wav");
-
-    char* firstBuffs = network.firstBuffs();
-
-    std::vector<char> soundData(firstBuffs, firstBuffs + (BUFFER_SIZE * MUSIC_BUFFERS));
-
-    std::cout << network.gDataSize() << " vs " << soundData.size() << std::endl;
-
-    ALuint buffers[MUSIC_BUFFERS];
-
-    alCall(alGenBuffers, MUSIC_BUFFERS, &buffers[0]);
-
-    for(std::size_t i = 0; i < MUSIC_BUFFERS; ++i)
-    {
-        alCall(alBufferData, buffers[i], network.gFormat(), &soundData[i * BUFFER_SIZE], BUFFER_SIZE, network.gSampleRate());
-    }
-
-    ALuint source;
-    alCall(alGenSources, 1, &source);
-    alCall(alSourcef, source, AL_PITCH, 1);
-    alCall(alSourcef, source, AL_GAIN, 1.0f);
-    alCall(alSource3f, source, AL_POSITION, 0, 0, 0);
-    alCall(alSource3f, source, AL_VELOCITY, 0, 0, 0);
-    alCall(alSourcei, source, AL_LOOPING, AL_FALSE);
-
-    alCall(alSourceQueueBuffers, source, MUSIC_BUFFERS, &buffers[0]);
-
-    alCall(alSourcePlay, source);
-
-    ALint state = AL_PLAYING;
-
-    std::size_t cursor = BUFFER_SIZE * MUSIC_BUFFERS;
-
-    printf("ur mum\n");
-    while(state == AL_PLAYING)
-    {
-        if (cursor < network.gDataSize())
-            update_stream(source, soundData, cursor, network);
-
-        alCall(alGetSourcei, source, AL_SOURCE_STATE, &state);
-    }
-
-    alCall(alDeleteSources, 1, &source);
-    alCall(alDeleteBuffers, MUSIC_BUFFERS, &buffers[0]);
-
-    alcCall(alcMakeContextCurrent, contextMadeCurrent, openALDevice, nullptr);
-    alcCall(alcDestroyContext, openALDevice, openALContext);
-
-    ALCboolean closed;
-    alcCall(alcCloseDevice, closed, openALDevice, openALDevice);
-
-    return 0;
-}
-*/
 
 
 bool check_alc_errors(const std::string& filename, const std::uint_fast32_t line, ALCdevice* device)

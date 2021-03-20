@@ -58,6 +58,9 @@
 //#include "util/networking/clientTCP.hpp"
 #include "util/networking/clientTCPOOP.hpp"
 
+#include "util/networking/MusicStreamer.hpp"
+#include "util/networking/TCP.hpp"
+
 
 #include <AL/al.h>
 #include <AL/alc.h>
@@ -93,20 +96,15 @@ int main()
         getAllServers(serverList);
         */
 
-        //TCP file("10.55.5.204", UPLOADFILE, filename);
-        TCP music("10.55.6.62", STREAMMUSIC, filename);
-
         string song = "NoWay.wav";
 
-        //thread fileget(&TCP::run, file);
-        //thread musicget(playLocalFile, ref(song));
-        thread musicget(&TCP::run, music);
+        Music mobj("10.55.6.62");
+        thread musicRunner(&Music::run, mobj);
 
-        //fileget.join();
-        musicget.join();
+
+        musicRunner.join();
 
         exit(-1);
-        //TCP doThing("127.0.0.1", STREAMMUSIC, filename);
 
         return 0;
     }

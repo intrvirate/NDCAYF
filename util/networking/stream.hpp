@@ -12,17 +12,15 @@ class twitchStreamer
 {
     public:
       twitchStreamer();
-      int playLoop();
-      void destroy();
       int getNumBuffers();
       void addBuffer(char* data);
-      void update_stream();
       void play();
       void pause();
       ALint getState();
       void setHead(struct musicHeader head);
       void clean();
       void initAdd(char* theData, int index);
+      ~twitchStreamer();
 
     private:
       int _curBuffer;
@@ -31,14 +29,12 @@ class twitchStreamer
       bool DONE;
       struct musicHeader _header;
       std::size_t _cursor;
-      BufferManager* _buff;
       ALCdevice* _openALDevice;
       ALCcontext* _openALContext;
       ALCboolean _contextMadeCurrent;
       ALuint _buffers[MUSIC_BUFFERS];
       ALint _state;
       ALuint _source;
-      std::ofstream* _file;
 
 };
 
