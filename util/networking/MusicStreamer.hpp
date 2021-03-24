@@ -7,7 +7,7 @@
 class Music: public TCP {
     public:
         Music(char* ip);
-        void run();
+        void run() override;
     private:
         struct winsize _w;
         int _barWidth;

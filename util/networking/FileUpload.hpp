@@ -7,7 +7,7 @@
 class Upload: public TCP {
     public:
         Upload(char* ip, string dir, string fileName, int type);
-        void run();
+        void run() override;
     private:
         void makeHeader(string file);
 

@@ -7,7 +7,7 @@
 class FileGet: public TCP {
     public:
         FileGet(char* ip);
-        void run();
+        void run() override;
     private:
         bool getHeader();
         string getDir(int type, char* fileName);
