@@ -35,7 +35,7 @@ using namespace std;
  * makes a tcp socket
  * @return success or not
  */
-int TCP::makeTCP()
+int TCPP::makeTCP()
 {
     int success = 0;
     if ((sockTCP = socket(AF_INET, SOCK_STREAM, 0)) < 0)
@@ -54,17 +54,23 @@ int TCP::makeTCP()
  * @param file filename for uploading
  * TODO separate the construction from the running of the program
  */
-TCP::TCP(char* ip, int type, string file)
+TCPP::TCPP(char* ip, int type, string file)
 {
     addrlen = sizeof(tcpServer);
     fileName = file;
+    _ip = ip;
+    _type = type;
 
 
     // amke the socket
     makeTCP();
 
+}
+
+void TCPP::run()
+{
     // try and connnect to the server
-    if (!tcpConnect(ip, type))
+    if (!tcpConnect(_ip, _type))
     {
         printf("tcpError!\n");
         exit(EXIT_FAILURE);
@@ -134,31 +140,31 @@ TCP::TCP(char* ip, int type, string file)
     */
 
     // verify they are server
-    if (!TCP::waitForKey())
+    if (!waitForKey())
     {
         perror("Failed to find key!\n");
         exit(EXIT_FAILURE);
     }
 
     // type specific set up and run
-    if (type == UPLOADFILE)
+    if (_type == UPLOADFILE)
     {
         fileSendInit();
         printf("Uploading file!\n");
         fileSendMain();
     }
-    else if (type == DOWNLOADFILE)
+    else if (_type == DOWNLOADFILE)
     {
         printf("Downloading file!\n");
         exit(EXIT_FAILURE);
     }
-    else if (type == STREAMMUSIC)
+    else if (_type == STREAMMUSIC)
     {
         musicInit();
         printf("Streaming music\n");
         musicGet();
     }
-    else if (type == STREAMVOICE)
+    else if (_type == STREAMVOICE)
     {
         printf("Voice channel\n");
         exit(EXIT_FAILURE);
@@ -170,9 +176,8 @@ TCP::TCP(char* ip, int type, string file)
  * inits file send specific vars and such
  * @param fileName the name of the file we are to open
  */
-void TCP::fileSendInit()
+void TCPP::fileSendInit()
 {
-    toSend = makeBasicTCPPack(SENDINGFILE);
     string dir = "obj/objects/";
     printf("%s..%s\n", dir.c_str(), fileName.c_str());
     fileName = dir + fileName;
@@ -203,9 +208,11 @@ void TCP::fileSendInit()
  * stuff thats needed
  * @return
  */
-void TCP::musicInit()
+void TCPP::musicInit()
 {
-
+    // for the progress bar
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    barWidth = w.ws_col - 16;
 }
 
 /**
@@ -214,7 +221,7 @@ void TCP::musicInit()
  * @param waitForFill to wait for the buffer to fill up or not
  * @return int of what happened
  */
-int TCP::getFromPoll(bool waitForFill)
+int TCPP::getFromPoll(bool waitForFill)
 {
     int peek;
     if (poll(&pfd, 1, 1000) > 0)
@@ -230,8 +237,12 @@ int TCP::getFromPoll(bool waitForFill)
         // they broke the connection
         if (peek == 0)
         {
-            printf("they hung up\n");
-            //exit(EXIT_FAILURE);
+            if (_type != STREAMMUSIC)
+            {
+                printf("they hung up\n");
+                exit(EXIT_FAILURE);
+            }
+
             return POLLHUNGUP;
         }
 
@@ -249,12 +260,39 @@ int TCP::getFromPoll(bool waitForFill)
         {
             if (peek < bufTSize)
             {
-                //printf("waiting for it all\n");
+                //printf("waiting for it all; cur: %ld\n", peek);
                 bufT.protocol = -1;
             }
             else
             {
                 len = recv(sockTCP, &bufT, bufTSize, 0);
+                //printf("got it all; cur: %ld\n", peek);
+                /*
+                std::cout << "\nGot name: " << bufT.name << std::endl;
+                std::cout << "\nGot ptl: " << bufT.protocol << std::endl;
+                std::cout << "\nGot numO: " << bufT.numObjects<< std::endl;
+                std::cout << "\nGot dataSize: " << bufT.dataSize << std::endl;
+                //std::cout << "\nGot time: " << bufT.time << std::endl;
+                std::cout << "\nGot data: " << bufT.data << std::endl;
+                */
+
+                /*
+                char* ptr = (char*)&bufT;
+                size_t kk = sizeof(struct generalTCP);
+                int k = 0;
+
+                while (kk--)
+                {
+                    if (k == 16)
+                    {
+                        k = 0;
+                        printf("\n");
+                    }
+                    printf("%hhx ", *ptr++);
+                }
+                */
+
+
                 if (len != bufTSize)
                 {
                     perror("Oh no:\n");
@@ -271,7 +309,7 @@ int TCP::getFromPoll(bool waitForFill)
  * @return if we got one
  * TODO make this only try x amount of times before failing
  */
-bool TCP::waitForKey()
+bool TCPP::waitForKey()
 {
     bool waiting = true;
     bool success = false;
@@ -307,10 +345,14 @@ bool TCP::waitForKey()
  * then makes aboutfile struct and sends it to server
  * @param myfile the file stream we are working with
  */
-void TCP::sendFileInfo(ifstream &myfile)
+void TCPP::sendFileInfo(ifstream &myfile)
 {
+    toSend = makeBasicTCPPack(SENDINGFILEHEADER);
     memcpy(&toSend.data, &fileInfo, sizeof(aboutFile));
     send(sockTCP, (const void*)&toSend, sizeof(struct generalTCP), 0);
+
+    toSend.protocol = SENDINGFILE;
+
     printf("Sent the info about the map\n");
     myfile.open(fileName, std::ios::out);
 
@@ -326,7 +368,7 @@ void TCP::sendFileInfo(ifstream &myfile)
  * but if not then we send with ENDDOWNLOAD ptl
  * @return
  */
-bool TCP::sendNextLine(ifstream &myfile)
+bool TCPP::sendMoreData(ifstream &myfile)
 {
     // fillup the buffer with info from the file
     if (myfile.read(toSend.data, sizeof(toSend.data)))
@@ -382,7 +424,7 @@ bool TCP::sendNextLine(ifstream &myfile)
  * preps file and sends the first line before entering
  * @return honestly not necessary
  */
-bool TCP::fileSendMain()
+bool TCPP::fileSendMain()
 {
     ifstream myfile;
     bool done = false;
@@ -400,13 +442,13 @@ bool TCP::fileSendMain()
         {
             if (first)
             {
-                sendNextLine(myfile);
+                sendMoreData(myfile);
                 first = false;
             }
             // check that we are sending a file and that they want the next line
             if (sendingFile && (bufT.protocol == NEXTLINE))
             {
-                sendNextLine(myfile);
+                sendMoreData(myfile);
             }
             else if (waitingForTime && (bufT.protocol == ENDDOWNLOAD))
             {
@@ -423,11 +465,44 @@ bool TCP::fileSendMain()
     return true;
 }
 
-void TCP::foobar(int& number)
+void TCPP::foobar(int& number)
 {
     printf("a number %d\n", number);
 }
 
+bool TCPP::chance(int num)
+{
+    int value;
+    if (num > (MUSIC_BUFFERS - 50))
+    {
+        value = rand() % 70;
+    }
+    else if (num > (MUSIC_BUFFERS - 100))
+    {
+        value = rand() % 60;
+    }
+    else if (num > (MUSIC_BUFFERS - 100))
+    {
+        value = rand() % 50;
+    }
+    else if (num > (MUSIC_BUFFERS - 150))
+    {
+        value = rand() % 40;
+    }
+    else if (num > (MUSIC_BUFFERS - 200))
+    {
+        value = rand() % 30;
+    }
+    else if (num < (MUSIC_BUFFERS - 200))
+    {
+        value = 0;
+    }
+
+    if (value == 0)
+        return true;
+
+    return false;
+}
 
 /**
  * main loop for sending files
@@ -435,46 +510,41 @@ void TCP::foobar(int& number)
  * preps file and sends the first line before entering
  * @return honestly not necessary
  */
-bool TCP::musicGet()
+bool TCPP::musicGet()
 {
-    ofstream myfile;
-    ofstream myfile2;
-    string thing2("out2.wav");
-    string thing("sout.wav");
-    myfile.open(thing, ios::binary);
-    myfile2.open(thing2, ios::binary);
-    twitchStreamer player;
-    player.getNumBuffers();
-
     bool done = false;
-    //queue<BufferManager> bufs;
-    char current[BUFFER_SIZE];
-    int curSize = 0;
-    //queue<vector<char>> bufs;
-    //bufs.reserve(:
     struct musicHeader header;
-    size_t cursor = 0;
+    header.dataSize = 1000;
+    bool headReady = false;
+
+    long cursor = 0;
     char temp[44];
 
-    sendPTL(STARTSTREAM, 0);
+    sendPTL(STARTSTREAM);
+
     bool firstSong = true;
     sendingFile = true;
     bool requested = false;
     bool havePlayer = false;
+
     bool actuallyDone = false;
+    bool ready = false;
 
     int numBuffers = 0;
+    ALint state;
+
     int id = 0;
     bool notStarted = true;
 
-    thread musicPlayer(threadRunner, current, ref(curSize), ref(actuallyDone), ref(player));
+    thread musicPlayer(threadRunner, bufT.data, ref(ready), ref(actuallyDone), ref(numBuffers), ref(state), ref(header), ref(headReady));
+    thread progressBarThing(progressBarWithBufThread, ref(cursor), ref(header.dataSize), barWidth, ref(numBuffers));
+    progressBarThing.detach();
     musicPlayer.detach();
-    //thread dummy(TCP::foobar, ref(id));
 
     printf("starting\n");
     while (!done)
     {
-        if (curSize != BUFFER_SIZE && getFromPoll(true) == 0)
+        if (!ready && getFromPoll(true) == 0)
         {
             if (bufT.protocol == SONGHEADER)
             {
@@ -484,8 +554,8 @@ bool TCP::musicGet()
 
                     firstSong = false;
                     memcpy(&header, &bufT.data, sizeof(struct musicHeader));
-                    player.setHead(header);
-                    printf("channels %d, sampleRate %d, bps %d, size %d\n\n",
+                    headReady = true;
+                    printf("\nchannels %d, sampleRate %d, bps %d, size %d\n",
                         header.channels, header.sampleRate,
                         header.bitsPerSample, header.dataSize);
                 }
@@ -500,83 +570,34 @@ bool TCP::musicGet()
             else if (bufT.protocol == MORESONG)
             {
                 // check that we are sending a file and that they want the next line
-                cursor += bufT.dataSize;
-                printf("\t\tmoresong\r");
-                std::cout.flush();
+                if (bufT.numObjects != SOCKET_BUFF)
+                    printf("\noh no\n");
 
-                memcpy(&current[curSize], &bufT.data, bufT.dataSize);
-                curSize += bufT.dataSize;
+                cursor += bufT.numObjects;
+                ready = true;
 
-                if (curSize != BUFFER_SIZE)
-                {
-                    // we want to fill this up
-                    sendPTL(MORESONG, cursor);
-                    requested = true;
-                }
-                else
-                {
-                    // wait
-                    requested = false;
-                }
+                requested = false;
 
 
             }
             else if (bufT.protocol == ENDSONG)
             {
-                printf("\nin size %ld\n", bufT.dataSize);
+                printf("actually done with song\n");
                 actuallyDone = true;
-                cursor += bufT.dataSize;
+                cursor += bufT.numObjects;
+                ready = true;
 
-                memcpy(&current[curSize], &bufT.data, bufT.dataSize);
-                curSize += bufT.dataSize;
-
-                // clear out the rest of buffer
-                memset(&current[curSize], 0, BUFFER_SIZE - curSize);
-
-                sendPTL(ENDSONG, 0);
+                sendPTL(ENDSONG);
             }
         }
-        // do music code
-        int numBuffers = player.getNumBuffers();
-        ALint state = player.getState();
-
-        //player.clean();
-
         // make sure we are as full as can be
-        printf("CurrentBufs: %d\r", numBuffers);
-        std::cout.flush();
         if (numBuffers < (MUSIC_BUFFERS - 1) && !requested)
         {
-            sendPTL(MORESONG, cursor);
-            printf("request\r");
-            std::cout.flush();
+            sendPTL(MORESONG);
             requested = true;
         }
 
-        /*
-        if (numBuffers < MUSIC_BUFFERS && curSize == BUFFER_SIZE)
-        {
-            player.addBuffer(current);
-            curSize = 0;
-            printf("addbuffer at: %d\r", numBuffers);
-            std::cout.flush();
-        }
-        */
-
-        if ((numBuffers > 10 && (state == AL_PAUSED || state == AL_INITIAL)) ||
-            actuallyDone && (state == AL_PAUSED))
-        {
-            player.play();
-            printf("============START===========\n");
-        }
-
-        if (numBuffers < 2 && state == AL_PLAYING && !actuallyDone)
-        {
-            player.pause();
-            printf("============PAUSE===========\n");
-        }
-
-
+        // we are done, and the player is done
         if (actuallyDone && state == AL_STOPPED)
         {
             if (actuallyDone)
@@ -592,7 +613,6 @@ bool TCP::musicGet()
             done = true;
 
             // reset the player, vars, idk
-            player.destroy();
         }
     }
 
@@ -603,8 +623,18 @@ bool TCP::musicGet()
     return true;
 }
 
+void TCPP::sendPTL(int protocol)
+{
+    toSend.protocol = protocol;
 
-void TCP::sendPTL(int protocol, int size)
+    // send
+    if (send(sockTCP, (const void*)&toSend, sizeof(struct generalTCP), 0) < 0)
+    {
+        perror("send wackiness");
+    }
+}
+
+void TCPP::sendPTL(int protocol, int size)
 {
     toSend.protocol = protocol;
     toSend.dataSize = size;
@@ -623,7 +653,7 @@ void TCP::sendPTL(int protocol, int size)
  * @param ptl what protocol this packet is
  * @return a struct with its header filled, mostly
  */
-struct generalTCP TCP::makeBasicTCPPack(int ptl)
+struct generalTCP TCPP::makeBasicTCPPack(int ptl)
 {
     struct generalTCP pack;
     strcpy(pack.name, hostnameGet());
@@ -639,7 +669,7 @@ struct generalTCP TCP::makeBasicTCPPack(int ptl)
  * @param file file we are opening
  * @return the number of lines in file
  */
-int TCP::getLines(string file)
+int TCPP::getLines(string file)
 {
     ifstream fileToCount;
     int count = 0;
@@ -657,6 +687,37 @@ int TCP::getLines(string file)
     return count;
 }
 
+void progressBarThread(long& top, int& bottom, int width)
+{
+    while (top != bottom)
+    {
+        drawProgress((float) top / (float) bottom, width);
+    }
+}
+
+void progressBarWithBufThread(long& top, int& bottom, int width, int& numBuffs)
+{
+    while (top != bottom)
+    {
+        drawProgressWithBufCount((float) top / (float) bottom, width, numBuffs);
+    }
+}
+
+void drawProgress(double percent, int width)
+{
+    drawProgressRaw(percent, width);
+    cout << "\r";
+    cout.flush();
+}
+
+
+void drawProgressWithBufCount(double percent, int width, int numBuffs)
+{
+    drawProgressRaw(percent, width);
+    cout << " " << numBuffs << " / " << MUSIC_BUFFERS << "\r";
+    cout.flush();
+}
+
 
 /**
  * makes the pretty progress bar
@@ -664,7 +725,7 @@ int TCP::getLines(string file)
  * @param percent how far along we want this
  * @param width the max width
  */
-void TCP::drawProgress(double percent, int width)
+void drawProgressRaw(double percent, int width)
 {
     cout << "[";
     int pos = width * percent;
@@ -673,8 +734,7 @@ void TCP::drawProgress(double percent, int width)
         else if (i == pos) cout << ">";
         else cout << " ";
     }
-    cout << "] " << int(percent * 100.0) << " %\r";
-    cout.flush();
+    cout << "] " << int(percent * 100.0) << " %";
 }
 
 
@@ -683,7 +743,7 @@ void TCP::drawProgress(double percent, int width)
  * @param ip the server ip
  * @return if we did it
  */
-bool TCP::tcpConnect(char ip[], int type)
+bool TCPP::tcpConnect(char ip[], int type)
 {
 
     int port = -1;

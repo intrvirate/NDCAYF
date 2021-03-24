@@ -19,6 +19,7 @@
 #define PORTTCP_VOICE  54324
 #define SUPERSECRETKEY_SERVER "ndcayfser"
 #define SUPERSECRETKEY_CLIENT "ndcayfcli"
+
 #define PONG 1
 #define PING 2
 #define STATE 3
@@ -34,6 +35,8 @@
 #define MORESONG 13
 #define SONGHEADER 14
 #define ENDSONG 15
+#define SENDINGFILEHEADER 16
+#define ENDSTREAM 17
 
 #define UPLOADFILE 1
 #define DOWNLOADFILE 2
@@ -41,9 +44,11 @@
 #define STREAMVOICE 4
 
 #define NUM_BUFFERS 32
-#define MUSIC_BUFFERS 25
-#define PACKET_DATA 6000
-#define BUFFER_SIZE 66000
+#define MUSIC_BUFFERS 20
+#define MIN_MUSIC_BUFFERS 2
+#define START_MUSIC_BUFFERS 10
+#define SOCKET_BUFF 60000
+#define BUFFER_SIZE 60000
 
 #define POLLOK 0
 #define POLLHUNGUP 1
@@ -115,5 +120,23 @@ struct musicHeader
     uint8_t bitsPerSample;
     ALsizei dataSize;
     ALenum format;
+};
+
+struct aboutFile
+{
+    char name[30];
+    int type;
+    long lines;
+};
+
+struct generalTCP
+{
+    char name[10];
+    int protocol;
+    int numObjects;
+    size_t dataSize;
+    struct timeval time;
+    char data[SOCKET_BUFF];
+
 };
 #endif

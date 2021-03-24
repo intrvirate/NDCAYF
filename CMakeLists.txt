@@ -27,20 +27,20 @@ find_package(OpenAL REQUIRED)
 add_executable(NDCAYF
                 main.cpp
                 main.hpp
+
                 util/networking/getLan.hpp
                 util/networking/getLan.cpp
                 util/networking/client.cpp
                 util/networking/client.hpp
                 #util/networking/clientTCP.cpp
                 #util/networking/clientTCP.hpp
-                util/networking/clientTCPOOP.cpp
-                util/networking/clientTCPOOP.hpp
-                util/networking/songBuffer.cpp
-                util/networking/songBuffer.hpp
-                util/CircBuffer/CircBuffer.hpp
-                util/CircBuffer/CircBuffer.cpp
+                util/networking/TCP.cpp
+                util/networking/TCP.hpp
+                util/networking/MusicStreamer.cpp
+                util/networking/MusicStreamer.hpp
                 util/networking/stream.hpp
                 util/networking/stream.cpp
+
                 util/json.hpp
                 util/loadMenu.cpp
                 util/loadMenu.hpp

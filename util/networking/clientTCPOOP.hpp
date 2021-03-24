@@ -10,16 +10,6 @@
 #include <AL/alext.h>
 #include <AL/alut.h>
 
-struct generalTCP
-{
-    char name[10];
-    int protocol;
-    int numObjects;
-    size_t dataSize;
-    struct timeval time;
-    char data[60000];
-};
-
 /*
 struct musicHeader
 {
@@ -30,23 +20,18 @@ struct musicHeader
 };
 */
 
-struct aboutFile
-{
-    char name[30];
-    int type;
-    long lines;
-};
 
-struct lines
-{
-    char aLine[200];
-};
+void progressBarThread(long& top, int& bottom, int width);
+void progressBarWithBufThread(long& top, int& bottom, int width, int& numBuffs);
+void drawProgress(double percent, int width);
+void drawProgressWithBufCount(double percent, int width, int numBuffs);
+void drawProgressRaw(double percent, int width);
 
-
-class TCP {
+class TCPP {
 
   public:
-    TCP(char* ip, int type, std::string filename);
+    TCPP(char* ip, int type, std::string filename);
+    void run();
   private:
     int sockTCP;
     struct sockaddr_in tcpServer;
@@ -57,18 +42,26 @@ class TCP {
     bool tcpConnect(char ip[], int type);
     struct generalTCP makeBasicTCPPack(int ptl);
     int getLines(std::string file);
-    void drawProgress(double percent, int width);
+
+
     void fileSendInit();
     int getFromPoll(bool waitForFill);
     bool waitForKey();
     void sendFileInfo(std::ifstream &myfile);
-    bool sendNextLine(std::ifstream &myfile);
+    bool sendMoreData(std::ifstream &myfile);
+
     bool fileSendMain();
     void musicInit();
     bool musicGet();
+
+    void sendPTL(int protocol);
     void sendPTL(int protocol, int size);
+    bool chance(int num);
 
     static void foobar(int& number);
+
+    char* _ip;
+    int _type;
 
 
     // packet we send
@@ -80,8 +73,6 @@ class TCP {
     struct aboutFile fileInfo;
     std::string fileName;
     long totalLine;
-
-    struct lines bunch;
 
     // measure the length in time
     struct timeval before;
@@ -99,10 +90,13 @@ class TCP {
     int charsRead;
     long charsProcessed;
 
-    // for tcp loop
+    // for progress bar, and is the file size
     long count;
-    bool done;
+
+
+    // just define at top of function
     int len;
+    bool done;
 
 
     // file send specific
