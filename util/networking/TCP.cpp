@@ -30,6 +30,29 @@ bool TCP::makeTCP()
 
 
 /**
+ * tries to connect
+ * @return whether we connected or not
+ */
+bool TCP::validate()
+{
+    bool successful = true;
+    if (!tcpConnect())
+    {
+        successful = false;
+        printf("oh no!\n");
+    }
+
+    if (!waitForKey())
+    {
+        successful = false;
+        printf("didn't get key\n");
+    }
+
+    return successful;
+}
+
+
+/**
  * makes a tcp struct with the hostname and ptl
  * and returns, for ease of use
  * @param ptl what protocol this packet is
@@ -256,8 +279,15 @@ TCP::TCP(char* ip, int port) : _ip(ip), _port(port)
 }
 
 
-
-
+/**
+ * all things that inherit from tcp must make a run function
+ * this function will be the main driver
+ * should be able to be run on a thread
+ */
+void TCP::run()
+{
+    cout << "Oh no" << endl;
+}
 
 
 

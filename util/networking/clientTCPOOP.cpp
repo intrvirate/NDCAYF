@@ -188,7 +188,7 @@ void TCPP::fileSendInit()
     int fileSize = in_file.tellg();
 
     // file stuff
-    fileInfo.lines = fileSize;
+    fileInfo.size = fileSize;
     strcpy(fileInfo.name, fileName.c_str());
     fileInfo.type = MAP;
 
@@ -377,7 +377,7 @@ bool TCPP::sendMoreData(ifstream &myfile)
         charsRead = myfile.gcount(); // should be 1000
         count += charsRead;
         toSend.numObjects = charsRead;
-        drawProgress((double)count / (double)fileInfo.lines, barWidth);
+        drawProgress((double)count / (double)fileInfo.size, barWidth);
 
 
         // send

@@ -9,8 +9,6 @@ class Music: public TCP {
         Music(char* ip);
         void run();
     private:
-        bool validate();
-
         struct winsize _w;
         int _barWidth;
 

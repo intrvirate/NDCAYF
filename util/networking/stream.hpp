@@ -6,7 +6,6 @@
 #include <AL/alut.h>
 #include <fstream>
 #include "networkConfig.hpp"
-#include "songBuffer.hpp"
 
 class twitchStreamer
 {

@@ -32,12 +32,14 @@ add_executable(NDCAYF
                 util/networking/getLan.cpp
                 util/networking/client.cpp
                 util/networking/client.hpp
-                #util/networking/clientTCP.cpp
-                #util/networking/clientTCP.hpp
                 util/networking/TCP.cpp
                 util/networking/TCP.hpp
                 util/networking/MusicStreamer.cpp
                 util/networking/MusicStreamer.hpp
+                util/networking/FileGet.cpp
+                util/networking/FileGet.hpp
+                util/networking/FileUpload.cpp
+                util/networking/FileUpload.hpp
                 util/networking/stream.hpp
                 util/networking/stream.cpp
 
@@ -77,8 +79,6 @@ add_executable(NDCAYF
                 util/editor/browser.hpp
                 util/render/skybox.cpp
                 util/render/skybox.hpp
-                util/CircBuffer/CircBuffer.hpp
-                util/CircBuffer/CircBuffer.cpp
 
 # IMGUI files. There is certainly a better way to do this than listing them
 # *all* here, but it works.

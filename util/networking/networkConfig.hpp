@@ -126,7 +126,7 @@ struct aboutFile
 {
     char name[30];
     int type;
-    long lines;
+    long size;
 };
 
 struct generalTCP

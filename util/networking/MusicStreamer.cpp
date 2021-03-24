@@ -24,27 +24,10 @@ Music::Music(char* ip) : TCP(ip, PORTTCP_MUSIC)
     _barWidth = _w.ws_col - 16;
 }
 
-bool Music::validate()
-{
-    bool successful = true;
-    if (!tcpConnect())
-    {
-        successful = false;
-        printf("oh no!\n");
-    }
-
-    if (!waitForKey())
-    {
-        successful = false;
-        printf("didn't get key\n");
-    }
-
-    return successful;
-}
-
 void Music::run()
 {
-    validate();
+    if (!validate())
+        printf("oh no!");
 
     struct musicHeader header;
 

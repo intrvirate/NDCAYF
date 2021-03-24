@@ -5,12 +5,14 @@
 class TCP {
     public:
         bool waitForKey();
+        bool validate();
         void sendPTL(int protocol);
         int getFromPoll(bool waitForFill);
         struct generalTCP& getInBuf();
         struct generalTCP& getOutBuf();
         bool tcpConnect();
         TCP(char* ip, int port);
+        virtual void run();
 
     private:
         struct generalTCP makeBasicTCPPack(int ptl);
