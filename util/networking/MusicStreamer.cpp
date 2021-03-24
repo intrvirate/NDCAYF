@@ -155,6 +155,6 @@ void Music::run()
         this_thread::sleep_for(10ms);
     }
 
-    printf("exit\n");
+    printf("Exit\n");
 }
 

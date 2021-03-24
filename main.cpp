@@ -8,6 +8,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <thread>
+#include <future>
 
 #include <btBulletDynamicsCommon.h>
 
@@ -99,12 +101,13 @@ int main()
 
         string song = "NoWay.wav";
 
-        //Music mobj("10.55.6.62");
-        FileUp fobj("10.55.6.62", dir, filename, MAP);
+        //Music fobj("10.55.6.62");
+        //Upload fobj("10.55.6.62", dir, filename, MAP);
+        FileGet fobj("10.55.6.62");
         //fobj.run();
-        thread the_thread(&FileUp::run, fobj);
+        thread athread(&FileGet::run, fobj);
 
-        the_thread.join();
+        athread.join();
 
         exit(-1);
 

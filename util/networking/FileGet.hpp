@@ -12,8 +12,7 @@ class FileGet: public TCP {
         bool getHeader();
         string getDir(int type, char* fileName);
 
-        ofstream theFile;
-        struct aboutFile fileInfo;
+        struct aboutFile _fileInfo;
 
 
 };

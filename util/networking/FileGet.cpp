@@ -15,7 +15,6 @@ using namespace std;
 
 FileGet::FileGet(char* ip) : TCP(ip, PORTTCP_DOWNLOAD)
 {
-    theFile;
 }
 
 string FileGet::getDir(int type, char* fileName)
@@ -46,14 +45,12 @@ bool FileGet::getHeader()
         {
             if (bufIn.protocol == SENDINGFILEHEADER)
             {
-                memcpy(&fileInfo, &bufIn.data, sizeof(struct aboutFile));
-                printf("Name %s\n", fileInfo.name);
-                printf("Type %d\n", fileInfo.type);
-                printf("Size %ld\n", fileInfo.size);
+                memcpy(&_fileInfo, &bufIn.data, sizeof(struct aboutFile));
+                printf("Name %s\n", _fileInfo.name);
+                printf("Type %d\n", _fileInfo.type);
+                printf("Size %ld\n", _fileInfo.size);
 
-                string dir = getDir(fileInfo.type, fileInfo.name);
-                printf("%s\n", dir.c_str());
-                theFile.open(dir);
+                printf("%s\n", getDir(_fileInfo.type, _fileInfo.name).c_str());
 
                 printf("Ready to recieve file\n");
                 gotIt = true;
@@ -72,6 +69,8 @@ void FileGet::run()
 
     if (!getHeader())
         printf("oh no header!\n");
+
+    ofstream theFile(getDir(_fileInfo.type, _fileInfo.name));
 
     struct generalTCP& bufIn = getInBuf();
     int count = 0;

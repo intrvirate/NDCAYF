@@ -6,26 +6,24 @@
 #include <poll.h>
 #include <iostream>
 #include <fstream>
+#include <thread>
 
 using namespace std;
 
 #include "networkConfig.hpp"
-#include "stream.hpp"
-#include "MusicStreamer.hpp"
 #include "TCP.hpp"
 #include "FileUpload.hpp"
 
-FileUp::FileUp(char* ip, string dir, string fileName, int type) : TCP(ip, PORTTCP_UPLOAD)
+Upload::Upload(char* ip, string dir, string fileName, int type) : TCP(ip, PORTTCP_UPLOAD)
 {
     _path = dir + fileName;
-    _theFile.open(_path, ios::binary);
 
     makeHeader(fileName);
 
 }
 
 
-void FileUp::makeHeader(string file)
+void Upload::makeHeader(string file)
 {
     ifstream in_file(_path, ios::binary);
 
@@ -37,10 +35,12 @@ void FileUp::makeHeader(string file)
 }
 
 
-void FileUp::run()
+void Upload::run()
 {
     if (!validate())
         printf("oh no!\n");
+
+    ifstream theFile(_path, ios::binary);
 
     struct generalTCP& bufIn = getInBuf();
     struct generalTCP& bufOut = getOutBuf();
@@ -66,9 +66,9 @@ void FileUp::run()
         {
             if (bufIn.protocol == NEXTLINE)
             {
-                _theFile.read(bufOut.data, sizeof(bufOut.data));
+                theFile.read(bufOut.data, sizeof(bufOut.data));
 
-                charsRead = _theFile.gcount();
+                charsRead = theFile.gcount();
                 count += charsRead;
                 bufOut.numObjects = charsRead;
 
@@ -88,7 +88,7 @@ void FileUp::run()
                     printf("\nSent all %ld byes in", count);
                     printf(" %lu.%06lu seconds \n", diff.tv_sec, diff.tv_usec);
 
-                    _theFile.close();
+                    theFile.close();
                 }
             }
             else if (bufIn.protocol == ENDDOWNLOAD)
@@ -99,6 +99,8 @@ void FileUp::run()
                 sending = false;
             }
         }
+
+        this_thread::sleep_for(10ms);
     }
 
     printf("Exit\n");

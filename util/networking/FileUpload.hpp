@@ -4,14 +4,13 @@
 
 #include "TCP.hpp"
 
-class FileUp: public TCP {
+class Upload: public TCP {
     public:
-        FileUp(char* ip, string dir, string fileName, int type);
+        Upload(char* ip, string dir, string fileName, int type);
         void run();
     private:
         void makeHeader(string file);
 
-        ifstream _theFile;
         struct aboutFile _fileInfo;
         string _path;
 
