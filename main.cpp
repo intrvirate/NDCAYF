@@ -56,8 +56,10 @@
 //#include "util/networking/clientTCP.hpp"
 #include "util/networking/clientTCPOOP.hpp"
 
-#include "util/networking/MusicStreamer.hpp"
 #include "util/networking/TCP.hpp"
+#include "util/networking/MusicStreamer.hpp"
+#include "util/networking/FileGet.hpp"
+#include "util/networking/FileUpload.hpp"
 
 
 #include <AL/al.h>
@@ -80,6 +82,7 @@ int main()
         //makeTCP();
         //tcpConnect("10.55.20.48");
         //tcpMain("10.55.22.125");
+        string dir("obj/objects/");
         string filename("terrain04.obj");
 
         /*
@@ -96,11 +99,12 @@ int main()
 
         string song = "NoWay.wav";
 
-        Music mobj("10.55.6.62");
-        thread musicRunner(&Music::run, mobj);
+        //Music mobj("10.55.6.62");
+        FileUp fobj("10.55.6.62", dir, filename, MAP);
+        //fobj.run();
+        thread the_thread(&FileUp::run, fobj);
 
-
-        musicRunner.join();
+        the_thread.join();
 
         exit(-1);
 

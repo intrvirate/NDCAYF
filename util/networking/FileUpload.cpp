@@ -72,7 +72,7 @@ void FileUp::run()
                 count += charsRead;
                 bufOut.numObjects = charsRead;
 
-                if (charsRead != sizeof(bufOut.data))
+                if (charsRead == sizeof(bufOut.data))
                 {
                     sendPTL(SENDINGFILE);
                 }
