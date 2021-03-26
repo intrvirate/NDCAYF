@@ -35,7 +35,6 @@
 #include "util/object/object.h"
 #include "util/editor/editor.hpp"
 
-#include "util/networking/stream.hpp"
 
 #include "util/bulletDebug/collisiondebugdrawer.hpp"
 #include "BulletCollision/NarrowPhaseCollision/btRaycastCallback.h"
@@ -55,13 +54,11 @@
 #include "util/networking/networkConfig.hpp"
 #include "util/networking/getLan.hpp"
 #include "util/networking/client.hpp"
-//#include "util/networking/clientTCP.hpp"
-#include "util/networking/clientTCPOOP.hpp"
 
-#include "util/networking/TCP.hpp"
-#include "util/networking/MusicStreamer.hpp"
-#include "util/networking/FileGet.hpp"
-#include "util/networking/FileUpload.hpp"
+#include "util/networking/TCP/TCP.hpp"
+#include "util/networking/TCP/MusicStreamer.hpp"
+#include "util/networking/TCP/FileGet.hpp"
+#include "util/networking/TCP/FileUpload.hpp"
 
 
 #include <AL/al.h>
@@ -104,9 +101,9 @@ int main()
         //ofstream theFile("songs/bee.wav");
         //ofstream theFile("songs/bee.wav");
 
-        //Music fobj("10.55.76.19");
-        Upload fobj("10.55.76.19", dir, filename, MAP);
-        //FileGet fobj("10.55.76.19");
+        Music fobj("10.55.76.19");
+        FileUpload fobj1("10.55.76.19", dir, filename, MAP);
+        FileGet fobj2("10.55.76.19");
         //fobj.run();
         thread athread(&TCP::run, fobj);
 

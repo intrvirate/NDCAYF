@@ -13,8 +13,8 @@
 
 using namespace std;
 
-#include "networkConfig.hpp"
-#include "stream.hpp"
+#include "../networkConfig.hpp"
+#include "../MusicPlayer/stream.hpp"
 #include "MusicStreamer.hpp"
 #include "TCP.hpp"
 

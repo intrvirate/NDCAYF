@@ -12,7 +12,7 @@
 #include <bit>
 
 
-#include "networkConfig.hpp"
+#include "../networkConfig.hpp"
 #include "stream.hpp"
 
 

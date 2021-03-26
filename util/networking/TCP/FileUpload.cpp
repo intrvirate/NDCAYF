@@ -10,11 +10,11 @@
 
 using namespace std;
 
-#include "networkConfig.hpp"
+#include "../networkConfig.hpp"
 #include "TCP.hpp"
 #include "FileUpload.hpp"
 
-Upload::Upload(char* ip, string dir, string fileName, int type) : TCP(ip, PORTTCP_UPLOAD)
+FileUpload::FileUpload(char* ip, string dir, string fileName, int type) : TCP(ip, PORTTCP_UPLOAD)
 {
     _path = dir + fileName;
 
@@ -23,7 +23,7 @@ Upload::Upload(char* ip, string dir, string fileName, int type) : TCP(ip, PORTTC
 }
 
 
-void Upload::makeHeader(string file)
+void FileUpload::makeHeader(string file)
 {
     ifstream in_file(_path, ios::binary);
 
@@ -35,7 +35,7 @@ void Upload::makeHeader(string file)
 }
 
 
-void Upload::run()
+void FileUpload::run()
 {
     if (!validate())
         printf("oh no!\n");

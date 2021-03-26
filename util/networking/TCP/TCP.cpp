@@ -8,7 +8,7 @@
 #include <thread>
 
 using namespace std;
-#include "networkConfig.hpp"
+#include "../networkConfig.hpp"
 #include "TCP.hpp"
 
 

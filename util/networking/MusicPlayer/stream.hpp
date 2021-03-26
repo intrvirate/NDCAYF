@@ -5,7 +5,7 @@
 #include <AL/alext.h>
 #include <AL/alut.h>
 #include <fstream>
-#include "networkConfig.hpp"
+#include "../networkConfig.hpp"
 
 class twitchStreamer
 {

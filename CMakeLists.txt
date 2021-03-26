@@ -32,16 +32,21 @@ add_executable(NDCAYF
                 util/networking/getLan.cpp
                 util/networking/client.cpp
                 util/networking/client.hpp
-                util/networking/TCP.cpp
-                util/networking/TCP.hpp
-                util/networking/MusicStreamer.cpp
-                util/networking/MusicStreamer.hpp
-                util/networking/FileGet.cpp
-                util/networking/FileGet.hpp
-                util/networking/FileUpload.cpp
-                util/networking/FileUpload.hpp
-                util/networking/stream.hpp
-                util/networking/stream.cpp
+
+                util/networking/TCP/TCP.cpp
+                util/networking/TCP/TCP.hpp
+
+                util/networking/TCP/MusicStreamer.cpp
+                util/networking/TCP/MusicStreamer.hpp
+
+                util/networking/TCP/FileGet.cpp
+                util/networking/TCP/FileGet.hpp
+
+                util/networking/TCP/FileUpload.cpp
+                util/networking/TCP/FileUpload.hpp
+
+                util/networking/MusicPlayer/stream.hpp
+                util/networking/MusicPlayer/stream.cpp
 
                 util/json.hpp
                 util/loadMenu.cpp

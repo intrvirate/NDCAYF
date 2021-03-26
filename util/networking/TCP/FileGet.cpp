@@ -4,12 +4,11 @@
 #include <sys/ioctl.h>
 #include <poll.h>
 #include <iostream>
+#include <fstream>
 
 using namespace std;
 
-#include "networkConfig.hpp"
-#include "stream.hpp"
-#include "MusicStreamer.hpp"
+#include "../networkConfig.hpp"
 #include "TCP.hpp"
 #include "FileGet.hpp"
 

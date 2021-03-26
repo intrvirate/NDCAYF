@@ -4,9 +4,9 @@
 
 #include "TCP.hpp"
 
-class Upload: public TCP {
+class FileUpload: public TCP {
     public:
-        Upload(char* ip, string dir, string fileName, int type);
+        FileUpload(char* ip, string dir, string fileName, int type);
         void run() override;
     private:
         void makeHeader(string file);
