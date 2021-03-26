@@ -84,8 +84,8 @@ int main()
         //makeTCP();
         //tcpConnect("10.55.20.48");
         //tcpMain("10.55.22.125");
-        string dir("obj/objects/");
-        string filename("terrain04.obj");
+        string dir("songs/");
+        string filename("bee.wav");
 
         /*
         struct server serverList[MAXSERVERS];
@@ -101,11 +101,14 @@ int main()
 
         string song = "NoWay.wav";
 
-        //Music fobj("10.55.6.62");
-        //Upload fobj("10.55.6.62", dir, filename, MAP);
-        FileGet fobj("10.55.6.62");
+        //ofstream theFile("songs/bee.wav");
+        //ofstream theFile("songs/bee.wav");
+
+        //Music fobj("10.55.76.19");
+        Upload fobj("10.55.76.19", dir, filename, MAP);
+        //FileGet fobj("10.55.76.19");
         //fobj.run();
-        thread athread(&FileGet::run, fobj);
+        thread athread(&TCP::run, fobj);
 
         athread.join();
 
