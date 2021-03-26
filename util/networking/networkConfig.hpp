@@ -120,6 +120,7 @@ struct musicHeader
     uint8_t bitsPerSample;
     ALsizei dataSize;
     ALenum format;
+    char name[30];
 };
 
 struct aboutFile
