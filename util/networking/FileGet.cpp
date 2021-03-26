@@ -46,6 +46,7 @@ bool FileGet::getHeader()
             if (bufIn.protocol == SENDINGFILEHEADER)
             {
                 memcpy(&_fileInfo, &bufIn.data, sizeof(struct aboutFile));
+
                 printf("Name %s\n", _fileInfo.name);
                 printf("Type %d\n", _fileInfo.type);
                 printf("Size %ld\n", _fileInfo.size);
@@ -70,7 +71,9 @@ void FileGet::run()
     if (!getHeader())
         printf("oh no header!\n");
 
-    ofstream theFile(getDir(_fileInfo.type, _fileInfo.name));
+    string filepath = getDir(_fileInfo.type, _fileInfo.name);
+    cout << "Saving to: " << filepath.c_str() << endl;
+    ofstream theFile(filepath, ios::binary);
 
     struct generalTCP& bufIn = getInBuf();
     int count = 0;
