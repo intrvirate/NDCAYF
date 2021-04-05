@@ -2,6 +2,7 @@
 #define BROWSER_H
 
 #include <string>
+#include <vector>
 #include "util/imgui/imgui.h"
 
 class Browser {
@@ -37,18 +38,32 @@ class Browser {
          *
          * @return a string representation of the selection from this Browser
          */
-        std::string getSelection() ;
+        std::string getSelection();
 
     private:
+        /**
+         * Gets the files on the current directory and caches them
+         *
+         * @return 0 if successful
+         */
+        int getFiles();
+
         // IMGUI params
         std::string _title;
         ImGuiWindowFlags _window_flags;
-        ImVec2 _window_size;
-
+        ImGuiWindowFlags _file_window_flags;
 
         // State vars
         std::string _current_path;
         bool _has_selected;
+
+        // A cache of the files on this level
+        std::vector<std::string> _files;
+        bool _cached;
+
+        // Magic numbers
+        char delimiter = '/';
+
 };
 
 #endif
