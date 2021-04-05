@@ -72,7 +72,7 @@ using namespace std;
 using namespace glm;
 GLFWwindow* window;
 
-bool test_nw = true;
+bool test_nw = false;
 
 
 int main()
