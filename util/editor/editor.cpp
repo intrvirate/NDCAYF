@@ -18,7 +18,8 @@
 
 #include "util/browser/Browser.hpp"
 
-Browser* test_browser = NULL;
+Browser* save_browser = NULL;
+Browser* open_browser = NULL;
 
 Model *pickedModel = NULL;
 Model *cursoredModel = NULL;
@@ -182,37 +183,41 @@ void drawEditor()
 
     draw3dCursor();
 
-    // TODO, I'm refactoring the file browser
-    if (test_browser == NULL) {
-        test_browser = new Browser();
-    }
-    else {
-        test_browser->draw();
-    }
-
-    /*
     if (needSave)
     {
-        drawBrowser(true, "");
-        if (hasSaved)
+        if (save_browser == NULL)
         {
-            //printf("savepath: %s\n",savePath.c_str());
+            save_browser = new Browser();
+        }
+        save_browser->draw();
+        if (save_browser->hasSelected())
+        {
             needSave = false;
+            std::cout << "savepath: " << save_browser->getSelection() << std::endl;
+            delete save_browser;
+            save_browser = NULL;
         }
     }
+
     if (needOpen)
     {
-        drawBrowser(false, "");
-        if (hasOpened)
+        if (open_browser == NULL)
         {
-            //printf("openpath: %s\n",openPath.c_str());
+            open_browser = new Browser();
+        }
+        open_browser->draw();
+
+        if (open_browser->hasSelected())
+        {
             needOpen = false;
+            std::cout << "openPath: " << save_browser->getSelection() << std::endl;
+            delete open_browser;
+            open_browser = NULL;
         }
     }
-    */
 
 
-    if(showProperties)
+    if (showProperties)
     {
 
         ImGuiWindowFlags window_flags = 0;
@@ -231,17 +236,16 @@ void drawEditor()
         ImGui::SetNextWindowPos(ImVec2(25.0f, 25.0f));
 
         string scrollModeText;
-        switch (scrollMode)
-        {
+        switch (scrollMode) {
             case 1 : scrollModeText = "Translate"; break;
             case 2 : scrollModeText = "Rotate"; break;
             case 3 : scrollModeText = "Scale"; break;
         }
+
         ImGui::Begin("Properties", NULL, window_flags);
         ImGui::PushTextWrapPos(ImGui::GetFontSize() * 20.0f);
 
-        if (pickedModel != NULL)
-        {
+        if (pickedModel != NULL) {
             ImGui::Text("Picked:");
             ImGui::SameLine();
             ImGui::Text("%s",modelName.c_str());
@@ -254,8 +258,8 @@ void drawEditor()
             {
                 ImGui::Text("Is Static");
             }
-        } else if (cursoredModel != NULL)
-        {
+        }
+        else if (cursoredModel != NULL) {
             ImGui::Text("obj:");
             ImGui::SameLine();
             ImGui::Text("%s",cursoredModelName.c_str());
@@ -268,19 +272,15 @@ void drawEditor()
             {
                 ImGui::Text("Is Static");
             }
-        }else{
+        }
+        else {
             //show save/load buttons only when escaped
-            if(ImGui::Button("save world"))
-            {
+            // FIXME: This doesn't work, it shows open/save when pointed at skybox
+            if (ImGui::Button("save world")) {
                 needSave = true;
-                // TODO, am refactoring Browser
-                //hasSaved = false;
             }
-            if(ImGui::Button("open world"))
-            {
+            if (ImGui::Button("open world")) {
                 needOpen = true;
-                // TODO, am refactoring browser
-                // hasOpened = false;
             }
         }
         ImGui::End();
