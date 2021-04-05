@@ -210,7 +210,7 @@ void drawEditor()
         if (open_browser->hasSelected())
         {
             needOpen = false;
-            std::cout << "openPath: " << save_browser->getSelection() << std::endl;
+            std::cout << "openPath: " << open_browser->getSelection() << std::endl;
             delete open_browser;
             open_browser = NULL;
         }
