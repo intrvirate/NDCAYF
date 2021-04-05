@@ -72,43 +72,26 @@ using namespace std;
 using namespace glm;
 GLFWwindow* window;
 
-bool test_nw = false;
+bool testAudio = true;
 
 
 int main()
 {
-    if (test_nw)
+    if (testAudio)
     {
-        //makeTCP();
-        //tcpConnect("10.55.20.48");
-        //tcpMain("10.55.22.125");
-        string dir("songs/");
-        string filename("bee.wav");
+        string mainPath = "util/audio/"
+        string songDir = mainPath + "songs/"
+        string effectDir = mainPath + "effects/"
+        //Music fobj("10.55.76.19");
+        //thread athread(&TCP::run, fobj);
 
-        /*
-        struct server serverList[MAXSERVERS];
+        cout << "do something here!\n";
 
-        if (makeSocket() < 0)
-        {
-            perror("Failed to get socket");
-        }
+        cout << mainPath << endl;
+        cout << songDir << endl;
+        cout << effectDir << endl;
 
-        printf("Loading network\n");
-        getAllServers(serverList);
-        */
-
-        string song = "NoWay.wav";
-
-        //ofstream theFile("songs/bee.wav");
-        //ofstream theFile("songs/bee.wav");
-
-        Music fobj("10.55.76.19");
-        FileUpload fobj1("10.55.76.19", dir, filename, MAP);
-        FileGet fobj2("10.55.76.19");
-        //fobj.run();
-        thread athread(&TCP::run, fobj);
-
-        athread.join();
+        //athread.join();
 
         exit(-1);
 
