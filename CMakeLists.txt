@@ -54,8 +54,8 @@ add_executable(NDCAYF
                 util/collisionMaskClasses.hpp
                 util/editor/editor.cpp
                 util/editor/editor.hpp
-                util/browser/browser.cpp
-                util/browser/browser.hpp
+                util/browser/Browser.cpp
+                util/browser/Browser.hpp
                 util/render/skybox.cpp
                 util/render/skybox.hpp
                 util/render/startupConsole.cpp

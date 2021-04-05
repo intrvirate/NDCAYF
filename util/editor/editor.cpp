@@ -16,7 +16,7 @@
 #include "util/object/object.h"
 #include "util/handleinput.hpp"
 
-#include "util/browser/browser.hpp"
+#include "util/browser/Browser.hpp"
 
 Model *pickedModel = NULL;
 Model *cursoredModel = NULL;
