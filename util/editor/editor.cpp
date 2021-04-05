@@ -18,6 +18,8 @@
 
 #include "util/browser/Browser.hpp"
 
+Browser* test_browser = NULL;
+
 Model *pickedModel = NULL;
 Model *cursoredModel = NULL;
 btVector3 p;
@@ -63,6 +65,7 @@ void editorTranslateY(int direction)
 
     }
 }
+
 void editorRotateY(int direction)
 {
     if (pickedModel != NULL)
@@ -103,16 +106,11 @@ void draw3dCursor()
     cameraPos.y+cameraFront.y*100, cameraPos.z+cameraFront.z*100);
 
     btVector3 blue(0.1, 0.3, 0.9);
-fprintf(stderr, "1");
     //at origin
     dynamicsWorld->getDebugDrawer()->drawSphere(btVector3(0,0,0), 0.5, blue);
-    fprintf(stderr, "2");
     btCollisionWorld::ClosestRayResultCallback closestResults(from, to);
-    fprintf(stderr, "3");
     closestResults.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
-    fprintf(stderr, "4");
     closestResults.m_collisionFilterGroup = COL_SELECTER;
-    fprintf(stderr, "5");
     closestResults.m_collisionFilterMask = COL_SELECT_RAY_COLLIDES_WITH;
 
     dynamicsWorld->rayTest(from, to, closestResults);
@@ -184,12 +182,21 @@ void drawEditor()
 
     draw3dCursor();
 
+    // TODO, I'm refactoring the file browser
+    if (test_browser == NULL) {
+        test_browser = new Browser();
+    }
+    else {
+        test_browser->draw();
+    }
+
+    /*
     if (needSave)
     {
         drawBrowser(true, "");
         if (hasSaved)
         {
-            printf("savepath: %s\n",savePath.c_str());
+            //printf("savepath: %s\n",savePath.c_str());
             needSave = false;
         }
     }
@@ -198,10 +205,11 @@ void drawEditor()
         drawBrowser(false, "");
         if (hasOpened)
         {
-            printf("openpath: %s\n",openPath.c_str());
+            //printf("openpath: %s\n",openPath.c_str());
             needOpen = false;
         }
     }
+    */
 
 
     if(showProperties)
@@ -265,12 +273,14 @@ void drawEditor()
             if(ImGui::Button("save world"))
             {
                 needSave = true;
-                hasSaved = false;
+                // TODO, am refactoring Browser
+                //hasSaved = false;
             }
             if(ImGui::Button("open world"))
             {
                 needOpen = true;
-                hasOpened = false;
+                // TODO, am refactoring browser
+                // hasOpened = false;
             }
         }
         ImGui::End();

@@ -1,6 +1,9 @@
 #ifndef BROWSER_H
 #define BROWSER_H
 
+#include <string>
+#include "util/imgui/imgui.h"
+
 class Browser {
     public:
         /**
@@ -27,18 +30,25 @@ class Browser {
         /**
          * Draws this Browser on the screen
          */
-        void draw() const;
+        void draw();
 
         /**
-         * Returns the path selected by this browser
+         * Returns a copy of the path selected by this browser
          *
          * @return a string representation of the selection from this Browser
          */
-        std::string getSelection() const;
+        std::string getSelection() ;
 
     private:
-        std::string _currentPath;
-        bool _hasSelected;
+        // IMGUI params
+        std::string _title;
+        ImGuiWindowFlags _window_flags;
+        ImVec2 _window_size;
+
+
+        // State vars
+        std::string _current_path;
+        bool _has_selected;
 };
 
 #endif
