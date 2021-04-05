@@ -275,9 +275,11 @@ glm::vec3 calcCameraMovement(GLFWwindow* window){
     if(!mouseVisable){
         // store keys
         char key[] = "asdf";
-        char temp[100];
 
+        if (getConnection())
+        {
             //printf("before move[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
+        }
 
 
         glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraFront));
@@ -286,41 +288,61 @@ glm::vec3 calcCameraMovement(GLFWwindow* window){
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         {
             cameraPos += cameraSpeed * cameraFront;
-            //printf(" w ");
-            //keys.append(UNI_FD);
+            if (getConnection())
+            {
+                //printf(" w ");
+                //printf("[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
+            }
         }
 
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         {
             cameraPos -= cameraSpeed * cameraFront;
-            //printf(" s ");
-            //keys.append(UNI_BK);
+            if (getConnection())
+            {
+                //printf(" s ");
+                //printf("[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
+            }
         }
 
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         {
             cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-            //printf(" a ");
-            //keys.append(UNI_LT);
+            if (getConnection())
+            {
+                //printf(" a ");//is bad
+                //printf("[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
+            }
         }
 
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         {
             cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-            //printf(" d ");
-            //keys.append(UNI_RT);
+            if (getConnection())
+            {
+                //printf(" d ");//bad
+                //printf("[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
+            }
         }
 
         if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
         {
             cameraPos += cameraSpeed * cameraUp;
-            //printf(" sp ");
+            if (getConnection())
+            {
+                //printf(" sp ");
+                //printf("[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
+            }
         }
 
         if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
         {
             cameraPos -= cameraSpeed * cameraUp;
-            //printf(" ls ");
+            if (getConnection())
+            {
+                //printf(" ls ");//asdf
+                //printf("[%.3f,%.3f,%.3f]", cameraPos.x, cameraPos.y, cameraPos.z);
+            }
         }
 
         // TODO: Fix the issue where it freaks out and clears the screen

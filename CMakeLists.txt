@@ -2,9 +2,16 @@
 
 cmake_minimum_required(VERSION 3.5)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(OpenGL_GL_PREFERENCE GLVND) #GLVND
+
+set(CMAKE_THREAD_LIBS_INIT "-lpthread")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+set(CMAKE_HAVE_THREADS_LIBRARY 1)
+set(CMAKE_USE_WIN32_THREADS_INIT 0)
+set(CMAKE_USE_PTHREADS_INIT 1)
+set(THREADS_PREFER_PTHREAD_FLAG ON)
 
 project(NDCAYF LANGUAGES CXX)
 
@@ -14,14 +21,33 @@ find_package(GLEW REQUIRED)
 find_package(assimp REQUIRED)
 find_package(Bullet REQUIRED)
 
+find_package(OpenAL REQUIRED)
+
 
 add_executable(NDCAYF
                 main.cpp
                 main.hpp
+
                 util/networking/getLan.hpp
                 util/networking/getLan.cpp
                 util/networking/client.cpp
                 util/networking/client.hpp
+
+                util/networking/TCP/TCP.cpp
+                util/networking/TCP/TCP.hpp
+
+                util/networking/TCP/MusicStreamer.cpp
+                util/networking/TCP/MusicStreamer.hpp
+
+                util/networking/TCP/FileGet.cpp
+                util/networking/TCP/FileGet.hpp
+
+                util/networking/TCP/FileUpload.cpp
+                util/networking/TCP/FileUpload.hpp
+
+                util/networking/MusicPlayer/stream.hpp
+                util/networking/MusicPlayer/stream.cpp
+
                 util/json.hpp
                 util/loadMenu.cpp
                 util/loadMenu.hpp
@@ -63,7 +89,8 @@ add_executable(NDCAYF
                 util/object/object_gl.cpp
                 util/object/object_gl.h
 
-#IMGUI files. There is certainly a better way to do this than listing them *all* here, but it works.
+# IMGUI files. There is certainly a better way to do this than listing them
+# *all* here, but it works.
                 util/imgui/imgui.h
                 util/imgui/imgui.cpp
                 util/imgui/imconfig.h
@@ -99,5 +126,8 @@ target_link_libraries(NDCAYF ${BULLET_LIBRARIES})
 target_include_directories(NDCAYF PRIVATE
                           "${PROJECT_BINARY_DIR}"
                           "${PROJECT_SOURCE_DIR}/util"
-                          "${PROJECT_SOURCE_DIR}/networking"
                           )
+
+
+target_include_directories(NDCAYF PUBLIC ${OpenAL_INCLUDE_DIR})
+target_link_libraries(NDCAYF ${OPENAL_LIBRARY})
