@@ -34,8 +34,20 @@ float yRotateIncrement = 0.261799387799;
 
 float scaleIncrement = 0.01;
 
-bool needSave = true;
-bool needOpen = true;
+bool needSave = false;
+bool needOpen = false;
+
+//clears pickedModel and cursoredModel.
+//ueed when the engine switches worlds,
+//causing these pointers to become invalid.
+void clearEditorPointers(){
+    pickedModel = NULL;
+    cursoredModel = NULL;
+    needSave = false;
+    needOpen = false;
+    modelName = "";
+    cursoredModelName = "";
+}
 
 void editorTranslateY(int direction)
 {
@@ -91,15 +103,20 @@ void draw3dCursor()
     cameraPos.y+cameraFront.y*100, cameraPos.z+cameraFront.z*100);
 
     btVector3 blue(0.1, 0.3, 0.9);
-
+fprintf(stderr, "1");
     //at origin
     dynamicsWorld->getDebugDrawer()->drawSphere(btVector3(0,0,0), 0.5, blue);
+    fprintf(stderr, "2");
     btCollisionWorld::ClosestRayResultCallback closestResults(from, to);
+    fprintf(stderr, "3");
     closestResults.m_flags |= btTriangleRaycastCallback::kF_FilterBackfaces;
+    fprintf(stderr, "4");
     closestResults.m_collisionFilterGroup = COL_SELECTER;
+    fprintf(stderr, "5");
     closestResults.m_collisionFilterMask = COL_SELECT_RAY_COLLIDES_WITH;
 
     dynamicsWorld->rayTest(from, to, closestResults);
+
     if (closestResults.hasHit() && !isMouseVisable())
     {
         cursoredModel = ((Model *)closestResults.m_collisionObject->\
@@ -197,14 +214,13 @@ void drawEditor()
 
         if (pickedModel != NULL || cursoredModel != NULL)
         {
-            windowSize = ImVec2(ImGui::GetFontSize() * 20.0f, 90);
+            windowSize = ImVec2(ImGui::GetFontSize() * 15.0f, 90);
         } else
         {
-            windowSize = ImVec2(ImGui::GetFontSize() * 20.0f, 0);
+            windowSize = ImVec2(ImGui::GetFontSize() * 15.0f, 0);
         }
         ImGui::SetNextWindowSize(windowSize);
-        ImVec2 windowPos = ImVec2(25.0f, 25.0f);
-        ImGui::SetNextWindowPos(windowPos);
+        ImGui::SetNextWindowPos(ImVec2(25.0f, 25.0f));
 
         string scrollModeText;
         switch (scrollMode)
@@ -220,8 +236,8 @@ void drawEditor()
         {
             ImGui::Text("Picked:");
             ImGui::SameLine();
-            ImGui::Text(modelName.c_str());
-            ImGui::Text(scrollModeText.c_str());
+            ImGui::Text("%s",modelName.c_str());
+            ImGui::Text("%s",scrollModeText.c_str());
 
             if (modelDynamic)
             {
@@ -232,10 +248,10 @@ void drawEditor()
             }
         } else if (cursoredModel != NULL)
         {
-            ImGui::Text("Cursored:");
+            ImGui::Text("obj:");
             ImGui::SameLine();
-            ImGui::Text(cursoredModelName.c_str());
-            ImGui::Text(scrollModeText.c_str());
+            ImGui::Text("%s",cursoredModelName.c_str());
+            ImGui::Text("%s",scrollModeText.c_str());
 
             if (cursoredModelDynamic)
             {
@@ -243,6 +259,18 @@ void drawEditor()
             } else
             {
                 ImGui::Text("Is Static");
+            }
+        }else{
+            //show save/load buttons only when escaped
+            if(ImGui::Button("save world"))
+            {
+                needSave = true;
+                hasSaved = false;
+            }
+            if(ImGui::Button("open world"))
+            {
+                needOpen = true;
+                hasOpened = false;
             }
         }
         ImGui::End();

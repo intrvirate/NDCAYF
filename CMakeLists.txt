@@ -84,6 +84,10 @@ add_executable(NDCAYF
                 util/editor/browser.hpp
                 util/render/skybox.cpp
                 util/render/skybox.hpp
+                util/render/startupConsole.cpp
+                util/render/startupConsole.hpp
+                util/object/object_gl.cpp
+                util/object/object_gl.h
 
 # IMGUI files. There is certainly a better way to do this than listing them
 # *all* here, but it works.

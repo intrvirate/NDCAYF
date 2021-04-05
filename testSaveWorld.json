@@ -7,8 +7,8 @@
          "inerta": 0.0,
          "isInstanced": false,
          "mass": 0.0,
-         "meshCountHint": 1,
-         "path": "obj/objects/Sidewinder.obj",
+         "meshCountHint": 6,
+         "path": "obj/objects/gunV2.obj",
          "pos": [
             0.0,
             -20.0,
@@ -16,8 +16,19 @@
          ],
          "primitiveType": "",
          "rotatingfriction": 0.699999988079071,
-         "scale": 3.0,
+         "rotquat": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+         ],
+         "scale": 1.0,
          "shaders": [
+            "generic",
+            "generic",
+            "generic",
+            "generic",
+            "generic",
             "generic"
          ],
          "useSinglePrimitive": false
@@ -32,12 +43,18 @@
          "meshCountHint": 3,
          "path": "obj/objects/player_BLUE.obj",
          "pos": [
-            4.0,
-            4.0,
-            4.0
+            0.800000011920929,
+            0.800000011920929,
+            0.800000011920929
          ],
          "primitiveType": "hull",
          "rotatingfriction": 0.699999988079071,
+         "rotquat": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+         ],
          "scale": 0.20000000298023224,
          "shaders": [
             "generic",
@@ -56,12 +73,18 @@
          "meshCountHint": 3,
          "path": "obj/objects/player_ORNG.obj",
          "pos": [
-            6.0,
-            4.0,
-            4.0
+            1.2000000476837158,
+            0.800000011920929,
+            0.800000011920929
          ],
          "primitiveType": "hull",
          "rotatingfriction": 0.699999988079071,
+         "rotquat": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+         ],
          "scale": 0.20000000298023224,
          "shaders": [
             "generic",
@@ -80,12 +103,18 @@
          "meshCountHint": 3,
          "path": "obj/objects/player_GREN.obj",
          "pos": [
-            8.0,
-            4.0,
-            4.0
+            1.600000023841858,
+            0.800000011920929,
+            0.800000011920929
          ],
          "primitiveType": "hull",
          "rotatingfriction": 0.699999988079071,
+         "rotquat": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+         ],
          "scale": 0.20000000298023224,
          "shaders": [
             "generic",
@@ -101,17 +130,26 @@
          "inerta": 0.0,
          "isInstanced": false,
          "mass": 0.0,
-         "meshCountHint": 3,
+         "meshCountHint": 6,
          "path": "obj/objects/player_PINK.obj",
          "pos": [
-            10.0,
-            4.0,
-            4.0
+            2.0,
+            0.800000011920929,
+            0.800000011920929
          ],
          "primitiveType": "hull",
          "rotatingfriction": 0.699999988079071,
+         "rotquat": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+         ],
          "scale": 0.20000000298023224,
          "shaders": [
+            "generic",
+            "generic",
+            "generic",
             "generic",
             "generic",
             "generic"
@@ -128,13 +166,19 @@
          "meshCountHint": 2,
          "path": "obj/objects/Tree03.obj",
          "pos": [
-            -13.589637756347656,
-            -17.721242904663086,
-            25.66695785522461
+            1.5,
+            2.0,
+            1.0
          ],
          "primitiveType": "hull",
          "rotatingfriction": 0.699999988079071,
-         "scale": 1.6299989223480225,
+         "rotquat": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+         ],
+         "scale": 0.5,
          "shaders": [
             "generic",
             "generic"
@@ -151,12 +195,18 @@
          "meshCountHint": 1,
          "path": "obj/objects/arch.obj",
          "pos": [
-            7.0,
-            4.0,
-            2.0
+            3.5,
+            2.0,
+            1.0
          ],
          "primitiveType": "hull",
          "rotatingfriction": 0.699999988079071,
+         "rotquat": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+         ],
          "scale": 0.5,
          "shaders": [
             "generic"
@@ -173,14 +223,20 @@
          "meshCountHint": 1,
          "path": "obj/objects/plannets/moon.obj",
          "pos": [
-            7.0927324295043945,
-            19.257347106933594,
-            1.9722495079040527
+            1.0,
+            1.0,
+            2.0
          ],
-         "primitiveSize": 5.710036277770996,
+         "primitiveSize": 1.0,
          "primitiveType": "sphere",
          "rotatingfriction": 0.10000000149011612,
-         "scale": 5.710036277770996,
+         "rotquat": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+         ],
+         "scale": 1.0,
          "shaders": [
             "generic"
          ],

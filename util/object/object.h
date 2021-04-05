@@ -13,11 +13,13 @@
 #include <assimp/postprocess.h>
 #include "util/bulletDebug/collisiondebugdrawer.hpp"
 #include "collisionMaskClasses.hpp"
+#include "util/json.hpp"
 
 extern btDiscreteDynamicsWorld* dynamicsWorld;
 extern BulletDebugDrawer_OpenGL debugDraw;
 
 using namespace std;
+using json = nlohmann::json;
 
 struct Model;   //needed because of circular references
 struct Shader;  //and yes, I don't care that this is bad practice. Performace < Style
@@ -35,11 +37,18 @@ struct Texture {
     unsigned int heightID;
 };
 
+
 struct TextureLookup{//linkes each Id to it's path; used to prevent duplicate texture loading
     unsigned int id;
     string path;
 
 };
+
+//need to be extern because object_gl directly uses these
+extern vector<Shader>  top_shader;          //top level render tree
+extern vector<Model*>   top_model;          //top level model tree
+extern vector<TextureLookup> top_texture;   //top level texture tree
+extern json modelJson;
 
 /*
  * Top level render tree; vector of shaders, which each have a vector of meshes
@@ -154,13 +163,14 @@ struct Model {
 //=================================function prototypes==================================
 
 void loadModels(string jsonPath); //loads models from a json file
+void unloadModels();
+void clearWorldPointers();
 collisionMasks getCollisionGroupByString(string str);
 collisionGroups getCollisionMaskByString(string str);
 void processMesh(Mesh *mesh, aiMesh *impMesh, const aiScene *assimpModel, string directory);
-int saveJson(string jsonPath);
+void saveJson(string jsonPath);
 unsigned int findTextureID(const char* path);
 unsigned int TextureFromFile(const char *path, const string &directory);
-void drawObjects();
 void InitializePhysicsWorld();
 void RunStepSimulation();
 
@@ -179,8 +189,13 @@ void makeDynamic(Model* model);
 void updateModelRotation(Model* model, glm::quat rotation);
 void updateRelativeModelRotation(Model* model, glm::quat rotation);
 void updateRelativeModelRotation(Model* model, glm::vec3 rotation);
+glm::vec3 getPos(Model* model);
+glm::vec3 getPosInstanced(Model* model, int instance);
+glm::vec3 getScale(Model* model);
+glm::vec3 getScaleInstanced(Model* model, int instance);
+glm::quat getRot(Model* model);
+glm::quat getRotInstanced(Model* model, int instance);
 void updateScale(Model* model, glm::vec3 scale);
 void updateRelativeScale(Model* model, glm::vec3 scale);
-void syncMeshMatrices(Model* model);
 
 #endif // OBJECT_H

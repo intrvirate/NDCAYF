@@ -16,7 +16,7 @@
     ],
     "models": [
         {
-            "path": "obj/objects/gunV1.obj",
+            "path": "obj/objects/gunV2.obj",
             "shaders": ["generic","generic","generic","generic","generic","generic"],
             "hasPhysics": true,
             "collisionType": "player",
