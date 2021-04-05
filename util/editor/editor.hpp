@@ -17,7 +17,7 @@
 #include "util/json.hpp"
 
 #include "util/object/object.h"
-#include "util/editor/browser.hpp"
+#include "util/browser/browser.hpp"
 
 void clearEditorPointers();
 void editorTranslateY(int direction);
