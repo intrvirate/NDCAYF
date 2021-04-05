@@ -5,6 +5,9 @@
 #include <AL/alc.h>
 #include <AL/alext.h>
 #include <AL/alut.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/ip.h>
 
 /*
  * store all network constants here,
@@ -72,7 +75,11 @@
 
 struct ifa {
     char name[128];
-    char ip[128];
+    struct in_addr ip;
+    struct in_addr broadcast;
+    struct in_addr subnet;
+    bool isWifi;
+    bool isLo;
 };
 
 struct move
@@ -105,7 +112,7 @@ struct infoStruct
 };
 
 struct server {
-    char routes[5][100];
+    ifa routes[5];
     int numRoutes;
     char name[128];
     bool hasLo;
