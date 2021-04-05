@@ -405,9 +405,9 @@ int main()
             ImGui::NewFrame();
 
             //Properties edit window
-fprintf(stderr, "got to drawEditor");
+//fprintf(stderr, "got to drawEditor");
             drawEditor();
-fprintf(stderr, "got past drawEditor");
+//fprintf(stderr, "got past drawEditor");
             drawObjects();
             debugDraw.draw();
             renderSkybox();
