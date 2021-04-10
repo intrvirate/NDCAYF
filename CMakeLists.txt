@@ -24,113 +24,76 @@ find_package(Bullet REQUIRED)
 find_package(OpenAL REQUIRED)
 
 add_custom_target(run
-    COMMAND ./NDCAYF
+    COMMAND ${PROJECT_BINARY_DIR}/${PROJECT_NAME}
     USES_TERMINAL
     )
 
-add_executable(NDCAYF
-                main.cpp
-                main.hpp
 
-                util/networking/getLan.hpp
-                util/networking/getLan.cpp
-                util/networking/client.cpp
-                util/networking/client.hpp
+set(SOURCES
+    main.cpp
+    util/browser/Browser.cpp
+    util/bulletDebug/collisiondebugdrawer.cpp
+    util/editor/editor.cpp
+    util/globalStateHandlers.cpp
+    util/groundGridGeneration.cpp
+    util/handleinput.cpp
+    util/loadMenu.cpp
+    util/loadMenu.hpp
+    util/loadShaders.cpp
+    util/networking/MusicPlayer/stream.cpp
+    util/networking/TCP/FileGet.cpp
+    util/networking/TCP/FileUpload.cpp
+    util/networking/TCP/MusicStreamer.cpp
+    util/networking/TCP/TCP.cpp
+    util/networking/client.cpp
+    util/networking/getLan.cpp
+    util/object/object.cpp
+    util/object/object_gl.cpp
+    util/otherhandlers.cpp
+    util/render/render2D.cpp
+    util/render/render3D.cpp
+    util/render/skybox.cpp
+    util/render/startupConsole.cpp
+    )
 
-                util/networking/TCP/TCP.cpp
-                util/networking/TCP/TCP.hpp
+set(IMGUI_SOURCES
+    util/imgui/imgui.cpp
+    util/imgui/imgui_widgets.cpp
+    util/imgui/imgui_draw.cpp
+    util/imgui/imgui_impl_glfw.cpp
+    util/imgui/imgui_impl_opengl3.cpp
+    )
 
-                util/networking/TCP/MusicStreamer.cpp
-                util/networking/TCP/MusicStreamer.hpp
 
-                util/networking/TCP/FileGet.cpp
-                util/networking/TCP/FileGet.hpp
+add_executable(${PROJECT_NAME} ${SOURCES} ${IMGUI_SOURCES})
 
-                util/networking/TCP/FileUpload.cpp
-                util/networking/TCP/FileUpload.hpp
+target_link_libraries(${PROJECT_NAME} glfw)
 
-                util/networking/MusicPlayer/stream.hpp
-                util/networking/MusicPlayer/stream.cpp
+target_include_directories(${PROJECT_NAME} PUBLIC ${ASSIMP_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} ${ASSIMP_LIBRARIES})
 
-                util/json.hpp
-                util/loadMenu.cpp
-                util/loadMenu.hpp
-                util/loadShaders.hpp
-                util/loadShaders.cpp
-                util/handleinput.hpp
-                util/handleinput.cpp
-                util/otherhandlers.hpp
-                util/otherhandlers.cpp
-                util/vertexGrid.hpp
-                util/render/render3D.hpp
-                util/render/render3D.cpp
-                util/render/render2D.hpp
-                util/render/render2D.cpp
-                util/stb_image.h
-                util/globalStateHandlers.hpp
-                util/globalStateHandlers.cpp
-                #util/object/model.cpp
-                util/object/model.hpp
-                #util/object/mesh.cpp
-                util/object/mesh.hpp
-                #util/object/shader.cpp
-                util/object/shader.hpp
-                util/groundGridGeneration.cpp
-                util/groundGridGeneration.hpp
-                util/bulletDebug/collisiondebugdrawer.cpp
-                util/bulletDebug/collisiondebugdrawer.hpp
-                util/object/object.cpp
-                util/object/object.h
-                util/collisionMaskClasses.hpp
-                util/editor/editor.cpp
-                util/editor/editor.hpp
-                util/browser/Browser.cpp
-                util/browser/Browser.hpp
-                util/render/skybox.cpp
-                util/render/skybox.hpp
-                util/render/startupConsole.cpp
-                util/render/startupConsole.hpp
-                util/object/object_gl.cpp
-                util/object/object_gl.h
+target_include_directories(${PROJECT_NAME} PUBLIC ${OPENGL_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES})
 
-# IMGUI files. There is certainly a better way to do this than listing them
-# *all* here, but it works.
-                util/imgui/imgui.h
-                util/imgui/imgui.cpp
-                util/imgui/imconfig.h
-                util/imgui/imgui_demo.cpp
-                util/imgui/imgui_widgets.cpp
-                util/imgui/imstb_textedit.h
-                util/imgui/imgui_draw.cpp
-                util/imgui/imgui_internal.h
-                util/imgui/imstb_rectpack.h
-                util/imgui/imstb_truetype.h
-                util/imgui/imgui_impl_glfw.h
-                util/imgui/imgui_impl_glfw.cpp
-                util/imgui/imgui_impl_opengl3.h
-                util/imgui/imgui_impl_opengl3.cpp
+target_include_directories(${PROJECT_NAME} PUBLIC ${GLEW_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} ${GLEW_LIBRARIES})
 
-)
-
-target_link_libraries(NDCAYF glfw)
-
-target_include_directories(NDCAYF PUBLIC ${ASSIMP_INCLUDE_DIRS})
-target_link_libraries(NDCAYF ${ASSIMP_LIBRARIES})
-
-target_include_directories(NDCAYF PUBLIC ${OPENGL_INCLUDE_DIRS})
-target_link_libraries(NDCAYF ${OPENGL_LIBRARIES})
-
-target_include_directories(NDCAYF PUBLIC ${GLEW_INCLUDE_DIRS})
-target_link_libraries(NDCAYF ${GLEW_LIBRARIES})
-
-target_include_directories(NDCAYF PUBLIC ${BULLET_INCLUDE_DIRS})
-target_link_libraries(NDCAYF ${BULLET_LIBRARIES})
+target_include_directories(${PROJECT_NAME} PUBLIC ${BULLET_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} ${BULLET_LIBRARIES})
 
 
 target_include_directories(NDCAYF PRIVATE
-                          "${PROJECT_BINARY_DIR}"
-                          "${PROJECT_SOURCE_DIR}/util"
-                          )
+    "${PROJECT_BINARY_DIR}"
+    "${PROJECT_SOURCE_DIR}/util"
+    "${CMAKE_SOURCE_DIR}/util/browser"
+    "${CMAKE_SOURCE_DIR}/util/bulletDebug"
+    "${CMAKE_SOURCE_DIR}/util/editor"
+    "${CMAKE_SOURCE_DIR}/util/imgui"
+    "${CMAKE_SOURCE_DIR}/util/networking"
+    "${CMAKE_SOURCE_DIR}/util/object"
+    "${CMAKE_SOURCE_DIR}/util/render"
+    "${CMAKE_SOURCE_DIR}"
+    )
 
 
 target_include_directories(NDCAYF PUBLIC ${OpenAL_INCLUDE_DIR})
