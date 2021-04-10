@@ -39,6 +39,22 @@ Lightweight first person shooter focused on multiplayer LAN-based gameplay, and 
 4. Run `make`
 5. Run `./NDCAYF`
 
+### Documentation:
+
+What little there is can be found in
+[docs](https://github.com/intrvirate/NDCAYF/tree/master/docs)
+in manpage format.
+
+To integrate this with your linux install, simply make the following
+`~/.manpath` file:
+
+```
+MANDATORY_MANPATH path/to/NDCAYF/docs
+```
+
+This tells `man` where to find our docs so that you don't need to specify the
+entire path every time.
+
 ## Windows Installation:
 1. [Our more detailed, recommended method](https://wiki.artixlinux.org/Main/Installation)
 
