@@ -23,6 +23,10 @@ find_package(Bullet REQUIRED)
 
 find_package(OpenAL REQUIRED)
 
+add_custom_target(run
+    COMMAND ./NDCAYF
+    USES_TERMINAL
+    )
 
 add_executable(NDCAYF
                 main.cpp
