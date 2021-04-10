@@ -1,0 +1,43 @@
+.TH printMessage 3 2021-04-09 "" "NDCAYF"
+
+.SH NAME
+printMessage - formatted output to in-game console
+
+.SH SYNOPSIS
+
+.nf
+.PP
+
+.B #include \(dqutil/render/startupConsole.hpp\(dq
+
+.B "enum messageType {"
+.B "   ERROR,"
+.B "   WARNING,"
+.B "   SUCCESS, "
+.B "   NONE, "
+.B "   STATUS, "
+.B "   FATALERROR"
+.B "};
+
+.BI "void printFormatedString(message " message ");"
+
+.BI "void printMessage(string " messageString ", "
+.BI "                 const char* " str ","
+.BI "                 messageType " type ");"
+
+.BI "void printMessage(string " messageString ", 
+.BI "                 const char* " str ", "
+.BI "                 const char* " str2 ", "
+.BI "                 messageType " type ");"
+
+.BI "void printMessage(string " messageString ", "
+.BI "                 messageType " type ");"
+
+.SH DESCRIPTION
+
+The functions in the printMessage family send output to the console displayed
+at the startup of NDCAYF. Specifying a
+.B messageType
+will change the output style, and specifically the 
+.B FATALERROR
+type will cause the program to hang so that one can inspect the error message.
